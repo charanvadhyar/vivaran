@@ -14,7 +14,6 @@ export function Earn() {
       <div className={styles.rates}>
         <div className={styles.rate}><b>₹50</b><span>per 1,000 YouTube views</span></div>
         <div className={styles.rate}><b>₹500</b><span>bonus when a video passes 10,000 views</span></div>
-        <div className={styles.rate}><b>₹1,000</b><span>the most one video earns; paid out monthly once your balance reaches ₹500</span></div>
       </div>
     </div>
   );
