@@ -1,0 +1,8 @@
+.list { display: flex; gap: var(--space-1); border-bottom: 1px solid var(--border-subtle); margin-bottom: var(--space-4); }
+.tab {
+  height: 36px; padding: 0 var(--space-3); border: 0; background: none; color: var(--fg-muted);
+  font-size: var(--text-sm); font-weight: 550; cursor: pointer; position: relative; border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+.tab:hover { color: var(--fg-default); background: var(--bg-raised); }
+.tab[aria-selected="true"] { color: var(--fg-default); }
+.tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--accent); }

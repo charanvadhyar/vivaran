@@ -1,0 +1,98 @@
+/* Vivaran design tokens.
+   Two layers, in the Wonder Blocks manner: primitives (raw values, never
+   used in components) and semantic tokens (what a colour or size is FOR).
+   Components use semantic tokens only. Light is the canonical theme: paper, ink and one amber accent, like a good
+   textbook; dark is a complete alternate switched by data-theme. */
+
+:root {
+  /* ---- primitives ---- */
+  --slate-0: #0b0e14;  --slate-1: #0f131b;  --slate-2: #151a25;  --slate-3: #1c2230;
+  --slate-4: #242c3c;  --slate-5: #2f3849;  --slate-6: #3b4559;  --slate-7: #56617a;
+  --slate-8: #7e879a;  --slate-9: #aab2c2;  --slate-10: #d6dae3; --slate-11: #eef0f4; --slate-12: #ffffff;
+  --amber-4: #d89a2a;  --amber-5: #f2b03d;  --amber-6: #f7c66b;  --amber-ink: #1c1405;
+  --green-5: #6fd39a;  --green-ink: #0b2416;
+  --red-5: #ff8f82;    --red-ink: #2a0d09;
+  --blue-5: #7fb4ff;   --blue-ink: #06162e;
+
+  /* ---- semantic: colour (light is canonical: paper, ink, one amber accent) ---- */
+  --bg-canvas: #faf9f6;          /* the page: warm paper, not pure white */
+  --bg-surface: #ffffff;         /* cards, panels, inputs */
+  --bg-raised: #f1efe9;          /* hover, nested surfaces */
+  --bg-strong: #1a1b1f;          /* knockout surfaces: selected chip, dark bubbles */
+  --bg-overlay: rgba(26, 27, 31, 0.45);
+  --bg-ruled: transparent;
+
+  --fg-default: #1a1b1f;
+  --fg-muted: #4f5563;
+  --fg-subtle: #7b8191;
+  --fg-knockout: #ffffff;
+  --fg-link: #9a5b00;
+
+  --border-subtle: #e9e6de;
+  --border-default: #d9d5ca;
+  --border-strong: #bfb9a9;
+
+  --accent: #b45309;             /* amber, deep enough to read on paper (AA on white) */
+  --accent-hover: #9a4607;
+  --accent-ink: #ffffff;
+  --accent-wash: #fdf1dc;
+  --accent-border: #f0c98a;
+  --accent-mark: #f2b03d;        /* the bright amber from the videos, for the highlighter stroke */
+
+  --positive: #1f7a46;  --positive-ink: #ffffff;
+  --negative: #b3372c;  --negative-ink: #ffffff;
+  --info: #2456c7;      --info-ink: #ffffff;
+
+  --focus-ring: 0 0 0 2px var(--bg-canvas), 0 0 0 4px var(--accent);
+
+  /* ---- semantic: shape, space, type, motion ---- */
+  --radius-sm: 6px; --radius-md: 9px; --radius-lg: 12px; --radius-xl: 16px; --radius-pill: 999px;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px;
+
+  --font-sans: var(--font-geist-sans, "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif),
+    "Noto Sans Telugu", "Noto Sans Devanagari", "Nirmala UI", sans-serif;
+  /* Headings in a book serif: the textbook, not the terminal. All of these ship with the OS. */
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Noto Serif", serif,
+    "Noto Sans Telugu", "Noto Sans Devanagari";
+  --font-mono: var(--font-geist-mono, ui-monospace, "Cascadia Code", Consolas, monospace);
+
+  --text-xs: 0.75rem;  --text-sm: 0.875rem; --text-md: 1rem;    --text-lg: 1.125rem;
+  --text-xl: 1.375rem; --text-2xl: 1.75rem; --text-3xl: 2.25rem; --text-4xl: 2.75rem;
+  --leading-tight: 1.2; --leading-snug: 1.35; --leading-normal: 1.6;
+  --tracking-tight: -0.02em; --tracking-snug: -0.01em; --tracking-caps: 0.06em;
+
+  --shadow-sm: 0 1px 2px rgba(26, 27, 31, 0.06), 0 1px 1px rgba(26, 27, 31, 0.04);
+  --shadow-md: 0 8px 30px rgba(26, 27, 31, 0.10);
+  --shadow-lg: 0 24px 60px rgba(26, 27, 31, 0.16);
+
+  --motion-fast: 120ms ease;
+  --motion-base: 180ms cubic-bezier(0.2, 0, 0, 1);
+  --motion-slow: 320ms cubic-bezier(0.2, 0, 0, 1);
+
+  --page-width: 1120px;
+  --gutter: 20px;
+  --control-h: 38px;
+  --control-h-sm: 30px;
+  --control-h-lg: 46px;
+
+  color-scheme: light;
+}
+
+/* The dark alternate, for people who read at night. Same semantics. */
+:root[data-theme="dark"] {
+  --bg-canvas: var(--slate-1); --bg-surface: var(--slate-2); --bg-raised: var(--slate-3); --bg-strong: var(--slate-11);
+  --bg-overlay: rgba(5, 7, 11, 0.7); --bg-ruled: transparent;
+  --fg-default: var(--slate-11); --fg-muted: var(--slate-9); --fg-subtle: var(--slate-8); --fg-knockout: var(--slate-1); --fg-link: var(--blue-5);
+  --border-subtle: var(--slate-4); --border-default: var(--slate-5); --border-strong: var(--slate-6);
+  --accent: var(--amber-5); --accent-hover: var(--amber-6); --accent-ink: var(--amber-ink);
+  --accent-wash: rgba(242, 176, 61, 0.12); --accent-border: rgba(242, 176, 61, 0.35); --accent-mark: var(--amber-5);
+  --positive: var(--green-5); --positive-ink: var(--green-ink); --negative: var(--red-5); --negative-ink: var(--red-ink); --info: var(--blue-5); --info-ink: var(--blue-ink);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3); --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.35); --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion-fast: 0ms; --motion-base: 0ms; --motion-slow: 0ms; }
+}

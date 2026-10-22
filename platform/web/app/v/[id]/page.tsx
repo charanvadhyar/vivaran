@@ -1,0 +1,62 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { deleteVideo, setPublic } from "../../actions";
+import { Container } from "@/components/layout/Container";
+import { Badge } from "@/components/ui/Badge";
+import { Player } from "@/components/video/Player";
+import { PublishPanel } from "@/components/video/PublishPanel";
+import { RenderStatus } from "@/components/video/RenderStatus";
+import { StepsPanel } from "@/components/video/StepsPanel";
+import { currentUser } from "@/lib/auth";
+import { subjectName } from "@/lib/brand";
+import { db } from "@/lib/db";
+import { LANGUAGES, minutes, videoById } from "@/lib/videos";
+import styles from "./page.module.css";
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const video = await videoById((await params).id);
+  return { title: video?.is_public ? video.title : "Video" };
+}
+
+export default async function Watch({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const [video, viewer] = await Promise.all([videoById(id), currentUser()]);
+  if (!video) notFound();
+  const own = viewer?.id === video.user_id;
+  // A private video does not exist as far as anyone else can tell.
+  if (!own && !(video.is_public && video.status === "done")) notFound();
+  if (!own) await db.query("update videos set views = views + 1 where id = $1", [id]);
+
+  let at = 0;
+  const parts = (video.outline ?? []).map((part) => {
+    const start = at;
+    at += part.seconds;
+    const text = part.opens_with.length >= 120 ? `${part.opens_with}…` : part.opens_with;
+    return { at: start, label: minutes(start) || "0:00", text };
+  });
+
+  return (
+    <Container main>
+      <div className={styles.watch}>
+        <div className={styles.main}>
+          {video.status === "done"
+            ? <Player src={`/api/videos/${id}/file`} poster={`/api/videos/${id}/thumb`} />
+            : <RenderStatus id={id} initial={{ state: video.status, progress: video.progress, error: video.error }} />}
+          <h1 className={styles.title}>{video.title}</h1>
+          <p className={styles.meta}>
+            <Link href={`/u/${video.creator_handle}`} className={styles.creator}>{video.creator_name}</Link>
+            {subjectName(video.subject) ? <Link href={`/explore?subject=${video.subject}`}><Badge>{subjectName(video.subject)}</Badge></Link> : null}
+            <span>{LANGUAGES[video.language] ?? video.language}</span>
+            {video.seconds ? <span>{minutes(video.seconds)}</span> : null}
+            <span>{video.voiced ? `Voice: ${video.speaker}` : "Silent, with captions"}</span>
+            {video.is_public ? <span>{video.views} {video.views === 1 ? "view" : "views"}</span> : null}
+          </p>
+          {own && video.status === "done" ? <PublishPanel video={video} setPublic={setPublic} deleteVideo={deleteVideo} /> : null}
+        </div>
+        {parts.length && video.status === "done" ? <aside><StepsPanel parts={parts} /></aside> : null}
+      </div>
+    </Container>
+  );
+}

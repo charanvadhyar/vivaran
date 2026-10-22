@@ -1,0 +1,9 @@
+.iconButton {
+  display: inline-grid; place-items: center; width: var(--control-h); height: var(--control-h);
+  border-radius: var(--radius-md); border: 1px solid transparent; background: transparent; color: var(--fg-muted);
+  cursor: pointer; transition: background var(--motion-fast), color var(--motion-fast);
+}
+.iconButton:hover { background: var(--bg-raised); color: var(--fg-default); }
+.outlined { border-color: var(--border-strong); background: var(--bg-surface); }
+.sm { width: var(--control-h-sm); height: var(--control-h-sm); border-radius: var(--radius-sm); }
+.iconButton:disabled { opacity: 0.5; cursor: not-allowed; }

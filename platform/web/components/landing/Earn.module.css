@@ -1,0 +1,8 @@
+.earn { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--space-8); align-items: start; }
+.points { display: grid; gap: var(--space-3); color: var(--fg-muted); }
+.points strong { color: var(--fg-default); }
+.rates { display: grid; gap: var(--space-3); }
+.rate { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); }
+.rate b { font-size: var(--text-xl); color: var(--accent); font-variant-numeric: tabular-nums; }
+.rate span { color: var(--fg-muted); font-size: var(--text-sm); text-align: right; }
+@media (max-width: 900px) { .earn { grid-template-columns: 1fr; } }

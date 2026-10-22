@@ -1,0 +1,5 @@
+.section { margin-top: var(--space-10); }
+.first { margin-top: 0; }
+.head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); }
+.aside { color: var(--fg-muted); font-size: var(--text-sm); display: inline-flex; align-items: center; gap: var(--space-1); }
+.aside:hover { color: var(--fg-default); }

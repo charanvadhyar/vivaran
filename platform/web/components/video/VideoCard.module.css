@@ -1,0 +1,16 @@
+.card { display: block; color: inherit; }
+.thumb {
+  position: relative; aspect-ratio: 16 / 9; border-radius: var(--radius-md); overflow: hidden;
+  border: 1px solid var(--border-subtle); background: #10131c; display: grid; place-items: center;
+  color: var(--fg-subtle); font-size: var(--text-sm); transition: border-color var(--motion-fast), transform var(--motion-fast);
+}
+.card:hover .thumb { border-color: var(--accent); transform: translateY(-2px); }
+.card:focus-visible { box-shadow: none; }
+.card:focus-visible .thumb { box-shadow: var(--focus-ring); }
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.tag { position: absolute; bottom: 7px; background: rgba(8, 10, 15, 0.82); color: #fff; font-size: var(--text-xs); padding: 1px 7px; border-radius: 5px; }
+.length { right: 7px; }
+.lang { left: 7px; }
+.title { font-weight: 600; margin: var(--space-2) 0 2px; line-height: var(--leading-snug); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.meta { color: var(--fg-muted); font-size: var(--text-sm); display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
+.sub { color: var(--fg-subtle); }

@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "title": "Networks: TCP three-way handshake",
+  "canvas": { "theme": "light" },
+  "objects": [
+    { "id": "heading", "type": "text", "region": "title", "text": "TCP three-way handshake" },
+    { "id": "tcp", "type": "timeline", "region": "center",
+      "lanes": ["Client", "Server"], "end": 7, "unit": "time" },
+    { "id": "note", "type": "text", "region": "bottom", "text": "Both sides now agree on each other's starting sequence numbers." }
+  ],
+  "scenes": [
+    { "id": "handshake",
+      "steps": [
+        { "say": { "en": "A TCP connection starts with three messages." },
+          "do": [ { "action": "write", "target": "heading" }, { "action": "show", "target": "tcp" } ] },
+        { "say": { "en": "The client sends a SYN carrying its starting sequence number." },
+          "do": [ { "action": "add_message", "target": "tcp", "id": "syn", "from": "Client", "to": "Server", "at": 1, "arrive": 2, "label": "SYN, seq = x" } ] },
+        { "say": { "en": "The server answers with its own number and acknowledges the client's." },
+          "do": [ { "action": "add_message", "target": "tcp", "id": "synack", "from": "Server", "to": "Client", "at": 2.5, "arrive": 3.5, "label": "SYN-ACK, seq = y, ack = x + 1" } ] },
+        { "say": { "en": "The client acknowledges that, and the connection is open in both directions." },
+          "do": [ { "action": "add_message", "target": "tcp", "id": "ack", "from": "Client", "to": "Server", "at": 4, "arrive": 5, "label": "ACK, ack = y + 1" },
+                  { "action": "add_block", "target": "tcp", "id": "up_c", "lane": "Client", "start": 4, "end": 7, "label": "ESTABLISHED", "delay": 0.4 },
+                  { "action": "add_block", "target": "tcp", "id": "up_s", "lane": "Server", "start": 5, "end": 7, "label": "ESTABLISHED", "delay": 0.7 },
+                  { "action": "show", "target": "note", "delay": 0.7 } ] }
+      ] }
+  ]
+}

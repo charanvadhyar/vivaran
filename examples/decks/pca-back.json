@@ -1,0 +1,15 @@
+[
+  {
+    "heading": "Where PCA falls short",
+    "points": [
+      "Only straight lines: it finds linear combinations of the features. Data that curves, such as points on a circle, has no good axis to project onto. Kernel PCA or an autoencoder is needed for that.",
+      "Variance is not importance: it keeps the directions with the most spread, which need not be the ones that separate the classes. A small-variance direction can carry the label.",
+      "Scale decides the answer: a feature measured in large units dominates the covariance matrix. Standardise the features first, or the result reflects the units, not the data.",
+      "Outliers pull the axes: one far-away point can swing a component, because variance squares distances.",
+      "The components have no names: a principal component is a mix of every feature, so the result is harder to explain than the original columns.",
+      "It assumes a centre and a spread: for data that is not roughly Gaussian, variance is a weak summary, and the eigenvalues can mislead about what was lost."
+    ],
+    "callout": { "big": "75%", "small": "kept here, but in two dimensions. With hundreds of features, judging how many components to keep is itself a decision" },
+    "notes": "PCA is linear, driven by variance, sensitive to scale and outliers, and its components are not interpretable. Standardise first, check a scree plot, and remember that the direction with the most spread is not always the direction that matters."
+  }
+]

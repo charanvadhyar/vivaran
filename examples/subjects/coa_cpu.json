@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "title": "COA: the fetch step",
+  "objects": [
+    { "id": "heading", "type": "text", "region": "title", "text": "Fetch: getting the next instruction" },
+    { "id": "cpu", "type": "diagram", "region": "center", "layout": "grid",
+      "nodes": [
+        { "id": "pc", "label": "PC", "at": [0, 0] },
+        { "id": "mar", "label": "MAR", "at": [1, 0] },
+        { "id": "mem", "label": "Memory", "at": [3, 0] },
+        { "id": "cu", "label": "Control unit", "at": [0, 1] },
+        { "id": "ir", "label": "IR", "at": [1, 1] },
+        { "id": "mdr", "label": "MDR", "at": [2, 1] },
+        { "id": "alu", "label": "ALU", "at": [0, 2] },
+        { "id": "acc", "label": "ACC", "at": [1, 2] }
+      ],
+      "edges": [
+        { "from": "pc", "to": "mar", "label": "address" },
+        { "from": "mar", "to": "mem", "label": "address bus" },
+        { "from": "mem", "to": "mdr", "label": "data bus" },
+        { "from": "mdr", "to": "ir" },
+        { "from": "ir", "to": "cu", "label": "opcode" },
+        { "from": "alu", "to": "acc" }
+      ],
+      "groups": [ { "label": "CPU", "nodes": ["pc", "mar", "cu", "ir", "mdr", "alu", "acc"] } ] },
+    { "id": "note", "type": "text", "region": "bottom", "text": "MAR ← PC,  MDR ← Memory[MAR],  IR ← MDR" }
+  ],
+  "scenes": [
+    { "id": "fetch",
+      "steps": [
+        { "say": { "en": "These are the registers that take part in fetching an instruction." },
+          "do": [ { "action": "write", "target": "heading" }, { "action": "show", "target": "cpu" } ] },
+        { "say": { "en": "First the program counter is copied into the memory address register." },
+          "do": [ { "action": "mark", "target": "cpu.pc" }, { "action": "mark", "target": "cpu.pc->mar" },
+                  { "action": "show", "target": "note" } ] },
+        { "say": { "en": "Memory returns the instruction over the data bus into the data register." },
+          "do": [ { "action": "mark", "target": "cpu.mar" }, { "action": "mark", "target": "cpu.mar->mem" },
+                  { "action": "highlight", "target": "cpu.mem" }, { "action": "highlight", "target": "cpu.mem->mdr" },
+                  { "action": "dim", "target": "cpu.alu" }, { "action": "dim", "target": "cpu.acc" },
+                  { "action": "dim", "target": "cpu.alu->acc" } ] }
+      ] }
+  ]
+}

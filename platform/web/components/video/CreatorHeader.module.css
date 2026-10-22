@@ -1,0 +1,4 @@
+.head { display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-6); }
+.text { display: grid; gap: 2px; }
+.text h1 { font-size: var(--text-2xl); }
+.meta { color: var(--fg-muted); font-size: var(--text-sm); }

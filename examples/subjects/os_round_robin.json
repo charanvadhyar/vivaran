@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "title": "OS: round-robin scheduling",
+  "objects": [
+    { "id": "heading", "type": "text", "region": "title", "text": "Round robin, time quantum 2 ms" },
+    { "id": "jobs", "type": "table", "region": "center",
+      "columns": ["process", "burst", "remaining"],
+      "rows": [ ["P1", 5, 5], ["P2", 3, 3], ["P3", 1, 1] ] },
+    { "id": "cpu", "type": "timeline", "region": "center",
+      "lanes": ["P1", "P2", "P3"], "end": 9, "unit": "time (ms)", "now": 0 },
+    { "id": "note", "type": "text", "region": "bottom", "text": "Each process runs for at most 2 ms, then goes to the back of the queue." }
+  ],
+  "scenes": [
+    { "id": "first-round",
+      "steps": [
+        { "say": { "en": "Three processes are ready, and each may run for two milliseconds at a time." },
+          "do": [ { "action": "write", "target": "heading" }, { "action": "show", "target": "jobs" },
+                  { "action": "show", "target": "cpu" }, { "action": "show", "target": "note" } ] },
+        { "say": { "en": "P1 runs first and uses its whole quantum." },
+          "do": [ { "action": "add_block", "target": "cpu", "id": "a", "lane": "P1", "start": 0, "end": 2, "label": "P1" },
+                  { "action": "advance", "target": "cpu", "to": 2 },
+                  { "action": "highlight", "target": "jobs[0]" },
+                  { "action": "set", "target": "jobs[0][2]", "value": 3, "delay": 0.5 } ] },
+        { "say": { "en": "Then P2 gets its two milliseconds." },
+          "do": [ { "action": "add_block", "target": "cpu", "id": "b", "lane": "P2", "start": 2, "end": 4, "label": "P2" },
+                  { "action": "advance", "target": "cpu", "to": 4 },
+                  { "action": "highlight", "target": "jobs[1]" },
+                  { "action": "set", "target": "jobs[1][2]", "value": 1, "delay": 0.5 } ] },
+        { "say": { "en": "P3 needs only one millisecond, so it finishes early." },
+          "do": [ { "action": "add_block", "target": "cpu", "id": "c", "lane": "P3", "start": 4, "end": 5, "label": "P3" },
+                  { "action": "advance", "target": "cpu", "to": 5 },
+                  { "action": "set", "target": "jobs[2][2]", "value": 0, "delay": 0.5 },
+                  { "action": "mark", "target": "jobs[2]", "delay": 0.6 } ] }
+      ] },
+    { "id": "second-round",
+      "steps": [
+        { "say": { "en": "The queue wraps around, and the remaining work finishes at nine milliseconds." },
+          "do": [ { "action": "add_block", "target": "cpu", "id": "d", "lane": "P1", "start": 5, "end": 7, "label": "P1" },
+                  { "action": "add_block", "target": "cpu", "id": "e", "lane": "P2", "start": 7, "end": 8, "label": "P2", "delay": 0.3 },
+                  { "action": "add_block", "target": "cpu", "id": "f", "lane": "P1", "start": 8, "end": 9, "label": "P1", "delay": 0.6 },
+                  { "action": "advance", "target": "cpu", "to": 9 },
+                  { "action": "set", "target": "jobs[0][2]", "value": 0, "delay": 0.8 },
+                  { "action": "set", "target": "jobs[1][2]", "value": 0, "delay": 0.7 },
+                  { "action": "mark", "target": "jobs[0..3]", "delay": 0.9 } ] }
+      ] }
+  ]
+}

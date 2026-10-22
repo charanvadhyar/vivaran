@@ -1,0 +1,5 @@
+.bar { height: 6px; border-radius: 3px; background: var(--border-subtle); overflow: hidden; }
+.fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width var(--motion-slow); }
+.busy { width: 40%; animation: slide 1.4s ease-in-out infinite; }
+@keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+.label { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--fg-muted); margin-bottom: var(--space-1); }

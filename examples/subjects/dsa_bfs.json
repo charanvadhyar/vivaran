@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "title": "DSA: breadth-first search on a tree",
+  "objects": [
+    { "id": "heading", "type": "text", "region": "title", "text": "Breadth-first search" },
+    { "id": "tree", "type": "diagram", "region": "left", "layout": "tree", "shape": "circle", "directed": false,
+      "nodes": [ { "id": "8" }, { "id": "3" }, { "id": "10" }, { "id": "1" }, { "id": "6" }, { "id": "14" }, { "id": "4" }, { "id": "7" } ],
+      "edges": [
+        { "from": "8", "to": "3" }, { "from": "8", "to": "10" }, { "from": "3", "to": "1" }, { "from": "3", "to": "6" },
+        { "from": "10", "to": "14" }, { "from": "6", "to": "4" }, { "from": "6", "to": "7" }
+      ] },
+    { "id": "queue", "type": "array", "region": "right", "values": [1, 6, 14] },
+    { "id": "front", "type": "pointer", "label": "front", "target": "queue[0]" },
+    { "id": "cur", "type": "pointer", "label": "current", "target": "tree.10" },
+    { "id": "note", "type": "text", "region": "bottom", "text": "Visited: 8, 3, 10" }
+  ],
+  "scenes": [
+    { "id": "walk",
+      "steps": [
+        { "say": { "en": "Breadth-first search visits a tree level by level, using a queue." },
+          "do": [ { "action": "write", "target": "heading" }, { "action": "show", "target": "tree" },
+                  { "action": "show", "target": "queue" }, { "action": "show", "target": "front" } ] },
+        { "say": { "en": "Eight, three and ten are done, and their children wait in the queue." },
+          "do": [ { "action": "mark", "target": "tree.8" }, { "action": "mark", "target": "tree.3" },
+                  { "action": "mark", "target": "tree.8->3" }, { "action": "mark", "target": "tree.8->10" },
+                  { "action": "highlight", "target": "tree.10" }, { "action": "show", "target": "cur" },
+                  { "action": "show", "target": "note" }, { "action": "highlight", "target": "queue[0]" } ] }
+      ] }
+  ]
+}

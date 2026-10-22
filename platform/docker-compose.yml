@@ -1,0 +1,15 @@
+# Optional: Postgres in Docker, if you do not want to install it.
+#   docker compose up -d
+# Then use DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/cevg
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cevg
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - cevg-db:/var/lib/postgresql/data
+volumes:
+  cevg-db:

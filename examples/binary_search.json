@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "title": "Binary search",
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "theme": "dark"
+  },
+  "objects": [
+    {
+      "id": "heading",
+      "type": "text",
+      "region": "title",
+      "text": "Binary search"
+    },
+    {
+      "id": "arr",
+      "type": "array",
+      "region": "center",
+      "values": [
+        2,
+        5,
+        8,
+        12,
+        16,
+        23,
+        38
+      ]
+    },
+    {
+      "id": "lo",
+      "type": "pointer",
+      "label": "lo",
+      "target": "arr[0]"
+    },
+    {
+      "id": "hi",
+      "type": "pointer",
+      "label": "hi",
+      "target": "arr[6]"
+    },
+    {
+      "id": "mid",
+      "type": "pointer",
+      "label": "mid",
+      "target": "arr[3]"
+    },
+    {
+      "id": "note",
+      "type": "text",
+      "region": "bottom",
+      "text": "Found 23 at index 5"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "setup",
+      "steps": [
+        {
+          "say": {
+            "en": "We are looking for 23 in this sorted array.",
+            "hi": "इस sorted array में हम 23 को search कर रहे हैं।",
+            "te": "ఈ sorted array లో మనం 23 ను search చేస్తున్నాం."
+          },
+          "do": [
+            {
+              "action": "write",
+              "target": "heading"
+            },
+            {
+              "action": "show",
+              "target": "arr",
+              "delay": 0.2
+            }
+          ]
+        },
+        {
+          "say": {
+            "en": "Two pointers, lo and hi, mark the part we still have to search.",
+            "hi": "lo और hi, ये two pointers उस part को mark करते हैं जहाँ हमें अभी search करना है।",
+            "te": "lo, hi అనే two pointers, మనం ఇంకా search చేయాల్సిన part ను mark చేస్తాయి."
+          },
+          "do": [
+            {
+              "action": "show",
+              "target": "lo"
+            },
+            {
+              "action": "show",
+              "target": "hi",
+              "delay": 0.3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "first-check",
+      "steps": [
+        {
+          "say": {
+            "en": "Look at the middle element, which is 12.",
+            "hi": "Middle element को देखिए, वह 12 है।",
+            "te": "Middle element ను చూడండి, అది 12."
+          },
+          "do": [
+            {
+              "action": "show",
+              "target": "mid"
+            },
+            {
+              "action": "highlight",
+              "target": "arr[3]"
+            }
+          ]
+        },
+        {
+          "say": {
+            "en": "12 is smaller than 23, so the left half cannot hold the answer.",
+            "hi": "12, 23 से smaller है, इसलिए answer left half में नहीं हो सकता।",
+            "te": "12 అనేది 23 కంటే smaller, కాబట్టి answer left half లో ఉండదు."
+          },
+          "do": [
+            {
+              "action": "dim",
+              "target": "arr[0..=3]"
+            },
+            {
+              "action": "point",
+              "target": "lo",
+              "to": "arr[4]",
+              "delay": 0.5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "second-check",
+      "steps": [
+        {
+          "say": {
+            "en": "The new middle sits at index 5.",
+            "hi": "New middle अब index 5 पर है।",
+            "te": "New middle ఇప్పుడు index 5 దగ్గర ఉంది."
+          },
+          "do": [
+            {
+              "action": "point",
+              "target": "mid",
+              "to": "arr[5]"
+            },
+            {
+              "action": "highlight",
+              "target": "arr[5]",
+              "delay": 0.5
+            }
+          ]
+        },
+        {
+          "say": {
+            "en": "That is 23, the value we wanted, found in only two checks.",
+            "hi": "वह 23 है, वही value जो हमें चाहिए थी। Only two checks में found हो गई।",
+            "te": "అది 23, మనకు కావాల్సిన value. Only two checks లోనే found అయ్యింది."
+          },
+          "do": [
+            {
+              "action": "show",
+              "target": "note"
+            }
+          ]
+        },
+        {
+          "say": {
+            "en": "Each check halves what is left, so binary search needs about log n steps.",
+            "hi": "हर check में remaining part half हो जाता है, इसलिए binary search को about log n steps ही लगते हैं।",
+            "te": "ప్రతి check తో remaining part half అవుతుంది, కాబట్టి binary search కు about log n steps చాలు."
+          },
+          "do": [
+            {
+              "action": "replace",
+              "target": "note",
+              "text": "About log n checks"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "title": "ML: reading a loss curve",
+  "objects": [
+    { "id": "heading", "type": "text", "region": "title", "text": "When to stop training" },
+    { "id": "loss", "type": "plot", "region": "center",
+      "x": { "label": "epoch", "min": 0, "max": 10 },
+      "y": { "label": "loss", "min": 0, "max": 1 },
+      "curves": [
+        { "id": "train", "label": "training", "visible": false,
+          "points": [[0,0.95],[1,0.7],[2,0.52],[3,0.4],[4,0.31],[5,0.24],[6,0.19],[7,0.15],[8,0.12],[9,0.1],[10,0.08]] },
+        { "id": "val", "label": "validation", "visible": false,
+          "points": [[0,0.97],[1,0.75],[2,0.6],[3,0.5],[4,0.44],[5,0.41],[6,0.42],[7,0.45],[8,0.5],[9,0.56],[10,0.63]] }
+      ] },
+    { "id": "note", "type": "text", "region": "bottom", "text": "After epoch 5 the model is memorising, not learning." }
+  ],
+  "scenes": [
+    { "id": "read",
+      "steps": [
+        { "say": { "en": "Training loss keeps falling for as long as we train." },
+          "do": [ { "action": "write", "target": "heading" }, { "action": "show", "target": "loss" },
+                  { "action": "trace", "target": "loss.train" } ] },
+        { "say": { "en": "Validation loss falls at first, then turns upward." },
+          "do": [ { "action": "trace", "target": "loss.val" } ] },
+        { "say": { "en": "That turning point, around epoch five, is where to stop." },
+          "do": [ { "action": "add_point", "target": "loss", "id": "best", "at": [5, 0.41], "label": "stop here" },
+                  { "action": "highlight", "target": "loss.val" }, { "action": "show", "target": "note", "delay": 0.5 } ] }
+      ] }
+  ]
+}

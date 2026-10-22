@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "title": "OS: process states",
+  "objects": [
+    { "id": "heading", "type": "text", "region": "title", "text": "Life of a process" },
+    { "id": "life", "type": "diagram", "region": "center", "layout": "ring", "shape": "pill",
+      "nodes": [
+        { "id": "new", "label": "New" }, { "id": "ready", "label": "Ready" },
+        { "id": "running", "label": "Running" }, { "id": "done", "label": "Terminated" },
+        { "id": "waiting", "label": "Waiting" }
+      ],
+      "edges": [
+        { "from": "new", "to": "ready", "label": "admit" },
+        { "from": "ready", "to": "running", "label": "dispatch" },
+        { "from": "running", "to": "ready", "label": "interrupt" },
+        { "from": "running", "to": "done", "label": "exit" },
+        { "from": "running", "to": "waiting", "label": "I/O request" },
+        { "from": "waiting", "to": "ready", "label": "I/O done" }
+      ] },
+    { "id": "now", "type": "pointer", "label": "P1", "target": "life.running" }
+  ],
+  "scenes": [
+    { "id": "cycle",
+      "steps": [
+        { "say": { "en": "A process moves between five states." },
+          "do": [ { "action": "write", "target": "heading" }, { "action": "show", "target": "life" } ] },
+        { "say": { "en": "Process one is running, and a timer interrupt sends it back to ready." },
+          "do": [ { "action": "show", "target": "now" }, { "action": "highlight", "target": "life.running" },
+                  { "action": "highlight", "target": "life.running->ready" }, { "action": "mark", "target": "life.new" } ] }
+      ] }
+  ]
+}

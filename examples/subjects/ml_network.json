@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "title": "ML: forward pass of a small network",
+  "objects": [
+    { "id": "heading", "type": "text", "region": "title", "text": "Forward pass" },
+    { "id": "net", "type": "diagram", "region": "left", "layout": "layers", "shape": "circle",
+      "nodes": [
+        { "id": "x1", "label": "x₁" }, { "id": "x2", "label": "x₂" },
+        { "id": "h1", "label": "h₁" }, { "id": "h2", "label": "h₂" }, { "id": "h3", "label": "h₃" },
+        { "id": "y", "label": "ŷ" }
+      ],
+      "edges": [
+        { "from": "x1", "to": "h1" }, { "from": "x1", "to": "h2" }, { "from": "x1", "to": "h3" },
+        { "from": "x2", "to": "h1" }, { "from": "x2", "to": "h2" }, { "from": "x2", "to": "h3" },
+        { "from": "h1", "to": "y" }, { "from": "h2", "to": "y" }, { "from": "h3", "to": "y" }
+      ],
+      "groups": [
+        { "label": "input", "nodes": ["x1", "x2"] },
+        { "label": "hidden", "nodes": ["h1", "h2", "h3"] },
+        { "label": "output", "nodes": ["y"] }
+      ] },
+    { "id": "eq", "type": "math", "region": "right",
+      "lines": [
+        "bold(h) = \"ReLU\"(W_1 bold(x) + bold(b)_1)",
+        "hat(y) = sigma(bold(w)_2^top bold(h) + b_2)",
+        "sigma(z) = 1 / (1 + e^(-z))"
+      ] },
+    { "id": "note", "type": "text", "region": "bottom", "text": "Each hidden unit is a weighted sum followed by ReLU." }
+  ],
+  "scenes": [
+    { "id": "forward",
+      "steps": [
+        { "say": { "en": "This network has two inputs, three hidden units and one output." },
+          "do": [ { "action": "write", "target": "heading" }, { "action": "show", "target": "net" } ] },
+        { "say": { "en": "The inputs are already known, so we mark them." },
+          "do": [ { "action": "mark", "target": "net.x1" }, { "action": "mark", "target": "net.x2" } ] },
+        { "say": { "en": "Each hidden unit takes a weighted sum of the inputs and applies ReLU." },
+          "do": [ { "action": "show", "target": "eq" }, { "action": "highlight", "target": "eq[0]" },
+                  { "action": "highlight", "target": "net.h2" },
+                  { "action": "mark", "target": "net.x1->h2" }, { "action": "mark", "target": "net.x2->h2" },
+                  { "action": "show", "target": "note" } ] },
+        { "say": { "en": "The output unit combines the hidden values and squashes them with a sigmoid." },
+          "do": [ { "action": "reveal", "target": "eq[2]" }, { "action": "highlight", "target": "eq[1]" },
+                  { "action": "highlight", "target": "net.y" } ] }
+      ] }
+  ]
+}

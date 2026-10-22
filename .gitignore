@@ -1,0 +1,26 @@
+# Rust
+/target/
+# Node
+node_modules/
+.next/
+next-env.d.ts
+tsconfig.tsbuildinfo
+# Settings with secrets: copy platform/.env.example to platform/.env instead
+platform/.env
+.env
+.env.*
+!.env.example
+# Rendered videos and voice cache
+platform/storage/
+.cevg-cache/
+*.wav
+narrated.mp4
+# Python
+__pycache__/
+*.pyc
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+examples/videos/

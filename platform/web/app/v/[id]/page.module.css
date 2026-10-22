@@ -1,0 +1,6 @@
+.watch { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: var(--space-6); align-items: start; }
+.main { display: grid; gap: var(--space-4); }
+.title { font-size: clamp(var(--text-xl), 3vw, var(--text-2xl)); margin-top: var(--space-1); }
+.meta { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; color: var(--fg-muted); font-size: var(--text-sm); margin-top: calc(-1 * var(--space-2)); }
+.creator { color: var(--fg-default); font-weight: 600; }
+@media (max-width: 900px) { .watch { grid-template-columns: 1fr; } }

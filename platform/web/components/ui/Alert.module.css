@@ -1,0 +1,6 @@
+.alert { display: flex; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); border: 1px solid; }
+.alert svg { flex: none; margin-top: 3px; }
+.note { background: var(--accent-wash); border-color: var(--accent-border); color: color-mix(in srgb, var(--accent) 70%, var(--fg-default)); }
+.info { background: color-mix(in srgb, var(--info) 10%, transparent); border-color: color-mix(in srgb, var(--info) 35%, transparent); color: var(--fg-default); }
+.danger { background: color-mix(in srgb, var(--negative) 10%, transparent); border-color: color-mix(in srgb, var(--negative) 40%, transparent); color: var(--fg-default); }
+.danger svg { color: var(--negative); }

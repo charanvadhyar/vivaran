@@ -1,0 +1,7 @@
+.panel { padding: 0; overflow: hidden; }
+.head { padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--border-subtle); font-size: var(--text-md); }
+.list { list-style: none; margin: 0; padding: var(--space-2); max-height: 520px; overflow-y: auto; }
+.item { width: 100%; text-align: left; border: 0; background: none; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); display: grid; grid-template-columns: 44px 1fr; gap: var(--space-2); align-items: start; color: var(--fg-muted); font-size: var(--text-sm); line-height: var(--leading-snug); cursor: pointer; }
+.item:hover { background: var(--bg-raised); color: var(--fg-default); }
+.when { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--accent); padding-top: 2px; }
+@media (max-width: 900px) { .list { max-height: none; } }

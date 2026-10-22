@@ -1,0 +1,15 @@
+.demo { border: 1px solid var(--border-default); border-radius: var(--radius-xl); background: var(--bg-surface); overflow: hidden; box-shadow: var(--shadow-md); }
+.bar { display: flex; align-items: center; gap: var(--space-2); padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); font-size: var(--text-xs); color: var(--fg-subtle); font-family: var(--font-mono); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border-strong); }
+.chat { padding: var(--space-4); display: grid; gap: var(--space-3); }
+.bubble { max-width: 92%; padding: 10px 14px; border-radius: 14px; font-size: var(--text-sm); line-height: 1.5; }
+.user { justify-self: end; background: var(--bg-strong); color: var(--fg-knockout); border-bottom-right-radius: 4px; }
+.bot { background: var(--bg-raised); color: var(--fg-default); border-bottom-left-radius: 4px; }
+.bot ol { margin: 6px 0 0; padding-left: 1.2em; color: var(--fg-muted); }
+.bot ol li { margin: 2px 0; }
+.tool { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-subtle); display: flex; gap: 8px; align-items: center; padding-left: 4px; }
+.tool .ok { color: var(--positive); }
+.player { margin: 0 var(--space-4) var(--space-4); border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-subtle); }
+.player video, .player img { width: 100%; aspect-ratio: 16 / 9; display: block; background: #10131c; object-fit: cover; }
+.caption { display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border-subtle); font-size: var(--text-sm); color: var(--fg-muted); }
+.caption a { color: var(--fg-default); font-weight: 600; }

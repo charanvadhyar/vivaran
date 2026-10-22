@@ -1,0 +1,25 @@
+[
+  {
+    "heading": "What is principal component analysis?",
+    "lead": "A way to describe data with fewer features than it was collected with, by finding the directions in which it spreads the most and keeping only those.",
+    "points": [
+      "The problem: real data has many related features. Height and weight, or marks in maths and physics, move together, so two columns carry less than two columns' worth of information.",
+      "The idea: rotate the axes so the first new axis points along the greatest spread, the second along the next, and so on. Each new axis is a principal component.",
+      "The result: drop the components with the least spread. The data is smaller, and most of what it said is still there."
+    ],
+    "callout": { "big": "2 → 1", "small": "In this example, two features become one and 75% of the variance is kept" },
+    "notes": "PCA finds new axes along the spread of the data and keeps only the ones that matter. Nothing is invented: the new features are combinations of the old ones."
+  },
+  {
+    "heading": "Why use it",
+    "points": [
+      "Fewer features: models train faster and overfit less when correlated columns are replaced by a few uncorrelated ones.",
+      "Plots you can read: hundreds of dimensions become two, so clusters and outliers become visible.",
+      "Noise falls away: the components with the least variance are usually measurement noise, and dropping them cleans the data.",
+      "No labels needed: it works on the data alone, so it is a first step before any supervised model.",
+      "You can say what was lost: the eigenvalues state exactly how much variance each component carries, so the trade-off is a number, not a guess."
+    ],
+    "callout": { "big": "λ₁ + λ₂", "small": "The eigenvalues add up to the total variance, so the share kept is always known" },
+    "notes": "The advantages follow from the eigenvalues: they rank the directions and measure what each one carries, which is what makes the reduction honest."
+  }
+]

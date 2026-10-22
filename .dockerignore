@@ -1,0 +1,8 @@
+target/
+platform/
+.git/
+**/node_modules/
+**/__pycache__/
+*.mp4
+*.wav
+.cevg-cache/

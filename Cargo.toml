@@ -1,0 +1,21 @@
+[workspace]
+resolver = "2"
+members = ["crates/cevg-core", "crates/cevg-cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.92"
+license = "MIT"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_path_to_error = "0.1"
+tiny-skia = "0.12"
+cosmic-text = { version = "0.19", default-features = false, features = ["std", "swash"] }
+typst = "0.15"
+typst-render = "0.15"
+typst-layout = "0.15"
+typst-assets = { version = "0.15", features = ["fonts"] }
+rayon = "1"

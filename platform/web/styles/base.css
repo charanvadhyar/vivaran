@@ -1,0 +1,26 @@
+/* Base styles: reset, typography, focus. Components bring their own CSS. */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--fg-default);
+  background-color: var(--bg-canvas);
+  font: var(--text-md) / var(--leading-normal) var(--font-sans);
+  font-feature-settings: "tnum";
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { margin: 0; font-family: var(--font-serif); font-weight: 600; line-height: var(--leading-tight); letter-spacing: var(--tracking-snug); }
+h1 { font-size: clamp(var(--text-2xl), 4.5vw, var(--text-4xl)); letter-spacing: -0.015em; }
+h2 { font-size: var(--text-xl); }
+h3 { font-size: var(--text-lg); }
+p { margin: 0; }
+p + p { margin-top: var(--space-3); }
+a { color: inherit; text-decoration: none; }
+a:hover { text-decoration: none; }
+code, kbd, pre { font-family: var(--font-mono); font-size: 0.9em; }
+img, video, svg { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+::selection { background: var(--accent); color: var(--accent-ink); }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

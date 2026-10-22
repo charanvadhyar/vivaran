@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "title": "DB: inner join",
+  "canvas": { "theme": "light" },
+  "objects": [
+    { "id": "heading", "type": "text", "region": "title", "text": "Inner join on dept_id" },
+    { "id": "students", "type": "table", "region": "left",
+      "columns": ["id", "name", "dept_id"],
+      "rows": [ [1, "Asha", 10], [2, "Ravi", 20], [3, "Meena", 10], [4, "Kiran", 30] ] },
+    { "id": "depts", "type": "table", "region": "right",
+      "columns": ["dept_id", "dept"],
+      "rows": [ [10, "CSE"], [20, "ECE"], [40, "Mech"] ] },
+    { "id": "match", "type": "arrow", "from": "students[1]", "to": "depts[1]", "label": "20 = 20" },
+    { "id": "sql", "type": "text", "region": "bottom",
+      "text": "SELECT name, dept FROM students JOIN depts USING (dept_id)" }
+  ],
+  "scenes": [
+    { "id": "join",
+      "steps": [
+        { "say": { "en": "We join students with departments on the department id." },
+          "do": [ { "action": "write", "target": "heading" }, { "action": "show", "target": "students" },
+                  { "action": "show", "target": "depts" }, { "action": "show", "target": "sql" },
+                  { "action": "mark", "target": "students.dept_id" }, { "action": "mark", "target": "depts.dept_id" } ] },
+        { "say": { "en": "Ravi has department 20, which matches the ECE row." },
+          "do": [ { "action": "highlight", "target": "students[1]" }, { "action": "highlight", "target": "depts[1]" },
+                  { "action": "draw", "target": "match" } ] },
+        { "say": { "en": "Kiran has department 30, which has no match, so that row drops out." },
+          "do": [ { "action": "hide", "target": "match" }, { "action": "reset", "target": "depts" },
+                  { "action": "reset", "target": "students" }, { "action": "dim", "target": "students[3]" },
+                  { "action": "dim", "target": "depts[2]" } ] }
+      ] }
+  ]
+}

@@ -1,0 +1,10 @@
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: var(--space-10); align-items: center; padding: var(--space-10) 0 var(--space-12); }
+.copy { display: grid; gap: var(--space-5); }
+.copy h1 { font-size: clamp(2.2rem, 5.2vw, 3.6rem); line-height: 1.05; letter-spacing: -0.03em; }
+.copy h1 .mark { position: relative; white-space: nowrap; }
+.copy h1 .mark::after { content: ""; position: absolute; left: -2px; right: -2px; bottom: -4px; height: 8px; border-radius: 4px; background: var(--accent-mark); opacity: 0.7; transform: rotate(-0.6deg); }
+.lead { color: var(--fg-muted); font-size: var(--text-lg); max-width: 50ch; }
+.actions { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+.apps { color: var(--fg-subtle); font-size: var(--text-sm); }
+.apps strong { color: var(--fg-muted); font-weight: 550; }
+@media (max-width: 900px) { .hero { grid-template-columns: 1fr; gap: var(--space-8); padding-top: var(--space-6); } }

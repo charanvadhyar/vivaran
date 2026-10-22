@@ -1,0 +1,4 @@
+.stack { display: grid; gap: var(--space-4); }
+.stack p { color: var(--fg-muted); }
+.list { margin: 0 0 var(--space-4); padding-left: 1.2rem; color: var(--fg-muted); display: grid; gap: var(--space-2); }
+.list strong { color: var(--fg-default); }

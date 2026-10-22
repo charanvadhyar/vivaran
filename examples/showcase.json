@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "title": "Showcase: every version one primitive",
+  "canvas": { "width": 1920, "height": 1080, "fps": 30, "theme": "light" },
+  "objects": [
+    { "id": "heading", "type": "text", "region": "title", "text": "బైనరీ సెర్చ్ · बाइनरी सर्च · Binary search" },
+    { "id": "src", "type": "code", "region": "left", "language": "python",
+      "lines": [
+        "def search(arr, x):",
+        "    lo, hi = 0, len(arr) - 1",
+        "    while lo <= hi:",
+        "        mid = (lo + hi) // 2",
+        "        if arr[mid] == x: return mid",
+        "        if arr[mid] < x: lo = mid + 1",
+        "        else: hi = mid - 1",
+        "    return -1"
+      ] },
+    { "id": "arr", "type": "array", "region": "right", "values": [2, 5, 8, 12, 16, 23, 38] },
+    { "id": "lo",  "type": "pointer", "label": "lo",  "target": "arr[4]" },
+    { "id": "mid", "type": "pointer", "label": "mid", "target": "arr[5]" },
+    { "id": "hi",  "type": "pointer", "label": "hi",  "target": "arr[5]" },
+    { "id": "link", "type": "arrow", "from": "src", "to": "arr", "label": "runs on" },
+    { "id": "te", "type": "text", "region": "bottom", "text": "మధ్య విలువ 23, మనకు కావలసినది ఇదే." },
+    { "id": "hi_note", "type": "text", "region": "bottom", "text": "बीच का मान 23 है, यही हमें चाहिए था।" }
+  ],
+  "scenes": [
+    { "id": "all",
+      "steps": [
+        { "say": { "en": "Everything appears at once.", "te": "అన్నీ ఒకేసారి కనిపిస్తాయి.", "hi": "सब कुछ एक साथ दिखता है।" },
+          "do": [
+            { "action": "write", "target": "heading" },
+            { "action": "show", "target": "src" },
+            { "action": "show", "target": "arr" },
+            { "action": "show", "target": "lo" },
+            { "action": "show", "target": "mid" },
+            { "action": "show", "target": "hi" },
+            { "action": "draw", "target": "link" },
+            { "action": "show", "target": "te" },
+            { "action": "show", "target": "hi_note" },
+            { "action": "dim", "target": "arr[0..4]" },
+            { "action": "highlight", "target": "arr[5]" },
+            { "action": "mark_lines", "target": "src", "from": 3, "to": 7 },
+            { "action": "goto_line", "target": "src", "line": 5 }
+          ] }
+      ] }
+  ]
+}

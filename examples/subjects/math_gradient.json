@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "title": "Math: gradient descent on a parabola",
+  "objects": [
+    { "id": "heading", "type": "text", "region": "title", "text": "Gradient descent, step by step" },
+    { "id": "eq", "type": "math", "region": "left",
+      "lines": [
+        "f(w) = (w - 3)^2",
+        "(dif f) / (dif w) = 2(w - 3)",
+        "w_(t+1) = w_t - eta dot 2(w_t - 3)",
+        "w_1 = 0 - 0.25 dot 2(0 - 3) = 1.5"
+      ] },
+    { "id": "runs", "type": "table", "region": "right",
+      "columns": ["t", "w", "gradient"],
+      "rows": [ [0, 0, -6], [1, 1.5, -3] ] },
+    { "id": "note", "type": "text", "region": "bottom", "text": "η = 0.25, and the minimum is at w = 3" }
+  ],
+  "scenes": [
+    { "id": "derive",
+      "steps": [
+        { "say": { "en": "We want the value of w that makes this function smallest." },
+          "do": [ { "action": "write", "target": "heading" }, { "action": "show", "target": "eq" } ] },
+        { "say": { "en": "Its slope tells us which way is downhill." },
+          "do": [ { "action": "reveal", "target": "eq[1]" }, { "action": "highlight", "target": "eq[1]" } ] },
+        { "say": { "en": "So each step moves w against the slope, scaled by the learning rate." },
+          "do": [ { "action": "reveal", "target": "eq[2]" }, { "action": "highlight", "target": "eq[2]" },
+                  { "action": "show", "target": "note" } ] },
+        { "say": { "en": "Starting from zero, the first step lands on one and a half." },
+          "do": [ { "action": "reveal", "target": "eq[3]" }, { "action": "highlight", "target": "eq[3]" },
+                  { "action": "show", "target": "runs" }, { "action": "highlight", "target": "runs[1]" } ] },
+        { "say": { "en": "The next step halves the distance again." },
+          "do": [ { "action": "set", "target": "eq[3]", "value": "w_2 = 1.5 - 0.25 dot 2(1.5 - 3) = 2.25" },
+                  { "action": "add_row", "target": "runs", "values": [2, 2.25, -1.5] },
+                  { "action": "highlight", "target": "runs[2]" } ] }
+      ] }
+  ]
+}

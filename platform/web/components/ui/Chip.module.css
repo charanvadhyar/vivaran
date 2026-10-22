@@ -1,0 +1,9 @@
+.chip {
+  display: inline-flex; align-items: center; gap: var(--space-2); height: 32px; padding: 0 var(--space-4);
+  border-radius: var(--radius-pill); border: 1px solid var(--border-strong);
+  background: var(--bg-surface); color: var(--fg-muted); font-size: var(--text-sm); white-space: nowrap;
+  cursor: pointer; transition: background var(--motion-fast), color var(--motion-fast);
+}
+.chip:hover { background: var(--bg-raised); color: var(--fg-default); }
+.on { background: var(--bg-strong); border-color: var(--bg-strong); color: var(--fg-knockout); font-weight: 600; }
+.on:hover { background: var(--bg-strong); color: var(--fg-knockout); }

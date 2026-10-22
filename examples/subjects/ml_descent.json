@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "title": "ML: gradient descent as a ball rolling downhill",
+  "objects": [
+    { "id": "heading", "type": "text", "region": "title", "text": "Gradient descent" },
+    { "id": "curve", "type": "plot", "region": "left",
+      "x": { "label": "w", "min": -1, "max": 7 },
+      "y": { "label": "loss", "min": 0, "max": 16 },
+      "curves": [
+        { "id": "f", "fn": "(x - 3)^2", "label": "f(w) = (w − 3)²", "visible": false },
+        { "id": "slope", "fn": "-6x + 9", "visible": false }
+      ],
+      "points": [ { "id": "w", "at": [0, 9], "label": "w₀" } ] },
+    { "id": "eq", "type": "math", "region": "right",
+      "lines": [
+        "w_(t+1) = w_t - eta f'(w_t)",
+        "f'(w) = 2(w - 3)",
+        "w_1 = 0 - 0.25 dot (-6) = 1.5"
+      ] },
+    { "id": "note", "type": "text", "region": "bottom", "text": "Learning rate η = 0.25" }
+  ],
+  "scenes": [
+    { "id": "setup",
+      "steps": [
+        { "say": { "en": "This curve is the loss for every possible value of the weight." },
+          "do": [ { "action": "write", "target": "heading" }, { "action": "show", "target": "curve" },
+                  { "action": "trace", "target": "curve.f" } ] },
+        { "say": { "en": "We start at zero, where the slope is steep and points downhill to the right." },
+          "do": [ { "action": "highlight", "target": "curve.w" }, { "action": "trace", "target": "curve.slope", "delay": 0.3 },
+                  { "action": "show", "target": "note" } ] }
+      ] },
+    { "id": "steps",
+      "steps": [
+        { "say": { "en": "Each update moves the weight against the slope, scaled by the learning rate." },
+          "do": [ { "action": "show", "target": "eq" }, { "action": "reveal", "target": "eq[1]", "delay": 0.4 } ] },
+        { "say": { "en": "The first step takes us from zero to one and a half." },
+          "do": [ { "action": "reveal", "target": "eq[2]" }, { "action": "highlight", "target": "eq[2]" },
+                  { "action": "remove", "target": "curve.slope" },
+                  { "action": "move_to", "target": "curve.w", "at": [1.5, 2.25], "delay": 0.3 },
+                  { "action": "set", "target": "curve.w", "value": "w₁", "delay": 0.3 } ] },
+        { "say": { "en": "The slope is gentler now, so the next step is smaller." },
+          "do": [ { "action": "set", "target": "eq[2]", "value": "w_2 = 1.5 - 0.25 dot (-3) = 2.25" },
+                  { "action": "move_to", "target": "curve.w", "at": [2.25, 0.5625], "delay": 0.3 },
+                  { "action": "set", "target": "curve.w", "value": "w₂", "delay": 0.3 } ] },
+        { "say": { "en": "Step by step the weight settles at three, the bottom of the curve." },
+          "do": [ { "action": "set", "target": "eq[2]", "value": "w_t -> 3" },
+                  { "action": "move_to", "target": "curve.w", "at": [3, 0] },
+                  { "action": "set", "target": "curve.w", "value": "minimum" },
+                  { "action": "mark", "target": "curve.w", "delay": 0.6 } ] }
+      ] }
+  ]
+}

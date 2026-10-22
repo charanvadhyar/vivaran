@@ -1,0 +1,10 @@
+.dialog {
+  border: 1px solid var(--border-default); border-radius: var(--radius-xl); padding: 0;
+  background: var(--bg-surface); color: var(--fg-default); max-width: min(440px, calc(100vw - 32px));
+  box-shadow: var(--shadow-lg);
+}
+.dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(3px); }
+.body { padding: var(--space-6); display: grid; gap: var(--space-3); }
+.body h2 { font-size: var(--text-lg); }
+.body p { color: var(--fg-muted); font-size: var(--text-sm); }
+.actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
