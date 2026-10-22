@@ -3,7 +3,7 @@
 //   npm run db:setup                      the schema only
 //   npm run db:setup -- ../seed-demos.sql  the schema, then that seed
 //
-// On Vercel the build command is `node scripts/setup-db.mjs db/seed-demos.sql && next build`,
+// On Vercel the build command is `node scripts/setup-db.mjs ../seed-demos.sql && next build`,
 // so the database is ready by the time the site is up.
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
