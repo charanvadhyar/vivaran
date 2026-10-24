@@ -239,7 +239,7 @@ fn plot_actions() {
     chart_error(r#"{ "action": "add_point", "target": "p", "id": "f", "at": [1, 1] }"#, "duplicate id `f`");
     chart_error(r#"{ "action": "set", "target": "p.f", "value": "x +" }"#, "ends too early");
     chart_error(r#"{ "action": "set", "target": "p.data", "value": "x" }"#, "data curve");
-    chart_error(r#"{ "action": "trace", "target": "tl" }"#, "`trace` works on plot objects, but `tl` is a timeline");
+    chart_error(r#"{ "action": "trace", "target": "tl" }"#, "`trace` works on plot and space objects, but `tl` is a timeline");
 
     let bad = charts("").replace(r#""fn": "x^2""#, r#""fn": "y^2""#);
     assert!(errors(&bad)[0].contains("objects[0].curves[0].fn: unknown name `y`"), "{:#?}", errors(&bad));

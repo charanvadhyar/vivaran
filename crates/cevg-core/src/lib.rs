@@ -13,6 +13,8 @@ pub mod expr;
 pub mod families;
 pub mod render;
 pub mod script;
+pub mod soft;
+pub mod space3d;
 pub mod state;
 pub mod target;
 pub mod text;
@@ -24,6 +26,26 @@ pub use script::Script;
 pub use state::{Position, World};
 pub use target::Target;
 pub use validate::{validate, Diagnostic, Severity};
+
+use space3d::SpaceBackend;
+use std::sync::OnceLock;
+
+static SPACE: OnceLock<Box<dyn SpaceBackend>> = OnceLock::new();
+
+/// Choose how 3D scenes are drawn, for the whole process. Call it once,
+/// before the first frame; after that the choice is fixed and the call
+/// returns the backend that was already in use.
+pub fn set_space_backend(backend: Box<dyn SpaceBackend>) -> Result<(), &'static str> {
+    let name = backend.name();
+    SPACE.set(backend).map_err(|_| "a space backend was already chosen")?;
+    let _ = name;
+    Ok(())
+}
+
+/// The backend that draws 3D scenes: the one chosen, or the software one.
+pub fn space_backend() -> &'static dyn SpaceBackend {
+    SPACE.get_or_init(|| Box::new(soft::SoftBackend)).as_ref()
+}
 
 use serde::Serialize;
 

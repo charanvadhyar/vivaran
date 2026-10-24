@@ -105,6 +105,19 @@ fn finite(at: &[f64; 2]) -> bool {
     at[0].is_finite() && at[1].is_finite()
 }
 
+/// A plot takes `[x, y]`; three coordinates belong to a space object.
+fn pair(at: &[f64]) -> Result<[f64; 2], ActError> {
+    match at {
+        [x, y] if x.is_finite() && y.is_finite() => Ok([*x, *y]),
+        [_, _] => at_err("at", "both coordinates must be finite numbers"),
+        _ => at_err("at", format!("a plot point takes `[x, y]`, two coordinates, not {}", at.len())),
+    }
+}
+
+fn at_err<T>(field: &'static str, message: impl Into<String>) -> Result<T, ActError> {
+    Err(ActError::At(field, message.into()))
+}
+
 pub fn check(spec: &Spec) -> Vec<Problem> {
     let mut out = vec![];
     for (name, axis) in [("x", &spec.x), ("y", &spec.y)] {
@@ -254,10 +267,7 @@ impl State {
                 let Some(i) = self.point(name) else {
                     return at("target", format!("`move_to` moves a point, but `{name}` is a curve"));
                 };
-                if !finite(to) {
-                    return at("at", "both coordinates must be finite numbers");
-                }
-                self.points[i].spec.at = *to;
+                self.points[i].spec.at = pair(to)?;
                 Ok(Changed::Content)
             }
             ActionKind::AddPoint { target, id: point_id, at: place, label } => {
@@ -270,10 +280,7 @@ impl State {
                 if self.curve(point_id).is_some() || self.point(point_id).is_some() {
                     return at("id", format!("duplicate id `{point_id}`; curves and points share one set of ids"));
                 }
-                if !finite(place) {
-                    return at("at", "both coordinates must be finite numbers");
-                }
-                let spec = PointSpec { id: point_id.clone(), at: *place, label: label.clone() };
+                let spec = PointSpec { id: point_id.clone(), at: pair(place)?, label: label.clone() };
                 self.points.push(Point { spec, emphasis: Emphasis::Normal });
                 Ok(Changed::Structure)
             }

@@ -14,6 +14,7 @@
 //! key must stay with its thing for as long as that thing exists.
 
 use crate::render::{Rect, Rgb};
+use crate::space3d::{Camera, Content, Projection, Scene, Solid, SpaceBackend, Vec3, CAMERA_NUMBERS};
 use crate::text::{Face, Fonts, HAlign, Style};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -44,6 +45,15 @@ pub enum Shape {
     /// the image shows: two renderings of the same thing at different sizes
     /// share an id, and are scaled into each other instead of crossfaded.
     Image { image: Arc<Pixmap>, id: u64, x: f32, y: f32, w: f32, h: f32, opacity: f32 },
+    /// A window onto a 3D scene: the box it fills and the camera. The solids
+    /// of the same `scene` are drawn into it by the space backend.
+    Viewport { scene: u64, rect: Rect, camera: [f32; CAMERA_NUMBERS], opacity: f32 },
+    /// One thing inside a 3D scene, in scene coordinates. Not painted on its
+    /// own: the viewport of its scene gathers it.
+    Solid { scene: u64, content: Arc<Content>, vertices: Vec<Vec3>, color: Rgb, drawn: f32, opacity: f32 },
+    /// Text pinned to a point of a 3D scene, drawn flat on top of the
+    /// viewport, offset by (`dx`, `dy`) pixels from the projected point.
+    Label3d { scene: u64, text: String, face: Face, align: HAlign, at: Vec3, dx: f32, dy: f32, size: f32, color: Rgb, opacity: f32 },
 }
 
 fn rgb(c: Rgb) -> [f32; 3] {
@@ -82,6 +92,23 @@ impl Shape {
                 vec![*x, *y, *size, r, g, b, *opacity]
             }
             Shape::Image { x, y, w, h, opacity, .. } => vec![*x, *y, *w, *h, *opacity],
+            Shape::Viewport { rect, camera, opacity, .. } => {
+                let mut n = vec![rect.x, rect.y, rect.w, rect.h];
+                n.extend_from_slice(camera);
+                n.push(*opacity);
+                n
+            }
+            Shape::Solid { vertices, color, drawn, opacity, .. } => {
+                let mut n: Vec<f32> = vertices.iter().flat_map(|v| *v).collect();
+                n.push(*drawn);
+                n.extend(rgb(*color));
+                n.push(*opacity);
+                n
+            }
+            Shape::Label3d { at, dx, dy, size, color, opacity, .. } => {
+                let [r, g, b] = rgb(*color);
+                vec![at[0], at[1], at[2], *dx, *dy, *size, r, g, b, *opacity]
+            }
         }
     }
 
@@ -126,6 +153,34 @@ impl Shape {
             Shape::Image { image, id, .. } => {
                 Shape::Image { image: image.clone(), id: *id, x: n[0], y: n[1], w: n[2].max(0.0), h: n[3].max(0.0), opacity: n[4] }
             }
+            Shape::Viewport { scene, .. } => {
+                let mut camera = [0.0; CAMERA_NUMBERS];
+                camera.copy_from_slice(&n[4..4 + CAMERA_NUMBERS]);
+                Shape::Viewport { scene: *scene, rect: rect(n), camera, opacity: n[4 + CAMERA_NUMBERS] }
+            }
+            Shape::Solid { scene, content, .. } => {
+                let tail = n.len() - 5;
+                Shape::Solid {
+                    scene: *scene,
+                    content: content.clone(),
+                    vertices: n[..tail].chunks(3).map(|v| [v[0], v[1], v[2]]).collect(),
+                    drawn: n[tail].clamp(0.0, 1.0),
+                    color: to_rgb(&n[tail + 1..tail + 4]),
+                    opacity: n[tail + 4],
+                }
+            }
+            Shape::Label3d { scene, text, face, align, .. } => Shape::Label3d {
+                scene: *scene,
+                text: text.clone(),
+                face: *face,
+                align: *align,
+                at: [n[0], n[1], n[2]],
+                dx: n[3],
+                dy: n[4],
+                size: n[5],
+                color: to_rgb(&n[6..9]),
+                opacity: n[9],
+            },
         }
     }
 
@@ -142,6 +197,17 @@ impl Shape {
                 Shape::Text { text: b, face: fb, align: ab, max_w: wb, .. },
             ) => a == b && fa == fb && aa == ab && wa.is_some() == wb.is_some(),
             (Shape::Image { id: a, .. }, Shape::Image { id: b, .. }) => a == b,
+            (Shape::Viewport { scene: a, .. }, Shape::Viewport { scene: b, .. }) => a == b,
+            // Solids morph when they are the same kind of thing over the
+            // same number of vertices: a surface reshapes, a vector swings.
+            (
+                Shape::Solid { scene: sa, content: ca, vertices: va, .. },
+                Shape::Solid { scene: sb, content: cb, vertices: vb, .. },
+            ) => sa == sb && va.len() == vb.len() && (Arc::ptr_eq(ca, cb) || ca == cb),
+            (
+                Shape::Label3d { scene: sa, text: ta, face: fa, align: aa, .. },
+                Shape::Label3d { scene: sb, text: tb, face: fb, align: ab, .. },
+            ) => sa == sb && ta == tb && fa == fb && aa == ab,
             _ => false,
         }
     }
@@ -162,6 +228,10 @@ impl Shape {
             }
             (Shape::Path { .. }, true) => {
                 let drawn = n.len() - 2;
+                n[drawn] = 0.0;
+            }
+            (Shape::Solid { content, .. }, true) if matches!(**content, Content::Segments { .. }) => {
+                let drawn = n.len() - 5;
                 n[drawn] = 0.0;
             }
             _ => {}
@@ -252,7 +322,11 @@ fn mix(key: &str, track: &[Option<&Cmd>], progress: &[f32], out: &mut Vec<Cmd>) 
     // half, before they close up. A line is drawn out over the whole action.
     let mut numbers = states[0].1.clone();
     let opacity = numbers.len() - 1;
-    let is_line = matches!(states[0].0, Shape::Line { .. } | Shape::Path { .. });
+    let is_line = match states[0].0 {
+        Shape::Line { .. } | Shape::Path { .. } => true,
+        Shape::Solid { content, .. } => matches!(**content, Content::Segments { .. }),
+        _ => false,
+    };
     if one_kind {
         for (i, p) in progress.iter().enumerate() {
             let fade = match (track[i].is_some(), track[i + 1].is_some()) {
@@ -463,13 +537,56 @@ fn draw_image(pixmap: &mut Pixmap, image: &Pixmap, x: f32, y: f32, w: f32, h: f3
     pixmap.draw_pixmap(0, 0, image.as_ref(), &paint, transform, None);
 }
 
-/// Paint a display list onto a fresh canvas.
-pub fn raster(cmds: &[Cmd], width: u32, height: u32, background: Rgb, fonts: &mut Fonts) -> Pixmap {
+/// The solids of one scene, as the backend takes them.
+fn solids_of(cmds: &[Cmd], scene: u64) -> Vec<Solid> {
+    cmds.iter()
+        .filter_map(|c| match &c.shape {
+            Shape::Solid { scene: s, content, vertices, color, drawn, opacity } if *s == scene => Some(Solid {
+                content: content.clone(),
+                vertices: vertices.clone(),
+                color: *color,
+                drawn: *drawn,
+                opacity: *opacity,
+            }),
+            _ => None,
+        })
+        .collect()
+}
+
+/// The viewport a 3D label belongs to: its box, camera and opacity.
+fn viewport_of(cmds: &[Cmd], scene: u64) -> Option<(Rect, Camera, f32)> {
+    cmds.iter().find_map(|c| match &c.shape {
+        Shape::Viewport { scene: s, rect, camera, opacity } if *s == scene => Some((*rect, Camera::from_numbers(camera), *opacity)),
+        _ => None,
+    })
+}
+
+/// Paint a display list onto a fresh canvas. 3D viewports are rendered by
+/// `space` and laid in where they sit.
+pub fn raster(cmds: &[Cmd], width: u32, height: u32, background: Rgb, fonts: &mut Fonts, space: &dyn SpaceBackend) -> Pixmap {
     let mut pixmap = Pixmap::new(width, height).expect("validated canvas size");
     pixmap.fill(Color::from_rgba8(background[0], background[1], background[2], 255));
     let identity = Transform::identity();
     for cmd in cmds {
         match &cmd.shape {
+            Shape::Viewport { scene, rect, camera, opacity } => {
+                let (w, h) = (rect.w.round() as u32, rect.h.round() as u32);
+                if w == 0 || h == 0 || *opacity <= 0.002 {
+                    continue;
+                }
+                let solids = solids_of(cmds, *scene);
+                let view = Scene { camera: Camera::from_numbers(camera), width: w, height: h, background, solids: &solids };
+                let image = space.render(&view);
+                blit(&mut pixmap, &image, rect.x, rect.y, *opacity);
+            }
+            Shape::Solid { .. } => {}
+            Shape::Label3d { scene, text, face, align, at, dx, dy, size, color, opacity } => {
+                let Some((rect, camera, whole)) = viewport_of(cmds, *scene) else { continue };
+                let proj = Projection::new(&camera, rect.w, rect.h);
+                let Some(((px, py), _)) = proj.project(*at) else { continue };
+                let style = Style { size: *size, face: *face, color: *color, opacity: opacity * whole };
+                fonts.draw(&mut pixmap, text, style, rect.x + px + dx, rect.y + py + dy, *align, None);
+            }
             Shape::Fill { rect, radius, color, opacity } => {
                 if let Some(path) = round_rect_path(*rect, *radius) {
                     pixmap.fill_path(&path, &paint(*color, *opacity), FillRule::Winding, identity, None);

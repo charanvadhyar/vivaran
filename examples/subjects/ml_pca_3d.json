@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "title": "PCA in three dimensions: the plane that keeps the most spread",
+  "objects": [
+    { "id": "heading", "type": "text", "region": "title", "text": "PCA in 3D: find the plane, drop the rest" },
+    { "id": "sp", "type": "space", "region": "left",
+      "axes": { "x": [-4, 4], "y": [-4, 4], "z": [-4, 4], "grid": "xy" },
+      "camera": { "azimuth": 30, "elevation": 22, "distance": 3.1 },
+      "parts": [
+        { "kind": "point", "id": "a", "at": [3, 2, 1], "label": "A", "visible": false },
+        { "kind": "point", "id": "b", "at": [-3, -2, -1], "label": "B", "visible": false },
+        { "kind": "point", "id": "c", "at": [2, 3, -1], "label": "C", "visible": false },
+        { "kind": "point", "id": "d", "at": [-2, -3, 1], "label": "D", "visible": false },
+        { "kind": "point", "id": "e", "at": [1, -1, 0.5], "label": "E", "visible": false },
+        { "kind": "point", "id": "f", "at": [-1, 1, -0.5], "label": "F", "visible": false },
+        { "kind": "point", "id": "m", "at": [0, 0, 0], "label": "mean", "color": "amber", "visible": false },
+        { "kind": "vector", "id": "pc1", "to": [2.24, 2.24, 0], "label": "PC1", "color": "amber", "visible": false },
+        { "kind": "vector", "id": "pc2", "to": [0.75, -0.75, 0.89], "label": "PC2", "color": "green", "visible": false },
+        { "kind": "vector", "id": "pc3", "to": [-0.2, 0.2, 0.33], "label": "PC3", "color": "pink", "visible": false },
+        { "kind": "plane", "id": "plane", "span": ["pc1", "pc2"], "size": 7.5, "through": [0, 0, 0], "visible": false }
+      ] },
+    { "id": "data", "type": "table", "region": "right",
+      "columns": ["point", "x", "y", "z"],
+      "rows": [["A", 3, 2, 1], ["B", -3, -2, -1], ["C", 2, 3, -1], ["D", -2, -3, 1], ["E", 1, -1, 0.5], ["F", -1, 1, -0.5]] },
+    { "id": "mean", "type": "math", "region": "right",
+      "lines": [ "overline(x) = (3 - 3 + 2 - 2 + 1 - 1) / 6 = 0", "overline(y) = 0, quad overline(z) = 0" ] },
+    { "id": "cov", "type": "math", "region": "right",
+      "lines": [ "C_(x x) = (sum x_i^2) / (n - 1) = (9 + 9 + 4 + 4 + 1 + 1) / 5 = 5.6",
+                 "C_(x y) = (sum x_i y_i) / (n - 1) = (6 + 6 + 6 + 6 - 1 - 1) / 5 = 4.4",
+                 "C = mat(5.6, 4.4, 0.6; 4.4, 5.6, -0.6; 0.6, -0.6, 0.9)" ] },
+    { "id": "eig", "type": "math", "region": "right",
+      "lines": [ "det(C - lambda I) = 0", "lambda_1 = 10, quad lambda_2 = 1.91, quad lambda_3 = 0.19",
+                 "v_1 = 1/sqrt(2) vec(1, 1, 0), quad v_2 = vec(0.54, -0.54, 0.64), quad v_3 = vec(-0.45, 0.45, 0.77)" ] },
+    { "id": "kept", "type": "math", "region": "right",
+      "lines": [ "(lambda_1 + lambda_2) / (lambda_1 + lambda_2 + lambda_3) = 11.91 / 12.1 = 98.4%" ] }
+  ],
+  "scenes": [
+    { "id": "data", "steps": [
+      { "say": { "en": "Six points in three dimensions. We want the flat plane that keeps as much of their spread as possible, so we can drop one coordinate.",
+                 "te": "Three dimensions లో six points. వాటి spread ని maximum గా keep చేసే flat plane కావాలి, అప్పుడు one coordinate ని drop చేయవచ్చు." },
+        "do": [ { "action": "show", "target": "heading" }, { "action": "show", "target": "sp" }, { "action": "show", "target": "data" } ] },
+      { "say": { "en": "Here they are: A at 3, 2, 1, B opposite it, C and D, and the two small ones E and F.",
+                 "te": "ఇవే points: A at 3, 2, 1, దానికి opposite గా B, C and D, మరియు two small ones E and F." },
+        "do": [ { "action": "trace", "target": "sp.a" }, { "action": "trace", "target": "sp.b", "delay": 0.15 }, { "action": "trace", "target": "sp.c", "delay": 0.3 },
+                { "action": "trace", "target": "sp.d", "delay": 0.45 }, { "action": "trace", "target": "sp.e", "delay": 0.6 }, { "action": "trace", "target": "sp.f", "delay": 0.75 } ] }
+    ] },
+    { "id": "centre", "steps": [
+      { "say": { "en": "Step one: spread is measured from the mean, so we find it. The x values add to zero, and so do y and z; the mean is the origin.",
+                 "te": "Step one: spread ని mean నుంచి measure చేస్తాం, కాబట్టి mean find చేస్తాం. x values add చేస్తే zero, y and z కూడా zero; mean is the origin." },
+        "do": [ { "action": "hide", "target": "data" }, { "action": "show", "target": "mean" }, { "action": "trace", "target": "sp.m", "delay": 0.5 } ] },
+      { "say": { "en": "That is convenient: the centred data is the data itself, so every number below uses the coordinates as they stand.",
+                 "te": "ఇది convenient: centred data అంటే data itself, కాబట్టి below ఉన్న every number coordinates ని as they stand use చేస్తుంది." },
+        "do": [ { "action": "highlight", "target": "sp.m" } ] }
+    ] },
+    { "id": "covariance", "steps": [
+      { "say": { "en": "Step two: the covariance matrix. Each entry is a sum of products divided by n minus one, which is five.",
+                 "te": "Step two: covariance matrix. Each entry అంటే products యొక్క sum ని n minus one తో divide చేస్తాం, అది five." },
+        "do": [ { "action": "reset", "target": "sp.m" }, { "action": "hide", "target": "mean" }, { "action": "show", "target": "cov" } ] },
+      { "say": { "en": "The variance of x: nine plus nine plus four plus four plus one plus one is twenty-eight, over five is 5.6.",
+                 "te": "x యొక్క variance: nine plus nine plus four plus four plus one plus one is twenty-eight, over five is 5.6." },
+        "do": [ { "action": "highlight", "target": "cov[0]" } ] },
+      { "say": { "en": "The covariance of x and y: the products are six, six, six, six, minus one, minus one, which sum to twenty-two, over five is 4.4.",
+                 "te": "x and y యొక్క covariance: products are six, six, six, six, minus one, minus one, sum is twenty-two, over five is 4.4." },
+        "do": [ { "action": "highlight", "target": "cov[1]" } ] },
+      { "say": { "en": "The same rule gives the rest. The matrix is symmetric: the entry for x and y equals the entry for y and x.",
+                 "te": "Same rule తో rest వస్తాయి. Matrix symmetric: x and y entry, y and x entry తో equal." },
+        "do": [ { "action": "highlight", "target": "cov[2]" } ] }
+    ] },
+    { "id": "eigen", "steps": [
+      { "say": { "en": "Step three: the directions of greatest spread are the eigenvectors of C, and the spread along each is its eigenvalue. We solve the characteristic equation.",
+                 "te": "Step three: greatest spread ఉన్న directions అంటే C యొక్క eigenvectors, each direction లో spread అంటే దాని eigenvalue. Characteristic equation solve చేస్తాం." },
+        "do": [ { "action": "hide", "target": "cov" }, { "action": "show", "target": "eig" }, { "action": "highlight", "target": "eig[0]" } ] },
+      { "say": { "en": "The roots are ten, 1.91 and 0.19. They add up to 12.1, the trace of C, which is a check worth doing in the exam.",
+                 "te": "Roots are ten, 1.91 and 0.19. వాటి sum 12.1, అది C యొక్క trace, exam లో చేయదగిన check." },
+        "do": [ { "action": "highlight", "target": "eig[1]" } ] },
+      { "say": { "en": "The first eigenvector points along x equals y: that is the long diagonal the points lie on. Its arrow is drawn with length root ten.",
+                 "te": "First eigenvector x equals y direction లో ఉంటుంది: points ఉన్న long diagonal అదే. దాని arrow length root ten తో draw చేశాం." },
+        "do": [ { "action": "highlight", "target": "eig[2]" }, { "action": "trace", "target": "sp.pc1", "delay": 0.3 } ] },
+      { "say": { "en": "The second is perpendicular to it and tilts out of the floor; the third is the leftover direction, with almost no spread.",
+                 "te": "Second దానికి perpendicular, floor నుంచి tilt అవుతుంది; third అంటే leftover direction, almost no spread." },
+        "do": [ { "action": "trace", "target": "sp.pc2" }, { "action": "trace", "target": "sp.pc3", "delay": 0.5 } ] }
+    ] },
+    { "id": "project", "steps": [
+      { "say": { "en": "Step four: the first two eigenvectors span a plane. That plane is where we keep the data.",
+                 "te": "Step four: first two eigenvectors ఒక plane ని span చేస్తాయి. ఆ plane లోనే data ని keep చేస్తాం." },
+        "do": [ { "action": "hide", "target": "eig" }, { "action": "trace", "target": "sp.plane" }, { "action": "orbit", "target": "sp", "elevation": 14, "delay": 0.2 } ] },
+      { "say": { "en": "Each point drops onto the plane along the third direction. The drop line is the part we throw away: its length is the point's coordinate along PC3.",
+                 "te": "Each point third direction along plane మీదకు drop అవుతుంది. Drop line అంటే మనం throw away చేసే part: దాని length point యొక్క PC3 coordinate." },
+        "do": [ { "action": "project", "target": "sp.a", "onto": "plane", "id": "a2" }, { "action": "project", "target": "sp.b", "onto": "plane", "id": "b2", "delay": 0.15 },
+                { "action": "project", "target": "sp.c", "onto": "plane", "id": "c2", "delay": 0.3 }, { "action": "project", "target": "sp.d", "onto": "plane", "id": "d2", "delay": 0.45 },
+                { "action": "project", "target": "sp.e", "onto": "plane", "id": "e2", "delay": 0.6 }, { "action": "project", "target": "sp.f", "onto": "plane", "id": "f2", "delay": 0.75 } ] },
+      { "say": { "en": "For A, that coordinate is minus 0.45 times 3, plus 0.45 times 2, plus 0.77 times 1, which is 0.31. Small, as it should be.",
+                 "te": "A కోసం ఆ coordinate minus 0.45 times 3, plus 0.45 times 2, plus 0.77 times 1, అంటే 0.31. Small, as it should be." },
+        "do": [ { "action": "highlight", "target": "sp.a" }, { "action": "highlight", "target": "sp.a2_drop", "delay": 0.3 } ] },
+      { "say": { "en": "Now look straight down PC3. The plane faces us, the drop lines vanish, and the six points become a flat picture with two coordinates each.",
+                 "te": "ఇప్పుడు PC3 along straight గా చూద్దాం. Plane మన వైపు face అవుతుంది, drop lines vanish అవుతాయి, six points two coordinates తో flat picture అవుతాయి." },
+        "do": [ { "action": "reset", "target": "sp.a" }, { "action": "reset", "target": "sp.a2_drop" }, { "action": "orbit", "target": "sp", "azimuth": 135, "elevation": 50 } ] }
+    ] },
+    { "id": "kept", "steps": [
+      { "say": { "en": "Step five: how much did we keep? The two eigenvalues we kept add to 11.91 out of 12.1: 98.4 percent of the spread, with one coordinate fewer.",
+                 "te": "Step five: ఎంత keep చేశాం? Keep చేసిన two eigenvalues 11.91 out of 12.1: spread లో 98.4 percent, one coordinate fewer తో." },
+        "do": [ { "action": "show", "target": "kept" }, { "action": "highlight", "target": "kept[0]" } ] },
+      { "say": { "en": "That is PCA in three dimensions: centre, covariance, eigenvectors, project onto the top ones, and report the variance kept.",
+                 "te": "ఇదే three dimensions లో PCA: centre, covariance, eigenvectors, top ones మీదకు project, variance kept report." },
+        "do": [ { "action": "orbit", "target": "sp", "azimuth": 30, "elevation": 22 } ] }
+    ] }
+  ]
+}

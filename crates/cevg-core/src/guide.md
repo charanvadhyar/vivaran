@@ -163,7 +163,7 @@ caption. Write it for the ear.
 | `arr[0..3]` | parts 0, 1, 2 (end excluded) |
 | `arr[0..=3]` | parts 0 to 3 (end included) |
 | `tbl[2][1]` | table cell: row 2, column 1 |
-| `tbl.name` | a named part: table column, diagram node, plot curve or point, timeline block, message or lane |
+| `tbl.name` | a named part: table column, diagram node, plot curve or point, timeline block, message or lane, space part |
 | `net.a->b` | the diagram edge from node `a` to node `b` |
 
 ## Actions for every object
@@ -382,6 +382,59 @@ lane).
 | `remove` | `target` (a block or message) |
 
 A timeline needs width: put it in `center`, alone.
+
+### space
+
+Three-dimensional scenes: axes with points, vectors, planes, surfaces and
+paths, seen through a camera that can orbit. `z` is up. Use it for what a
+flat picture cannot show: PCA or SVD in three dimensions, a loss surface and
+gradient descent on it, partial derivatives, projections onto a plane,
+cross products, convolution volumes.
+
+```json
+{ "id": "sp", "type": "space", "region": "center",
+  "axes": { "x": [-3, 3], "y": [-3, 3], "z": [-3, 3], "labels": ["x", "y", "z"], "grid": "xy" },
+  "camera": { "azimuth": 35, "elevation": 24 },
+  "parts": [
+    { "kind": "point", "id": "a", "at": [2, 1, 0.5], "label": "A" },
+    { "kind": "vector", "id": "u", "to": [2, 1, 0], "label": "u", "color": "amber" },
+    { "kind": "vector", "id": "v", "to": [-1, 2, 0], "label": "v" },
+    { "kind": "plane", "id": "p", "span": ["u", "v"], "visible": false },
+    { "kind": "surface", "id": "f", "fn": "x^2 - y^2", "visible": false },
+    { "kind": "path", "id": "walk", "points": [[-2, 0, 4], [0, 0, 0], [2, 0, 4]], "visible": false },
+    { "kind": "label", "id": "note", "at": [0, 0, 2.5], "text": "origin above" } ] }
+```
+
+Parts: `point` (`at`), `vector` (`to`, optional `from`), `plane` (`normal`
+plus `size`, or `span` of two vector ids: the parallelogram they span),
+`surface` (`fn` of `x` and `y`, same language as plots, over the axes'
+ranges or its own `x` and `y`), `path` (`points`), `label` (`at`, `text`).
+Every part may carry `label` and `color` (`amber`, `green`, `blue`, `pink`,
+`purple`, `orange`, `muted`) and `"visible": false`, to be brought in later
+with `trace`. Parts are addressed `sp.a`. Give the axes ranges that fit the
+data; all three axes share one scale, so angles and lengths are true.
+Pointers and arrows can attach to a part (`sp.a`). Keep a scene to a
+handful of parts; a space object needs room, so put it in `center` alone or
+beside one text or math object.
+
+| Action | Fields |
+| --- | --- |
+| `orbit` | `target` (the space), any of `azimuth`, `elevation` (degrees), `distance`; the camera glides there over the step |
+| `look` | `target` (the space), `at: [x, y, z]`; the camera turns to it |
+| `trace` | `target` (a part declared with `"visible": false`); a path draws itself, anything else appears |
+| `add_point` | `target` (the space), `id`, `at: [x, y, z]`, optional `label` |
+| `add_vector` | `target` (the space), `id`, `to`, optional `from`, `label`, `color` |
+| `add_plane` | `target` (the space), `id`, `normal` + `size` or `span`, optional `through`, `label` |
+| `move_to` | `target` (a point, a label, or a vector whose tip moves), `at: [x, y, z]` |
+| `set` | `target` a surface and `value` a new function (it morphs), or any other part and `value` its new label text |
+| `project` | `target` (a point or vector), `onto` (a plane or vector id), `id`: the projected copy appears with a thin drop line (`id_drop`) |
+| `rotate` | `target` (a part, or the space for everything but surfaces), `about` (`x`, `y` or `z`), `degrees` |
+| `span` | `target` (the space), `a`, `b` (vector ids), `id`: the parallelogram they span |
+| `remove` | `target` (a part) |
+
+Say what the viewer should look at before orbiting, and orbit slowly: one
+`orbit` per step, 60 to 120 degrees at most. A projection reads best with
+the camera low (`elevation` 15 to 25) so the drop lines are visible.
 
 ## Checking your work
 

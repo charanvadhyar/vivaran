@@ -21,7 +21,8 @@ test keeps it in step with the code.
 
 ## Families
 
-Seven general families cover the whole of CS between them. All are built.
+Seven flat families cover the whole of CS between them, and an eighth
+draws in three dimensions. All are built.
 
 | Family | Script type | Draws | State |
 | --- | --- | --- | --- |
@@ -32,6 +33,7 @@ Seven general families cover the whole of CS between them. All are built.
 | Code and text | `code`, `text` | source with a current-line marker; titles and captions | built |
 | Plot | `plot` | functions, loss curves, data points | built |
 | Timeline | `timeline` | scheduling charts, pipeline stages, message sequences | built |
+| Space (3D) | `space` | points, vectors, planes, surfaces and paths with an orbiting camera: PCA and SVD in 3D, loss surfaces, projections | built |
 
 `pointer` and `arrow` attach to a part of any object.
 
@@ -48,6 +50,9 @@ Seven general families cover the whole of CS between them. All are built.
 | `crates/cevg-core/src/draw.rs` | The display list families record into, the blend between lists, and the rasteriser. |
 | `crates/cevg-core/src/anim.rs` | Timing, the picture at any moment, parallel frames and the `ffmpeg` pipe. |
 | `crates/cevg-core/src/text.rs` | Text shaping and drawing, with bundled fonts. |
+| `crates/cevg-core/src/space3d.rs` | 3D: the camera, projection, solids and the `SpaceBackend` trait. |
+| `crates/cevg-core/src/soft.rs` | The software 3D rasteriser (reference backend). |
+| `crates/cevg-gpu` | The Vulkan 3D backend (`ash`), with its shaders. |
 | `crates/cevg-cli` | The `cevg` command-line tool. |
 | `shell/cevg_shell/sarvam.py` | The Sarvam text-to-speech client: one request, retries, request spacing. |
 | `shell/cevg_shell/voice.py` | Voices and the cache of spoken lines. |
@@ -355,6 +360,29 @@ A timeline has `lanes`, an optional `end` and `unit`, `blocks`
 (`id, from, to, at, arrive, label`). Blocks in one lane may not overlap.
 `now` or `advance` puts a cursor on the axis. Give `end` up front so the axis
 does not stretch as blocks are added.
+
+## Space (3D)
+
+A `space` object has `axes` (ranges, `labels`, a `grid` plane), a `camera`
+(`azimuth`, `elevation`, `distance`, `target`, `fov`; `z` is up) and `parts`:
+`point`, `vector`, `plane` (`normal` + `size`, or `span` of two vectors),
+`surface` (`fn` of `x` and `y`), `path` and `label`. Actions: `orbit`,
+`look`, `trace`, `add_point`, `add_vector`, `add_plane`, `move_to`, `set`,
+`project`, `rotate`, `span`, `remove`. The family computes all geometry on
+the CPU (`families/space.rs`) and records it in the display list, so the
+camera, coordinates and surfaces interpolate like everything else; a
+backend rasterises each viewport. Two backends share one trait
+(`space3d::SpaceBackend`): the software rasteriser in `cevg-core/src/soft.rs`
+(a depth buffer, 2x supersampling, the reference for tests) and Vulkan in
+`crates/cevg-gpu` (headless, offscreen, 4x MSAA, one shader; GLSL compiled
+to SPIR-V with `glslangValidator` and committed under `shaders/`). `cevg gpu`
+reports the device; `--gpu auto|vulkan|soft` on `frame` and `render` chooses
+(`auto` takes the GPU when there is one). Labels are projected and drawn by
+the 2D compositor, so they stay sharp and are never hidden by a surface. On
+a machine without a GPU, Mesa's lavapipe (`mesa-vulkan-drivers` on Debian
+and Ubuntu) runs the Vulkan backend in software; `CEVG_VK_VALIDATION=1`
+turns on the Khronos validation layer when it is installed. Examples:
+`examples/space_saddle.json`, `examples/subjects/ml_pca_3d.json`.
 
 ## Math
 

@@ -4,6 +4,11 @@
 //!   cevg frame <script.json> [--scene <id>] [--step <n>] [--at <0..1>] [--captions [lang]] [--watermark <text>] [--after <n>] [-o <out.png>]
 //!   cevg render <script.json> [--speech <s1,s2,...>] [--captions [lang]] [--watermark <text>] [-o <out.mp4>]
 //!   cevg guide
+//!   cevg gpu
+//!
+//! `--gpu auto|vulkan|soft` on frame and render chooses how 3D scenes are
+//! drawn: the GPU through Vulkan, or the software rasteriser. `auto` (the
+//! default) takes Vulkan when a device is found.
 //!
 //! Exit codes: 0 = success, 1 = the script has errors, 2 = bad usage or I/O.
 
@@ -15,8 +20,13 @@ const USAGE: &str = "usage:
   cevg frame <script.json> [--scene <id>] [--step <n>] [--at <0..1>] [--captions [lang]] [--watermark <text>] [--after <n>] [-o <out.png>]
   cevg render <script.json> [--speech <s1,s2,...>] [--captions [lang]] [--watermark <text>] [-o <out.mp4>]
   cevg guide
+  cevg gpu
 
 guide prints the reference for writing scene scripts.
+
+gpu reports which Vulkan device would draw 3D scenes, if any. --gpu
+auto|vulkan|soft on frame and render chooses between the GPU and the
+software rasteriser; auto (the default) takes the GPU when there is one.
 
 frame draws one moment. Without --scene it uses the last scene; without
 --step, the last step of that scene. Steps count from 0. --at says how far
@@ -45,6 +55,23 @@ fn main() -> ExitCode {
     }
 }
 
+/// Pick the 3D backend for this run. `auto` falls back quietly.
+fn choose_gpu(choice: &str) -> Result<(), String> {
+    match choice {
+        "soft" => Ok(()),
+        "vulkan" => {
+            let backend = cevg_gpu::VulkanBackend::new().map_err(|e| format!("--gpu vulkan: {e}"))?;
+            cevg_core::set_space_backend(Box::new(backend)).map_err(|e| e.to_string())
+        }
+        _ => {
+            if let Ok(backend) = cevg_gpu::VulkanBackend::new() {
+                let _ = cevg_core::set_space_backend(Box::new(backend));
+            }
+            Ok(())
+        }
+    }
+}
+
 fn run(args: &[String]) -> Result<ExitCode, String> {
     let mut positional = Vec::new();
     let (mut json, mut scene, mut step, mut out) = (false, None, None, None);
@@ -52,6 +79,7 @@ fn run(args: &[String]) -> Result<ExitCode, String> {
     let mut captions: Option<String> = None;
     let mut watermark: Option<String> = None;
     let mut after: Option<usize> = None;
+    let mut gpu = "auto".to_string();
 
     let mut it = args.iter().peekable();
     while let Some(arg) = it.next() {
@@ -84,15 +112,32 @@ fn run(args: &[String]) -> Result<ExitCode, String> {
                 let v = value("--after")?;
                 after = Some(v.parse::<usize>().map_err(|_| format!("--after `{v}` is not a whole number"))?);
             }
+            "--gpu" => {
+                gpu = value("--gpu")?;
+                if !["auto", "vulkan", "soft"].contains(&gpu.as_str()) {
+                    return Err(format!("--gpu `{gpu}` is not one of auto, vulkan, soft"));
+                }
+            }
             "-o" | "--out" => out = Some(value("-o")?),
             flag if flag.starts_with('-') => return Err(format!("unknown option `{flag}`")),
             _ => positional.push(arg.as_str()),
         }
     }
 
+    if matches!(positional.first(), Some(&"frame") | Some(&"render")) {
+        choose_gpu(&gpu)?;
+    }
+
     match positional.as_slice() {
         ["guide"] => {
             print!("{}", cevg_core::GUIDE);
+            Ok(ExitCode::SUCCESS)
+        }
+        ["gpu"] => {
+            match cevg_gpu::VulkanBackend::new() {
+                Ok(backend) => println!("vulkan: {}", backend.device_name()),
+                Err(e) => println!("no vulkan ({e}); 3D scenes use the software rasteriser"),
+            }
             Ok(ExitCode::SUCCESS)
         }
         ["validate", file] => {

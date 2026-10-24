@@ -101,6 +101,7 @@ pub enum ObjectKind {
     Math(families::math::Spec),
     Plot(families::plot::Spec),
     Timeline(families::timeline::Spec),
+    Space(families::space::Spec),
     Pointer(families::connect::PointerSpec),
     Arrow(families::connect::ArrowSpec),
 }
@@ -215,12 +216,13 @@ pub enum ActionKind {
     // ---- plot
     /// Draw a curve that was declared with `"visible": false`.
     Trace { target: Target },
-    /// Move a point to new coordinates.
-    MoveTo { target: Target, at: [f64; 2] },
+    /// Move a point to new coordinates: `[x, y]` on a plot, `[x, y, z]` in
+    /// space (where it also moves a vector's tip or a label).
+    MoveTo { target: Target, at: Vec<f64> },
     AddPoint {
         target: Target,
         id: String,
-        at: [f64; 2],
+        at: Vec<f64>,
         #[serde(default)]
         label: Option<String>,
     },
@@ -247,6 +249,51 @@ pub enum ActionKind {
     },
     /// Move the "now" cursor to a time.
     Advance { target: Target, to: f64 },
+    // ---- space
+    /// Glide the camera to a new azimuth, elevation or distance (any subset).
+    Orbit {
+        target: Target,
+        #[serde(default)]
+        azimuth: Option<f64>,
+        #[serde(default)]
+        elevation: Option<f64>,
+        #[serde(default)]
+        distance: Option<f64>,
+    },
+    /// Turn the camera to look at a point.
+    Look { target: Target, at: [f64; 3] },
+    AddVector {
+        target: Target,
+        id: String,
+        to: [f64; 3],
+        #[serde(default)]
+        from: Option<[f64; 3]>,
+        #[serde(default)]
+        label: Option<String>,
+        #[serde(default)]
+        color: Option<families::space::Color>,
+    },
+    AddPlane {
+        target: Target,
+        id: String,
+        #[serde(default)]
+        through: Option<[f64; 3]>,
+        #[serde(default)]
+        normal: Option<[f64; 3]>,
+        #[serde(default)]
+        span: Option<[String; 2]>,
+        #[serde(default)]
+        size: Option<f64>,
+        #[serde(default)]
+        label: Option<String>,
+    },
+    /// Drop a point or a vector onto a plane or a line: the projected copy
+    /// appears as `id`, joined to the original by a thin drop line.
+    Project { target: Target, onto: String, id: String },
+    /// Turn a part (or every part) about an axis through the origin.
+    Rotate { target: Target, about: families::space::Axis, degrees: f64 },
+    /// The parallelogram two vectors span, as a new plane part `id`.
+    Span { target: Target, a: String, b: String, id: String },
 }
 
 impl ActionKind {
@@ -281,14 +328,21 @@ impl ActionKind {
             ActionKind::AddBlock { .. } => "add_block",
             ActionKind::AddMessage { .. } => "add_message",
             ActionKind::Advance { .. } => "advance",
+            ActionKind::Orbit { .. } => "orbit",
+            ActionKind::Look { .. } => "look",
+            ActionKind::AddVector { .. } => "add_vector",
+            ActionKind::AddPlane { .. } => "add_plane",
+            ActionKind::Project { .. } => "project",
+            ActionKind::Rotate { .. } => "rotate",
+            ActionKind::Span { .. } => "span",
         }
     }
 
     /// Which kinds of object the action works on, for error messages.
     pub fn works_on(&self) -> &'static str {
         match self {
-            ActionKind::Set { .. } => "text, array, table, diagram, math, plot and timeline objects",
-            ActionKind::Remove { .. } => "array, table, diagram, plot and timeline objects",
+            ActionKind::Set { .. } => "text, array, table, diagram, math, plot, timeline and space objects",
+            ActionKind::Remove { .. } => "array, table, diagram, plot, timeline and space objects",
             ActionKind::Write { .. } | ActionKind::Replace { .. } => "text objects",
             ActionKind::Swap { .. } | ActionKind::Compare { .. } | ActionKind::Insert { .. } => "array objects",
             ActionKind::Point { .. } => "pointer objects",
@@ -297,8 +351,15 @@ impl ActionKind {
             ActionKind::AddNode { .. } | ActionKind::AddEdge { .. } => "diagram objects",
             ActionKind::AddRow { .. } => "table objects",
             ActionKind::Reveal { .. } => "math objects",
-            ActionKind::Trace { .. } | ActionKind::MoveTo { .. } | ActionKind::AddPoint { .. } => "plot objects",
+            ActionKind::Trace { .. } | ActionKind::MoveTo { .. } | ActionKind::AddPoint { .. } => "plot and space objects",
             ActionKind::AddBlock { .. } | ActionKind::AddMessage { .. } | ActionKind::Advance { .. } => "timeline objects",
+            ActionKind::Orbit { .. }
+            | ActionKind::Look { .. }
+            | ActionKind::AddVector { .. }
+            | ActionKind::AddPlane { .. }
+            | ActionKind::Project { .. }
+            | ActionKind::Rotate { .. }
+            | ActionKind::Span { .. } => "space objects",
             _ => "every object",
         }
     }
@@ -334,7 +395,14 @@ impl ActionKind {
             | ActionKind::AddPoint { target, .. }
             | ActionKind::AddBlock { target, .. }
             | ActionKind::AddMessage { target, .. }
-            | ActionKind::Advance { target, .. } => Some(target),
+            | ActionKind::Advance { target, .. }
+            | ActionKind::Orbit { target, .. }
+            | ActionKind::Look { target, .. }
+            | ActionKind::AddVector { target, .. }
+            | ActionKind::AddPlane { target, .. }
+            | ActionKind::Project { target, .. }
+            | ActionKind::Rotate { target, .. }
+            | ActionKind::Span { target, .. } => Some(target),
         }
     }
 }

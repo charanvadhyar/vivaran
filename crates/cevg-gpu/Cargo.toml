@@ -1,0 +1,14 @@
+[package]
+name = "cevg-gpu"
+description = "Vulkan backend for CEVG's 3D scenes"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+cevg-core = { path = "../cevg-core" }
+# The loader is opened at run time, so a machine without Vulkan still runs
+# the renderer with the software backend.
+ash = { version = "0.38", default-features = false, features = ["loaded", "std"] }
+tiny-skia.workspace = true

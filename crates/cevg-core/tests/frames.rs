@@ -123,11 +123,11 @@ fn the_guide_covers_every_object_type_and_action() {
         .filter_map(|l| l.split('"').nth(1))
         .filter(|name| !name.contains(' '))
         .collect();
-    assert!(names.len() >= 29, "found only {} action names", names.len());
+    assert!(names.len() >= 36, "found only {} action names", names.len());
     for name in names {
         assert!(cevg_core::GUIDE.contains(&format!("`{name}`")), "the guide does not mention the action `{name}`");
     }
-    for kind in ["text", "array", "pointer", "arrow", "code", "diagram", "table", "math", "plot", "timeline"] {
+    for kind in ["text", "array", "pointer", "arrow", "code", "diagram", "table", "math", "plot", "timeline", "space"] {
         assert!(cevg_core::GUIDE.contains(&format!("\"type\": \"{kind}\"")), "the guide has no example of type `{kind}`");
     }
 }

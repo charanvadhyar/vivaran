@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "title": "A saddle point is a minimum one way and a maximum the other",
+  "objects": [
+    { "id": "head", "type": "text", "region": "title", "text": "f(x, y) = x² − y²: the saddle" },
+    { "id": "sp", "type": "space", "region": "center",
+      "axes": { "x": [-2, 2], "y": [-2, 2], "z": [-4, 4], "labels": ["x", "y", "f"], "grid": "xy" },
+      "camera": { "azimuth": 40, "elevation": 26 },
+      "parts": [
+        { "kind": "surface", "id": "f", "fn": "x^2 - y^2", "label": "f", "visible": false },
+        { "kind": "point", "id": "o", "at": [0, 0, 0], "label": "(0, 0)", "color": "amber", "visible": false },
+        { "kind": "path", "id": "along_x", "points": [[-2, 0, 4], [-1, 0, 1], [0, 0, 0], [1, 0, 1], [2, 0, 4]], "color": "green", "visible": false },
+        { "kind": "path", "id": "along_y", "points": [[0, -2, -4], [0, -1, -1], [0, 0, 0], [0, 1, -1], [0, 2, -4]], "color": "pink", "visible": false }
+      ] }
+  ],
+  "scenes": [
+    { "id": "surface", "steps": [
+      { "say": { "en": "Here are the x and y axes, with f going up." },
+        "do": [ { "action": "show", "target": "head" }, { "action": "show", "target": "sp" } ] },
+      { "say": { "en": "The surface f equals x squared minus y squared curves up along x and down along y." },
+        "do": [ { "action": "trace", "target": "sp.f" } ] },
+      { "say": { "en": "At the origin both slopes are zero, so it is a stationary point." },
+        "do": [ { "action": "trace", "target": "sp.o" }, { "action": "highlight", "target": "sp.o", "delay": 0.4 } ] }
+    ] },
+    { "id": "two-ways", "steps": [
+      { "say": { "en": "Walk along x: the origin is the lowest point, a minimum." },
+        "do": [ { "action": "trace", "target": "sp.along_x" } ] },
+      { "say": { "en": "Walk along y: the origin is the highest point, a maximum. That is a saddle." },
+        "do": [ { "action": "trace", "target": "sp.along_y" } ] },
+      { "say": { "en": "Turning around it makes the shape clear." },
+        "do": [ { "action": "orbit", "target": "sp", "azimuth": 130, "elevation": 18 } ] }
+    ] }
+  ]
+}

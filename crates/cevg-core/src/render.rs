@@ -14,6 +14,7 @@ use crate::script::{Canvas, Region, Script, Theme};
 use crate::state::{Item, World};
 use crate::target::Target;
 use crate::draw::{raster, Cmd, Shape};
+use crate::space3d::{Camera, Content, Vec3};
 use crate::text::{Face, Fonts, HAlign};
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -203,6 +204,30 @@ impl Cx<'_> {
     pub fn image(&mut self, image: &Arc<Pixmap>, id: u64, rect: Rect, opacity: f32) {
         self.push(Shape::Image { image: image.clone(), id, x: rect.x, y: rect.y, w: rect.w, h: rect.h, opacity });
     }
+
+    // ---- 3D, for the space family
+
+    /// A number that names the current object's 3D scene, so that its solids
+    /// find their viewport.
+    pub fn scene_id(&self) -> u64 {
+        use std::hash::{Hash, Hasher};
+        let mut h = std::collections::hash_map::DefaultHasher::new();
+        self.object.hash(&mut h);
+        h.finish()
+    }
+
+    pub fn viewport(&mut self, scene: u64, rect: Rect, camera: &Camera, opacity: f32) {
+        self.push(Shape::Viewport { scene, rect, camera: camera.numbers(), opacity });
+    }
+
+    pub fn solid(&mut self, scene: u64, content: Arc<Content>, vertices: Vec<Vec3>, color: Rgb, drawn: f32, opacity: f32) {
+        self.push(Shape::Solid { scene, content, vertices, color, drawn, opacity });
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn label3d(&mut self, scene: u64, text: &str, face: Face, align: HAlign, at: Vec3, dx: f32, dy: f32, size: f32, color: Rgb, opacity: f32) {
+        self.push(Shape::Label3d { scene, text: text.to_string(), face, align, at, dx, dy, size, color, opacity });
+    }
 }
 
 /// The point where a line from the centre of `r` toward `toward` leaves the
@@ -261,7 +286,7 @@ impl Renderer {
     pub fn render(&mut self, script: &Script, world: &World) -> Pixmap {
         let cmds = self.display_list(script, world);
         let canvas = &script.canvas;
-        raster(&cmds, canvas.width, canvas.height, palette(canvas.theme).background, &mut self.fonts)
+        raster(&cmds, canvas.width, canvas.height, palette(canvas.theme).background, &mut self.fonts, crate::space_backend())
     }
 
     /// Everything one world draws, in paint order, without painting it.

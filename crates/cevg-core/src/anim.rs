@@ -264,12 +264,12 @@ impl Movie {
     }
 
     pub fn frame_at(&self, time: f32, fonts: &mut Fonts) -> Pixmap {
-        raster(&self.cmds_at(time), self.width, self.height, self.background, fonts)
+        raster(&self.cmds_at(time), self.width, self.height, self.background, fonts, crate::space_backend())
     }
 
     /// The picture of a step after its first `done` actions; see [`Movie::cmds_after`].
     pub fn frame_after(&self, step: usize, done: usize, fonts: &mut Fonts) -> Pixmap {
-        raster(&self.cmds_after(step, done), self.width, self.height, self.background, fonts)
+        raster(&self.cmds_after(step, done), self.width, self.height, self.background, fonts, crate::space_backend())
     }
 
     /// Render every frame and encode an H.264 MP4 with `ffmpeg`.

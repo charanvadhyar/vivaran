@@ -1,6 +1,7 @@
-//! A small expression language for plotting functions of `x`.
+//! A small expression language for plotting functions of `x`, or of `x`
+//! and `y` for surfaces.
 //!
-//! Numbers, `x`, the constants `pi` and `e`, the operators `+ - * / ^`,
+//! Numbers, `x` (and `y` when allowed), the constants `pi` and `e`, the operators `+ - * / ^`,
 //! parentheses, and the functions listed in [`FUNCTIONS`]. Multiplication
 //! may be left out where it is unambiguous: `2x`, `3(x - 1)`, `2 sin(x)`.
 
@@ -28,6 +29,7 @@ pub const FUNCTIONS: &[&str] =
 enum Node {
     Num(f64),
     X,
+    Y,
     Neg(Box<Node>),
     Bin(char, Box<Node>, Box<Node>),
     Call(Func, Box<Node>),
@@ -88,6 +90,8 @@ fn tokens(src: &str) -> Result<Vec<Token>, String> {
 struct Parser {
     tokens: Vec<Token>,
     pos: usize,
+    /// Whether `y` is a variable (surfaces) or an unknown name (curves).
+    with_y: bool,
 }
 
 impl Parser {
@@ -158,6 +162,7 @@ impl Parser {
             Some(Token::Ident(name)) => {
                 let func = match name.as_str() {
                     "x" => return Ok(Node::X),
+                    "y" if self.with_y => return Ok(Node::Y),
                     "pi" => return Ok(Node::Num(std::f64::consts::PI)),
                     "e" => return Ok(Node::Num(std::f64::consts::E)),
                     "sin" => Func::Sin,
@@ -174,8 +179,9 @@ impl Parser {
                     "relu" => Func::Relu,
                     "floor" => Func::Floor,
                     _ => {
+                        let vars = if self.with_y { "the variables are `x` and `y`" } else { "the variable is `x`" };
                         return Err(format!(
-                            "unknown name `{name}`; the variable is `x`, the constants are pi and e, and the functions are: {}",
+                            "unknown name `{name}`; {vars}, the constants are pi and e, and the functions are: {}",
                             FUNCTIONS.join(", ")
                         ))
                     }
@@ -205,7 +211,16 @@ impl Parser {
 
 impl Expr {
     pub fn parse(src: &str) -> Result<Expr, String> {
-        let mut parser = Parser { tokens: tokens(src)?, pos: 0 };
+        Self::parse_with(src, false)
+    }
+
+    /// A function of `x` and `y`, for surfaces.
+    pub fn parse_xy(src: &str) -> Result<Expr, String> {
+        Self::parse_with(src, true)
+    }
+
+    fn parse_with(src: &str, with_y: bool) -> Result<Expr, String> {
+        let mut parser = Parser { tokens: tokens(src)?, pos: 0, with_y };
         if parser.tokens.is_empty() {
             return Err("the function is empty".to_string());
         }
@@ -218,13 +233,18 @@ impl Expr {
     }
 
     pub fn eval(&self, x: f64) -> f64 {
-        fn go(n: &Node, x: f64) -> f64 {
+        self.eval_xy(x, 0.0)
+    }
+
+    pub fn eval_xy(&self, x: f64, y: f64) -> f64 {
+        fn go(n: &Node, x: f64, y: f64) -> f64 {
             match n {
                 Node::Num(v) => *v,
                 Node::X => x,
-                Node::Neg(a) => -go(a, x),
+                Node::Y => y,
+                Node::Neg(a) => -go(a, x, y),
                 Node::Bin(op, a, b) => {
-                    let (a, b) = (go(a, x), go(b, x));
+                    let (a, b) = (go(a, x, y), go(b, x, y));
                     match op {
                         '+' => a + b,
                         '-' => a - b,
@@ -234,7 +254,7 @@ impl Expr {
                     }
                 }
                 Node::Call(f, a) => {
-                    let a = go(a, x);
+                    let a = go(a, x, y);
                     match f {
                         Func::Sin => a.sin(),
                         Func::Cos => a.cos(),
@@ -253,7 +273,7 @@ impl Expr {
                 }
             }
         }
-        go(&self.0, x)
+        go(&self.0, x, y)
     }
 }
 
@@ -285,6 +305,7 @@ mod tests {
     fn explains_mistakes() {
         let err = |src: &str| Expr::parse(src).unwrap_err();
         assert!(err("y + 1").contains("unknown name `y`"));
+        assert_eq!(Expr::parse_xy("x^2 - y^2").unwrap().eval_xy(3.0, 2.0), 5.0);
         assert!(err("sin x").contains("needs its argument in parentheses"));
         assert!(err("(x + 1").contains("never closed"));
         assert!(err("x + 1)").contains("too many"));
