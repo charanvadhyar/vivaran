@@ -181,6 +181,7 @@ version = "0.1.0"
 dependencies = [
  "cevg-core",
  "cevg-gpu",
+ "cevg-studio",
  "serde_json",
 ]
 
@@ -206,6 +207,17 @@ version = "0.1.0"
 dependencies = [
  "ash",
  "cevg-core",
+ "tiny-skia",
+]
+
+[[package]]
+name = "cevg-studio"
+version = "0.1.0"
+dependencies = [
+ "cevg-core",
+ "serde",
+ "serde_json",
+ "serde_path_to_error",
  "tiny-skia",
 ]
 

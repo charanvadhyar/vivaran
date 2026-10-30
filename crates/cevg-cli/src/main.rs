@@ -12,6 +12,8 @@
 //!
 //! Exit codes: 0 = success, 1 = the script has errors, 2 = bad usage or I/O.
 
+mod studio;
+
 use cevg_core::Report;
 use std::process::ExitCode;
 
@@ -21,6 +23,7 @@ const USAGE: &str = "usage:
   cevg render <script.json> [--speech <s1,s2,...>] [--captions [lang]] [--watermark <text>] [-o <out.mp4>]
   cevg guide
   cevg gpu
+  cevg studio ...   (3D explainers; `cevg studio help` lists the commands)
 
 guide prints the reference for writing scene scripts.
 
@@ -73,6 +76,9 @@ fn choose_gpu(choice: &str) -> Result<(), String> {
 }
 
 fn run(args: &[String]) -> Result<ExitCode, String> {
+    if args.first().map(String::as_str) == Some("studio") {
+        return studio::run(&args[1..]);
+    }
     let mut positional = Vec::new();
     let (mut json, mut scene, mut step, mut out) = (false, None, None, None);
     let (mut at, mut speech): (Option<f32>, Option<Vec<f32>>) = (None, None);

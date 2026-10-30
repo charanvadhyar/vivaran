@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/cevg-core", "crates/cevg-gpu", "crates/cevg-cli"]
+members = ["crates/cevg-core", "crates/cevg-gpu", "crates/cevg-studio", "crates/cevg-cli"]
 
 [workspace.package]
 version = "0.1.0"

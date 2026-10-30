@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "title": "How a tokamak holds a star in a magnetic bottle",
+  "canvas": { "width": 1920, "height": 1080, "fps": 30, "samples": 128 },
+  "environment": { "preset": "dark_studio" },
+  "materials": {
+    "steel": { "preset": "steel", "roughness": 0.28 },
+    "brushed": { "preset": "brushed_steel" },
+    "plinth": { "preset": "paint", "color": "#1b1e24", "roughness": 0.5 },
+    "copper": { "preset": "copper", "roughness": 0.22 },
+    "coil_case": { "preset": "paint", "color": "#2b3a55", "roughness": 0.38 },
+    "tungsten": { "preset": "titanium", "color": "#5a5d63", "roughness": 0.4 },
+    "plasma": { "preset": "emissive", "color": "#ff5bd1", "strength": 6 }
+  },
+  "parts": [
+    { "id": "machine" },
+    { "id": "base", "parent": "machine", "shape": { "kind": "tube", "inner": 0.6, "outer": 3.6, "height": 0.12, "round": 0.02 },
+      "material": "plinth", "at": [0, 0, -2.05], "label": "Support base" },
+    { "id": "vessel", "parent": "machine", "label": "Vacuum vessel" },
+    { "id": "vessel_top", "parent": "vessel", "material": "steel",
+      "shape": { "kind": "revolve", "angle": 270, "profile": [[2.72, 0.0], [2.704, 0.186], [2.657, 0.367], [2.582, 0.539], [2.484, 0.698], [2.369, 0.84], [2.244, 0.961], [2.114, 1.059], [1.987, 1.13], [1.865, 1.173], [1.753, 1.188], [1.653, 1.173], [1.566, 1.13], [1.492, 1.059], [1.431, 0.961], [1.382, 0.84], [1.343, 0.698], [1.315, 0.539], [1.295, 0.367], [1.284, 0.186], [1.28, 0.0], [1.37, 0.0], [1.373, 0.163], [1.383, 0.321], [1.4, 0.472], [1.425, 0.611], [1.459, 0.735], [1.502, 0.841], [1.556, 0.926], [1.62, 0.989], [1.696, 1.027], [1.784, 1.039], [1.882, 1.027], [1.988, 0.989], [2.1, 0.926], [2.213, 0.841], [2.323, 0.735], [2.423, 0.611], [2.509, 0.472], [2.575, 0.321], [2.616, 0.163], [2.63, 0.0]] } },
+    { "id": "vessel_bottom", "parent": "vessel", "material": "steel",
+      "shape": { "kind": "revolve", "angle": 270, "profile": [[1.28, 0.0], [1.284, -0.186], [1.295, -0.367], [1.315, -0.539], [1.343, -0.698], [1.382, -0.84], [1.431, -0.961], [1.492, -1.059], [1.566, -1.13], [1.653, -1.173], [1.753, -1.188], [1.865, -1.173], [1.987, -1.13], [2.114, -1.059], [2.244, -0.961], [2.369, -0.84], [2.484, -0.698], [2.582, -0.539], [2.657, -0.367], [2.704, -0.186], [2.72, 0.0], [2.63, 0.0], [2.616, -0.163], [2.575, -0.321], [2.509, -0.472], [2.423, -0.611], [2.323, -0.735], [2.213, -0.841], [2.1, -0.926], [1.988, -0.989], [1.882, -1.027], [1.784, -1.039], [1.696, -1.027], [1.62, -0.989], [1.556, -0.926], [1.502, -0.841], [1.459, -0.735], [1.425, -0.611], [1.4, -0.472], [1.383, -0.321], [1.373, -0.163], [1.37, 0.0]] } },
+    { "id": "divertor", "parent": "vessel", "material": "tungsten", "label": "Divertor",
+      "shape": { "kind": "tube", "inner": 1.62, "outer": 2.0, "height": 0.05, "angle": 270, "round": 0.01 }, "at": [0, 0, -0.97] },
+    { "id": "plasma", "parent": "machine", "material": "plasma", "label": "Plasma, 150 million °C",
+      "shape": { "kind": "revolve", "angle": 270, "profile": [[2.56, 0.0], [2.552, 0.116], [2.527, 0.229], [2.486, 0.339], [2.433, 0.442], [2.368, 0.538], [2.294, 0.624], [2.215, 0.699], [2.132, 0.761], [2.049, 0.81], [1.968, 0.844], [1.89, 0.864], [1.817, 0.868], [1.75, 0.856], [1.69, 0.829], [1.636, 0.787], [1.59, 0.732], [1.551, 0.663], [1.518, 0.582], [1.491, 0.491], [1.471, 0.391], [1.455, 0.285], [1.446, 0.173], [1.441, 0.058], [1.441, -0.058], [1.446, -0.173], [1.455, -0.285], [1.471, -0.391], [1.491, -0.491], [1.518, -0.582], [1.551, -0.663], [1.59, -0.732], [1.636, -0.787], [1.69, -0.829], [1.75, -0.856], [1.817, -0.868], [1.89, -0.864], [1.968, -0.844], [2.049, -0.81], [2.132, -0.761], [2.215, -0.699], [2.294, -0.624], [2.368, -0.538], [2.433, -0.442], [2.486, -0.339], [2.527, -0.229], [2.552, -0.116]] } },
+    { "id": "tf_coil", "parent": "machine", "material": "coil_case", "label": "Toroidal field coils",
+      "shape": { "kind": "sweep", "path": { "kind": "d_shape", "inner": 0.95, "outer": 3.25, "height": 3.2 },
+                 "section": { "kind": "rect", "width": 0.22, "height": 0.26, "round": 0.03 } },
+      "array": { "kind": "radial", "count": 12, "angle": 247.5, "start": 11.25 } },
+    { "id": "cs", "parent": "machine", "label": "Central solenoid" },
+    { "id": "cs_core", "parent": "cs", "material": "brushed", "shape": { "kind": "tube", "inner": 0.3, "outer": 0.5, "height": 2.8, "round": 0.02 } },
+    { "id": "cs_winding", "parent": "cs", "material": "copper", "at": [0, 0, -1.33],
+      "shape": { "kind": "sweep", "path": { "kind": "helix", "radius": 0.54, "pitch": 0.07, "turns": 38 }, "section": { "kind": "circle", "radius": 0.032 } } },
+    { "id": "pf", "parent": "machine", "label": "Poloidal field coils" },
+    { "id": "pf_upper", "parent": "pf", "material": "copper", "at": [0, 0, 1.25], "explode": [0, 0, 1],
+      "shape": { "kind": "torus", "major": 3.45, "minor": 0.1, "angle": 270 } },
+    { "id": "pf_lower", "parent": "pf", "material": "copper", "at": [0, 0, -1.25], "explode": [0, 0, -1],
+      "shape": { "kind": "torus", "major": 3.45, "minor": 0.1, "angle": 270 } },
+    { "id": "pf_inner_top", "parent": "pf", "material": "copper", "at": [0, 0, 1.82], "explode": [0, 0, 1],
+      "shape": { "kind": "torus", "major": 1.3, "minor": 0.08, "angle": 270 } },
+    { "id": "pf_inner_bottom", "parent": "pf", "material": "copper", "at": [0, 0, -1.82], "explode": [0, 0, -1],
+      "shape": { "kind": "torus", "major": 1.3, "minor": 0.08, "angle": 270 } }
+  ],
+  "camera": { "azimuth": -70, "elevation": 30, "distance": 16, "target": [0, 0, -0.1], "fov": 32 },
+  "scenes": [
+    { "id": "machine", "steps": [
+      { "say": { "en": "This is a tokamak: a machine that holds a gas hotter than the centre of the Sun inside a magnetic bottle.",
+                 "te": "ఇది ఒక tokamak: Sun యొక్క centre కంటే hot గా ఉన్న gas ని magnetic bottle లో hold చేసే machine." },
+        "do": [ { "action": "camera", "distance": 12.5, "azimuth": -55 } ] },
+      { "say": { "en": "We have cut a quarter away to look inside. The doughnut-shaped steel chamber is the vacuum vessel.",
+                 "te": "Inside చూడడానికి ఒక quarter ని cut చేశాం. Doughnut shape లో ఉన్న steel chamber అంటే vacuum vessel." },
+        "do": [ { "action": "camera", "azimuth": -40, "elevation": 22, "distance": 11 }, { "action": "label", "target": "vessel", "delay": 0.4 } ] }
+    ] },
+    { "id": "plasma", "steps": [
+      { "say": { "en": "Inside it floats the plasma, hydrogen at about 150 million degrees. No wall could survive touching it, so nothing does.",
+                 "te": "దాని inside plasma float అవుతుంది, about 150 million degrees వద్ద hydrogen. ఏ wall కూడా దాన్ని touch చేసి survive చేయలేదు, కాబట్టి ఏదీ touch చేయదు." },
+        "do": [ { "action": "unlabel", "target": "vessel" }, { "action": "glow", "target": "plasma", "strength": 11 }, { "action": "label", "target": "plasma", "delay": 0.3 } ] },
+      { "say": { "en": "At the bottom, the divertor takes the heat and the ash that leak out of the plasma's edge.",
+                 "te": "Bottom లో divertor, plasma edge నుంచి leak అయ్యే heat and ash ని take చేస్తుంది." },
+        "do": [ { "action": "unlabel", "target": "plasma" }, { "action": "highlight", "target": "divertor" }, { "action": "label", "target": "divertor", "delay": 0.3 } ] }
+    ] },
+    { "id": "coils", "steps": [
+      { "say": { "en": "Twelve D-shaped coils wrap around the ring. Their current makes a magnetic field that runs the long way round the doughnut.",
+                 "te": "Twelve D-shaped coils ring చుట్టూ wrap అవుతాయి. వాటి current doughnut long way round run అయ్యే magnetic field ని make చేస్తుంది." },
+        "do": [ { "action": "reset", "target": "divertor" }, { "action": "unlabel", "target": "divertor" }, { "action": "highlight", "target": "tf_coil" }, { "action": "label", "target": "tf_coil", "delay": 0.3 } ] },
+      { "say": { "en": "The central solenoid drives a current through the plasma itself, which twists that field into a helix.",
+                 "te": "Central solenoid plasma itself లో ఒక current ని drive చేస్తుంది, అది ఆ field ని helix గా twist చేస్తుంది." },
+        "do": [ { "action": "reset", "target": "tf_coil" }, { "action": "unlabel", "target": "tf_coil" }, { "action": "highlight", "target": "cs" }, { "action": "label", "target": "cs", "delay": 0.3 } ] },
+      { "say": { "en": "The rings above and below shape the plasma and hold it in place.",
+                 "te": "Above and below ఉన్న rings plasma ని shape చేసి place లో hold చేస్తాయి." },
+        "do": [ { "action": "reset", "target": "cs" }, { "action": "unlabel", "target": "cs" }, { "action": "highlight", "target": "pf" }, { "action": "label", "target": "pf", "delay": 0.3 } ] }
+    ] },
+    { "id": "apart", "steps": [
+      { "say": { "en": "Pull it apart and the layers are clear: field coils outside, the vessel, and the plasma at the centre of it all.",
+                 "te": "Apart గా pull చేస్తే layers clear: outside field coils, vessel, and అన్నింటి centre లో plasma." },
+        "do": [ { "action": "reset", "target": "pf" }, { "action": "unlabel", "target": "pf" },
+                { "action": "explode", "target": "tf_coil", "distance": 1.1 }, { "action": "explode", "target": "pf", "distance": 0.9 },
+                { "action": "move", "target": "cs", "by": [0, 0, 2.2] }, { "action": "camera", "distance": 15, "elevation": 26 } ] },
+      { "say": { "en": "Put back together, these fields hold the plasma long enough for hydrogen nuclei to fuse and release energy.",
+                 "te": "Back together పెడితే, ఈ fields hydrogen nuclei fuse అయి energy release చేసేంత long గా plasma ని hold చేస్తాయి." },
+        "do": [ { "action": "assemble", "target": "tf_coil" }, { "action": "assemble", "target": "pf" }, { "action": "move", "target": "cs", "by": [0, 0, -2.2] },
+                { "action": "camera", "azimuth": -15, "distance": 11.5, "elevation": 24 }, { "action": "glow", "target": "plasma", "strength": 16, "delay": 0.4 } ] }
+    ] }
+  ]
+}

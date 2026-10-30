@@ -13,4 +13,5 @@ path = "src/main.rs"
 [dependencies]
 cevg-core = { path = "../cevg-core" }
 cevg-gpu = { path = "../cevg-gpu" }
+cevg-studio = { path = "../cevg-studio" }
 serde_json.workspace = true

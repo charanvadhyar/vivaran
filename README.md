@@ -53,6 +53,8 @@ draws in three dimensions. All are built.
 | `crates/cevg-core/src/space3d.rs` | 3D: the camera, projection, solids and the `SpaceBackend` trait. |
 | `crates/cevg-core/src/soft.rs` | The software 3D rasteriser (reference backend). |
 | `crates/cevg-gpu` | The Vulkan 3D backend (`ash`), with its shaders. |
+| `crates/cevg-studio` | Vivaran Studio: film-quality 3D scenes (parametric parts, timeline, glTF export, callouts and captions). |
+| `studio/blender/render.py` | The Cycles renderer for studio scenes, run inside Blender. |
 | `crates/cevg-cli` | The `cevg` command-line tool. |
 | `shell/cevg_shell/sarvam.py` | The Sarvam text-to-speech client: one request, retries, request spacing. |
 | `shell/cevg_shell/voice.py` | Voices and the cache of spoken lines. |
@@ -383,6 +385,55 @@ a machine without a GPU, Mesa's lavapipe (`mesa-vulkan-drivers` on Debian
 and Ubuntu) runs the Vulkan backend in software; `CEVG_VK_VALIDATION=1`
 turns on the Khronos validation layer when it is installed. Examples:
 `examples/space_saddle.json`, `examples/subjects/ml_pca_3d.json`.
+
+## Studio (film-quality 3D)
+
+Studio is the paid tier: machines and physical systems rendered with a path
+tracer, so metal reflects, glass refracts and glowing parts light their
+surroundings. It is a separate scene format from the flat script (`cevg
+studio guide` prints its reference) and a separate pipeline:
+
+```
+scene.json ──build──▶ scene.glb + timeline.json ──Cycles──▶ frames ──finish──▶ video.mp4
+```
+
+1. **Scene.** Parts are parametric shapes (`box`, `cylinder`, `tube`,
+   `cone`, `sphere`, `torus`, `revolve`, `extrude`, `sweep` along a helix,
+   circle, arc, D-shape or points, `gear`), with `round` bevels, `angle`
+   cutaways that fill their cut faces, radial and linear arrays, parents
+   and groups. Materials start from presets (steel, copper, glass,
+   emissive...). Steps pair narration with actions: show, hide, move,
+   rotate, spin, explode, assemble, glow, highlight, camera, focus, label.
+2. **Build** (`crates/cevg-studio`). Rust builds every mesh, the node rig
+   and the timeline (actions stretch over the step's narration, eased), then
+   writes `scene.glb` (glTF 2.0, y-up, PBR materials with emission and
+   transmission, a preview animation) and `timeline.json`, which holds
+   every animated channel as thinned keyframes and is the authority on
+   time. `validate` reports problems by path before anything is built.
+3. **Render.** `studio/blender/render.py` runs inside Blender 4.2 or later:
+   it imports the glb, applies the timeline's keys, builds the world and
+   lights, and renders with Cycles (OptiX, then CUDA, HIP, CPU; OptiX or
+   OIDN denoising; AgX; motion blur; a soft glow on bright parts). Our own
+   Vulkan path tracer will read the same two files and is scored against
+   Cycles frames.
+4. **Finish.** Rust draws callouts (pinned to the part, so they follow it),
+   captions and the watermark over the frames and encodes the MP4 with
+   `ffmpeg`. Text is never rendered in 3D, so it is always sharp.
+
+```
+cevg studio validate examples/studio/tokamak.json
+cevg studio build examples/studio/tokamak.json -o tok         # scene.glb, timeline.json
+cevg studio render examples/studio/tokamak.json --preview --frames 1,600,1200
+cevg studio render examples/studio/tokamak.json --captions te --watermark "Vivaran"
+cevg studio still examples/studio/tokamak.json --frame 1200 --image tok/frames/frame_1200.png
+```
+
+Blender is found as `--blender`, `$BLENDER` or `blender` on the PATH; the
+`bpy` module from PyPI works too (`python render.py -- <dir> --out <frames>`).
+A 1080p frame at 128 samples takes seconds on an RTX GPU and minutes on a
+CPU, so full renders belong on the GPU workers. The example,
+`examples/studio/tokamak.json`, is a tokamak cutaway: 16 parts, about
+129,000 triangles, 68 seconds.
 
 ## Math
 

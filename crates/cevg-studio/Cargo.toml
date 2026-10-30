@@ -1,0 +1,14 @@
+[package]
+name = "cevg-studio"
+description = "Vivaran Studio: parametric 3D scenes, timelines and glTF export for film-quality explainers"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+cevg-core = { path = "../cevg-core" }
+serde.workspace = true
+serde_json.workspace = true
+serde_path_to_error.workspace = true
+tiny-skia.workspace = true
