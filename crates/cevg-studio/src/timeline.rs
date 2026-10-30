@@ -388,7 +388,7 @@ fn apply(
             let i = node(target)?;
             for j in rig.subtree(i) {
                 if material_of(j).is_some() {
-                    s.glow[j] = 0.9;
+                    s.glow[j] = 0.3;
                     s.glow_color[j] = hex(AMBER).expect("colour");
                 }
             }

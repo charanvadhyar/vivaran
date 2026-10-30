@@ -22,9 +22,9 @@
     { "id": "vessel_bottom", "parent": "vessel", "material": "steel",
       "shape": { "kind": "revolve", "angle": 270, "profile": [[1.28, 0.0], [1.284, -0.186], [1.295, -0.367], [1.315, -0.539], [1.343, -0.698], [1.382, -0.84], [1.431, -0.961], [1.492, -1.059], [1.566, -1.13], [1.653, -1.173], [1.753, -1.188], [1.865, -1.173], [1.987, -1.13], [2.114, -1.059], [2.244, -0.961], [2.369, -0.84], [2.484, -0.698], [2.582, -0.539], [2.657, -0.367], [2.704, -0.186], [2.72, 0.0], [2.63, 0.0], [2.616, -0.163], [2.575, -0.321], [2.509, -0.472], [2.423, -0.611], [2.323, -0.735], [2.213, -0.841], [2.1, -0.926], [1.988, -0.989], [1.882, -1.027], [1.784, -1.039], [1.696, -1.027], [1.62, -0.989], [1.556, -0.926], [1.502, -0.841], [1.459, -0.735], [1.425, -0.611], [1.4, -0.472], [1.383, -0.321], [1.373, -0.163], [1.37, 0.0]] } },
     { "id": "divertor", "parent": "vessel", "material": "tungsten", "label": "Divertor",
-      "shape": { "kind": "tube", "inner": 1.62, "outer": 2.0, "height": 0.05, "angle": 270, "round": 0.01 }, "at": [0, 0, -0.97] },
+      "shape": { "kind": "revolve", "angle": 270, "round": 0.006, "profile": [[1.62, -0.982], [1.645, -0.8], [1.72, -0.835], [1.785, -0.94], [1.85, -0.835], [1.925, -0.8], [1.985, -0.982], [1.882, -1.02], [1.784, -1.032], [1.696, -1.02]] } },
     { "id": "plasma", "parent": "machine", "material": "plasma", "label": "Plasma, 150 million °C",
-      "shape": { "kind": "revolve", "angle": 270, "profile": [[2.56, 0.0], [2.552, 0.116], [2.527, 0.229], [2.486, 0.339], [2.433, 0.442], [2.368, 0.538], [2.294, 0.624], [2.215, 0.699], [2.132, 0.761], [2.049, 0.81], [1.968, 0.844], [1.89, 0.864], [1.817, 0.868], [1.75, 0.856], [1.69, 0.829], [1.636, 0.787], [1.59, 0.732], [1.551, 0.663], [1.518, 0.582], [1.491, 0.491], [1.471, 0.391], [1.455, 0.285], [1.446, 0.173], [1.441, 0.058], [1.441, -0.058], [1.446, -0.173], [1.455, -0.285], [1.471, -0.391], [1.491, -0.491], [1.518, -0.582], [1.551, -0.663], [1.59, -0.732], [1.636, -0.787], [1.69, -0.829], [1.75, -0.856], [1.817, -0.868], [1.89, -0.864], [1.968, -0.844], [2.049, -0.81], [2.132, -0.761], [2.215, -0.699], [2.294, -0.624], [2.368, -0.538], [2.433, -0.442], [2.486, -0.339], [2.527, -0.229], [2.552, -0.116]] } },
+      "shape": { "kind": "revolve", "angle": 270, "profile": [[2.56, 0.0], [2.552, 0.099], [2.527, 0.195], [2.486, 0.288], [2.433, 0.376], [2.368, 0.457], [2.294, 0.53], [2.215, 0.594], [2.132, 0.647], [2.049, 0.689], [1.968, 0.717], [1.89, 0.734], [1.817, 0.738], [1.75, 0.728], [1.69, 0.705], [1.636, 0.669], [1.59, 0.622], [1.551, 0.564], [1.518, 0.495], [1.491, 0.417], [1.471, 0.332], [1.455, 0.242], [1.446, 0.147], [1.441, 0.049], [1.441, -0.049], [1.446, -0.147], [1.455, -0.242], [1.471, -0.332], [1.491, -0.417], [1.518, -0.495], [1.551, -0.564], [1.59, -0.622], [1.636, -0.669], [1.69, -0.705], [1.75, -0.728], [1.817, -0.738], [1.89, -0.734], [1.968, -0.717], [2.049, -0.689], [2.132, -0.647], [2.215, -0.594], [2.294, -0.53], [2.368, -0.457], [2.433, -0.376], [2.486, -0.288], [2.527, -0.195], [2.552, -0.099]] } },
     { "id": "tf_coil", "parent": "machine", "material": "coil_case", "label": "Toroidal field coils",
       "shape": { "kind": "sweep", "path": { "kind": "d_shape", "inner": 0.95, "outer": 3.25, "height": 3.2 },
                  "section": { "kind": "rect", "width": 0.22, "height": 0.26, "round": 0.03 } },
@@ -59,12 +59,14 @@
         "do": [ { "action": "unlabel", "target": "vessel" }, { "action": "glow", "target": "plasma", "strength": 11 }, { "action": "label", "target": "plasma", "delay": 0.3 } ] },
       { "say": { "en": "At the bottom, the divertor takes the heat and the ash that leak out of the plasma's edge.",
                  "te": "Bottom లో divertor, plasma edge నుంచి leak అయ్యే heat and ash ని take చేస్తుంది." },
-        "do": [ { "action": "unlabel", "target": "plasma" }, { "action": "highlight", "target": "divertor" }, { "action": "label", "target": "divertor", "delay": 0.3 } ] }
+        "do": [ { "action": "unlabel", "target": "plasma" }, { "action": "camera", "elevation": 38, "distance": 9.2, "target": [0, 0, -0.5] }, { "action": "glow", "target": "plasma", "strength": 4 },
+                { "action": "highlight", "target": "divertor" }, { "action": "label", "target": "divertor", "delay": 0.3 } ] }
     ] },
     { "id": "coils", "steps": [
       { "say": { "en": "Twelve D-shaped coils wrap around the ring. Their current makes a magnetic field that runs the long way round the doughnut.",
                  "te": "Twelve D-shaped coils ring చుట్టూ wrap అవుతాయి. వాటి current doughnut long way round run అయ్యే magnetic field ని make చేస్తుంది." },
-        "do": [ { "action": "reset", "target": "divertor" }, { "action": "unlabel", "target": "divertor" }, { "action": "highlight", "target": "tf_coil" }, { "action": "label", "target": "tf_coil", "delay": 0.3 } ] },
+        "do": [ { "action": "reset", "target": "divertor" }, { "action": "unlabel", "target": "divertor" }, { "action": "camera", "elevation": 22, "distance": 11, "target": [0, 0, -0.1] },
+                { "action": "highlight", "target": "tf_coil" }, { "action": "label", "target": "tf_coil", "delay": 0.3 } ] },
       { "say": { "en": "The central solenoid drives a current through the plasma itself, which twists that field into a helix.",
                  "te": "Central solenoid plasma itself లో ఒక current ని drive చేస్తుంది, అది ఆ field ని helix గా twist చేస్తుంది." },
         "do": [ { "action": "reset", "target": "tf_coil" }, { "action": "unlabel", "target": "tf_coil" }, { "action": "highlight", "target": "cs" }, { "action": "label", "target": "cs", "delay": 0.3 } ] },

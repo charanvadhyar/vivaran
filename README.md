@@ -433,7 +433,7 @@ Blender is found as `--blender`, `$BLENDER` or `blender` on the PATH; the
 A 1080p frame at 128 samples takes seconds on an RTX GPU and minutes on a
 CPU, so full renders belong on the GPU workers. The example,
 `examples/studio/tokamak.json`, is a tokamak cutaway: 16 parts, about
-129,000 triangles, 68 seconds.
+135,000 triangles, 68 seconds.
 
 ## Math
 

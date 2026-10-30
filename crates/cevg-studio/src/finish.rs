@@ -56,6 +56,25 @@ fn line(pixmap: &mut Pixmap, pts: &[(f32, f32)], color: [u8; 3], width: f32, opa
     }
 }
 
+/// A rounded dark rectangle.
+fn plate(pixmap: &mut Pixmap, x: f32, y: f32, w: f32, h: f32, r: f32, opacity: f32) {
+    let r = r.min(w / 2.0).min(h / 2.0);
+    let mut pb = PathBuilder::new();
+    pb.move_to(x + r, y);
+    pb.line_to(x + w - r, y);
+    pb.quad_to(x + w, y, x + w, y + r);
+    pb.line_to(x + w, y + h - r);
+    pb.quad_to(x + w, y + h, x + w - r, y + h);
+    pb.line_to(x + r, y + h);
+    pb.quad_to(x, y + h, x, y + h - r);
+    pb.line_to(x, y + r);
+    pb.quad_to(x, y, x + r, y);
+    pb.close();
+    if let Some(path) = pb.finish() {
+        pixmap.fill_path(&path, &paint([8, 10, 14], opacity), tiny_skia::FillRule::Winding, Transform::identity(), None);
+    }
+}
+
 fn dot(pixmap: &mut Pixmap, at: (f32, f32), r: f32, color: [u8; 3], opacity: f32) {
     if let Some(path) = PathBuilder::from_circle(at.0, at.1, r) {
         pixmap.fill_path(&path, &paint(color, opacity), tiny_skia::FillRule::Winding, Transform::identity(), None);
@@ -149,6 +168,11 @@ pub fn overlay(pixmap: &mut Pixmap, scene: &Scene, rig: &Rig, tl: &Timeline, fra
         dot(pixmap, c.anchor, 6.0 * u, AMBER, c.opacity);
         let style = Style { size: 32.0 * u, face: Face::SansBold, color: INK, opacity: c.opacity };
         let tx = end.0 + dir * 12.0 * u;
+        // A dark plate behind the name, so it reads over glare and bright metal.
+        let (tw, th) = fonts.measure(&c.text, style.size, style.face, None);
+        let (px, py) = (14.0 * u, 8.0 * u);
+        let x0 = if c.left { tx - tw - px } else { tx - px };
+        plate(pixmap, x0, end.1 - th / 2.0 - py, tw + 2.0 * px, th + 2.0 * py, 10.0 * u, 0.62 * c.opacity);
         fonts.draw(pixmap, &c.text, style, tx, end.1, if c.left { HAlign::Right } else { HAlign::Left }, None);
     }
 

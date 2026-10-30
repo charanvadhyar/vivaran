@@ -120,6 +120,36 @@ def socket_path(node, sock):
     return f'nodes["{node.name}"].inputs[{index}].default_value'
 
 
+# How strongly a glowing part takes on its glow colour: full tint is
+# reached at this emission strength (a highlight is 0.3), and at most this
+# much of the paint is replaced.
+TINT_AT = 0.3
+TINT_MAX = 0.9
+
+
+def tint_toward(mat, bsdf, spec, strength, color):
+    tree = mat.node_tree
+    base = socket(bsdf, "Base Color")
+    mix = tree.nodes.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    mix.blend_type = "MIX"
+    by_id = {i.identifier: i for i in mix.inputs}
+    fac, a, b = by_id["Factor_Float"], by_id["A_Color"], by_id["B_Color"]
+    out = next(o for o in mix.outputs if o.identifier == "Result_Color")
+    if base.is_linked:
+        tree.links.new(base.links[0].from_socket, a)
+    else:
+        a.default_value = tuple(base.default_value)
+    tree.links.new(out, base)
+    frames, values = strength["frames"], strength["values"]
+    fcurve_keys(tree, socket_path(mix, fac), -1, frames, [min(1.0, v[0] / TINT_AT) * TINT_MAX for v in values])
+    if color is not None:
+        for k in range(3):
+            fcurve_keys(tree, socket_path(mix, b), k, color["frames"], [v[k] for v in color["values"]])
+    else:
+        b.default_value = (*spec.get("emission", [1.0, 1.0, 1.0])[:3], 1.0)
+
+
 def setup_device(choice):
     prefs = bpy.context.preferences.addons["cycles"].preferences
     scene = bpy.context.scene
@@ -231,6 +261,16 @@ def main():
                 sock = socket(bsdf, "Emission Color", "Emission")
                 for k in range(3):
                     fcurve_keys(tree, socket_path(bsdf, sock), k, frames, [v[k] for v in values])
+
+        # A part with no light of its own that is made to glow (a highlight,
+        # hot metal) also takes on the glow's colour. Emission alone only adds
+        # light on top of the paint, so amber over blue reads as cream.
+        strength = next((t for t in ts if t["path"] == "emission_strength"), None)
+        if strength is not None and spec is not None and spec.get("strength", 0.0) <= 0.0:
+            mat = own_material(ob, info)
+            bsdf = principled(mat)
+            if bsdf is not None:
+                tint_toward(mat, bsdf, spec, strength, next((t for t in ts if t["path"] == "emission_color"), None))
 
     # Camera: vertical field of view, keyed per frame where it moves.
     cam_data = bpy.data.cameras.new("camera")
