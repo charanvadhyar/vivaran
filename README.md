@@ -108,11 +108,13 @@ nothing is covered. `render` also writes an `.srt` file beside the video.
 
 ## Voice
 
-The Python shell in `shell/` speaks every step with Sarvam (model
-`bulbul:v3`), measures each clip, renders the video to those lengths and
-puts the audio under it. It needs Python 3.10 or later and nothing from pip;
-`ffmpeg` and `ffprobe` must be on the PATH, and the `cevg` binary must be
-built.
+The Python shell in `shell/` speaks every step, measures each clip, renders
+the video to those lengths and puts the audio under it. The voice service is
+**Gnani**: Timbre (`timbre-v2.5`, or `timbre-v3.0` with `GNANI_MODEL`) speaks,
+and Prisma (`prisma-v3.0`) can listen back to every clip and flag lines the
+voice skipped or garbled. Sarvam (Bulbul v3) is kept: set `CEVG_TTS=sarvam`.
+The shell needs Python 3.10 or later and nothing from pip; `ffmpeg` and
+`ffprobe` must be on the PATH, and the `cevg` binary must be built.
 
 ```
 cargo build --release
@@ -121,49 +123,53 @@ python -m unittest discover -s tests -v          # no key needed
 
 python -m cevg_shell narrate ../examples/binary_search.json --dry-run -o bs.mp4
 
-export SARVAM_API_KEY=your-key                    # PowerShell: $env:SARVAM_API_KEY = "your-key"
-python -m cevg_shell check --lang en              # one sentence, written to check.wav
-python -m cevg_shell narrate ../examples/binary_search.json -o bs.mp4
-python -m cevg_shell narrate ../examples/subjects/ml_pca.json --captions -o pca.mp4
-python -m cevg_shell speakers
+export GNANI_API_KEY=your-key                     # PowerShell: $env:GNANI_API_KEY = "your-key"
+python -m cevg_shell voices --lang te             # the Telugu voices
+python -m cevg_shell check --lang te --listen     # one sentence to check.wav, then what Prisma heard
+python -m cevg_shell narrate ../examples/binary_search.json --lang te --listen -o bs-te.mp4
 ```
 
-The key is read only from the `SARVAM_API_KEY` environment variable. It is
-never written to disk, to the cache or to any output.
+Keys are read only from `GNANI_API_KEY` (or `SARVAM_API_KEY`). They are never
+written to disk, to the cache or to any output. `api.vachana.ai` must be
+reachable from the machine that narrates.
 
-`--dry-run` uses a tick and silence in place of speech, so the whole
-pipeline can be tested with no key and no cost.
+`--lang` picks the narration (`en`, `te`, `hi`, `ta`, `kn`, `ml`, `mr`,
+`pa`, `bn`, `gu`). Every step must have that language in its `say`.
+`--voice` picks the voice; without it each language gets a narration voice
+(Girish for English, Suhana for Telugu, Jalaj for Hindi on `timbre-v2.5`;
+Yashraj for every language on `timbre-v3.0`). `--pace` is 0.85 to 1.15 on
+Gnani. `--captions` burns the narration in.
 
-`--lang` picks the narration (`en`, `hi`, `te`, and the other Bulbul
-languages). Every step must have that language in its `say`; the error lists
-the steps that do not. `--speaker` picks the voice (default `shubh`),
-`--pace` the speed (0.5 to 2.0), `--captions` burns the narration in.
+What the shell does for Gnani, from its documentation (1 November 2026):
 
-Spoken lines are cached in `.cevg-cache/` in the folder you run from
-(`--cache` moves it), keyed by the
+- Numbers are written out as English words before they are sent (`75%` →
+  "seventy five percent"), as Gnani asks; number words stay English in Telugu
+  and Hindi too, our code-mixing rule.
+- A line in two scripts (Telugu with English terms) is sent as `auto`, which
+  Gnani recommends for mixed content; Hindi with English is sent as `hi-en`.
+- Gnani allows one request at a time and publishes no length limit, so lines
+  over 400 characters are split after sentences and the audio joined.
+- 429, 500 and 503 are retried with backoff; 401, 402 and 403 are not.
+- `--listen` sends each clip (at most 30 s) to Prisma with `format=codemix`
+  (English words stay in Latin letters, as our scripts write them) and the
+  script's English terms as `keyterms`, then scores the share of the line's
+  words heard in order. Lines under 80% are listed to check by ear. The
+  answers are kept beside the cached clip, so a re-run does not pay twice.
+  The hosted server listens back on every voiced render and names doubtful
+  steps in the job's status.
+
+Spoken lines are cached in `.cevg-cache/` (`--cache` moves it), keyed by the
 text, language, voice and settings. Rendering again after changing three
-sentences pays for three sentences. `ml_pca.json` is about 6,500 characters
-in English; check the price per character on the Sarvam dashboard before a
-long run.
+sentences pays for three sentences.
 
 How the pieces meet: the shell runs `cevg render --speech <seconds,...>
 --json`, reads back where each step starts, and places each clip at that
 moment on one audio track. The video is not re-encoded when the audio is
 added.
 
-What is known to be untested: everything that only the real service can
-show. That is the exact error bodies, the real rate limit on your plan, how
-Bulbul reads numbers and symbols, and whether a Telugu sentence with English
-terms sounds right. The client follows the documentation of 1 October 2026:
-`POST https://api.sarvam.ai/text-to-speech`, header `api-subscription-key`,
-answer `{"audios": [base64 WAV]}`, at most 2,500 characters per request,
-403 for a bad key, 429 for both rate limits (retried) and spent credits (not
-retried).
-
-The design document planned a pyo3 binding between Python and Rust. The
-shell calls the `cevg` binary instead. It is simpler to build and the cost
-is one process start per video. The binding can come with the MCP server if
-it is still wanted.
+Untested until a key and the network are there: the real error bodies, how
+Timbre reads a Telugu sentence with English terms under `auto`, and how well
+Prisma's `codemix` transcript lines up with our scripts.
 
 ## MCP server: Claude and ChatGPT
 

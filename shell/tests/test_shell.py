@@ -20,7 +20,7 @@ import urllib.error
 import wave
 from pathlib import Path
 
-from cevg_shell import sarvam
+from cevg_shell import gnani, providers, sarvam
 from cevg_shell.narrate import NarrateError, find_cevg, narrate, narration
 from cevg_shell.voice import Cache, SarvamVoice, StandInVoice
 
@@ -207,6 +207,194 @@ class Pipeline(unittest.TestCase):
             again = narrate(small, out, StandInVoice(), cache_dir=folder / "cache", cevg=find_cevg())
             self.assertEqual((again.spoken, again.reused), (0, 7))
 
+    def test_listening_back_flags_lines_the_voice_got_wrong_and_is_cached(self):
+        class Listening(StandInVoice):
+            heard = 0
+
+            def identity(self):
+                return "listening"
+
+            def listen(self, wav_bytes, text, language):
+                Listening.heard += 1
+                # Pretend the voice dropped most of the third line.
+                transcript = text if Listening.heard != 3 else text.split()[0]
+                return gnani.match(text, transcript), transcript
+
+        with tempfile.TemporaryDirectory() as folder:
+            folder = Path(folder)
+            small = self._small(folder)
+            result = narrate(small, folder / "out.mp4", Listening(), cache_dir=folder / "cache", cevg=find_cevg(),
+                             listen=True)
+            self.assertEqual(len(result.heard), 7)
+            self.assertEqual([h["step"] for h in result.doubtful()], [3])
+            again = narrate(small, folder / "out.mp4", Listening(), cache_dir=folder / "cache", cevg=find_cevg(),
+                            listen=True)
+            self.assertEqual(Listening.heard, 7)  # the second run reads the saved answers
+            self.assertEqual([h["step"] for h in again.doubtful()], [3])
+
+
+class GnaniServer:
+    """Stands in for urllib.request.urlopen for Gnani. Replies in order: bytes
+    are a 200 body, (status, payload) an error with that JSON body."""
+
+    def __init__(self, replies):
+        self.replies, self.requests = list(replies), []
+
+    def __call__(self, request, timeout=None):
+        self.requests.append(request)
+        reply = self.replies.pop(0)
+        if isinstance(reply, tuple):
+            status, payload = reply
+            raise urllib.error.HTTPError(request.full_url, status, "error", {}, io.BytesIO(json.dumps(payload).encode()))
+        return io.BytesIO(reply)
+
+
+def gnani_client(replies):
+    server, sleeps = GnaniServer(replies), []
+    return gnani.Gnani("test-key", opener=server, sleep=sleeps.append), server, sleeps
+
+
+class GnaniWords(unittest.TestCase):
+    def test_numbers_become_english_words(self):
+        cases = {
+            "We look for 23.": "We look for twenty three.",
+            "about 150 million degrees": "about one hundred fifty million degrees",
+            "1,000 views and 1,00,000 more": "one thousand views and one hundred thousand more",
+            "75% of the variance": "seventy five percent of the variance",
+            "pi is 3.14": "pi is three point one four",
+            "x goes to -2": "x goes to minus two",
+            "the 2nd and 21st row": "the second and twenty first row",
+            "2^10 is 1024": "two to the power ten is one thousand twenty four",
+            "ఈ sorted array లో మనం 23 ను search": "ఈ sorted array లో మనం twenty three ను search",
+            "timbre-v2.5 and B+ tree": "timbre-v2.5 and B+ tree",
+        }
+        for said, expected in cases.items():
+            self.assertEqual(gnani.spoken(said), expected, said)
+        self.assertEqual(gnani.number_words(0), "zero")
+        self.assertEqual(gnani.number_words(1500), "one thousand five hundred")
+        self.assertEqual(gnani.number_words(2026), "two thousand twenty six")
+
+    def test_mixed_script_lines_ask_for_auto_or_hinglish(self):
+        self.assertEqual(gnani.request_language("This is English.", "en"), "en-IN")
+        self.assertEqual(gnani.request_language("ఇది పరీక్ష.", "te"), "te-IN")
+        self.assertEqual(gnani.request_language("ఇది ఒక sorted array.", "te"), "auto")
+        self.assertEqual(gnani.request_language("यह एक sorted array है।", "hi"), "hi-en")
+        with self.assertRaisesRegex(ValueError, "no voice for `od`"):
+            gnani.request_language("x", "od")
+
+    def test_long_lines_are_split_after_sentences(self):
+        line = " ".join(f"Sentence number {i} is here." for i in range(40))
+        pieces = gnani._split(line, 120)
+        self.assertTrue(all(len(p) <= 120 for p in pieces), pieces)
+        self.assertEqual(" ".join(pieces), line)
+        self.assertTrue(all(p.endswith(".") for p in pieces))
+        self.assertEqual(gnani._split("short", 120), ["short"])
+
+    def test_match_scores_skipped_and_garbled_words(self):
+        said = "Two pointers, lo and hi, mark the part we still have to search."
+        self.assertEqual(gnani.match(said, "two pointers lo and hi mark the part we still have to search"), 1.0)
+        self.assertLess(gnani.match(said, "two pointers mark the part"), 0.5)
+        self.assertEqual(gnani.match("We look for 23.", "we look for twenty three"), 1.0)
+        self.assertEqual(gnani.match("ఈ sorted array లో", "ఈ sorted array లో"), 1.0)
+        self.assertIn("Dijkstra", gnani.keyterms("Run Dijkstra on the graph from LRU"))
+
+
+class GnaniClient(unittest.TestCase):
+    def test_a_line_is_spoken_with_the_documented_request(self):
+        made, server, _ = gnani_client([wav(0.2)])
+        audio = made.speak("We look for 23 in this sorted array.", "en")
+        self.assertEqual(audio[:4], b"RIFF")
+        request = server.requests[0]
+        self.assertEqual(request.full_url, "https://api.vachana.ai/api/v1/tts/inference")
+        self.assertEqual(request.get_header("X-api-key-id"), "test-key")
+        body = json.loads(request.data)
+        self.assertEqual(body["text"], "We look for twenty three in this sorted array.")
+        self.assertEqual((body["model"], body["voice"], body["language"], body["speed"]), ("timbre-v2.5", "Girish", "en-IN", 1.0))
+        self.assertEqual(body["audio_config"], {"sample_rate": 48000, "num_channels": 1, "sample_width": 2,
+                                                "encoding": "linear_pcm", "container": "wav"})
+
+    def test_telugu_gets_its_default_voice_and_long_text_is_joined(self):
+        made, server, _ = gnani_client([wav(0.1), wav(0.2)])
+        line = "ఇది ఒక sorted array. " * 30
+        audio = made.speak(line.strip(), "te")
+        self.assertEqual(len(server.requests), 2)
+        self.assertEqual(json.loads(server.requests[0].data)["voice"], "Suhana")
+        self.assertEqual(json.loads(server.requests[0].data)["language"], "auto")
+        with wave.open(io.BytesIO(audio)) as w:
+            self.assertAlmostEqual(w.getnframes() / w.getframerate(), 0.3, places=2)
+
+    def test_bad_voices_and_speeds_are_refused_before_any_request(self):
+        made, server, _ = gnani_client([])
+        with self.assertRaisesRegex(ValueError, "`shubh` is not a timbre-v2.5 voice"):
+            made.speak("hi", "en", voice="shubh")
+        with self.assertRaisesRegex(ValueError, "speed 2 is outside"):
+            made.speak("hi", "en", speed=2)
+        self.assertEqual(server.requests, [])
+
+    def test_busy_and_failing_requests_are_retried_but_bad_keys_are_not(self):
+        busy = (429, {"detail": {"error_code": "RATE_LIMITED", "message": "Only 1 active request", "status_code": 429}})
+        made, server, sleeps = gnani_client([busy, (503, {"success": False, "message": "busy"}), wav()])
+        made.speak("hello", "en")
+        self.assertEqual((len(server.requests), sleeps), (3, [1.0, 2.0]))
+
+        bad = (401, {"detail": {"error_code": "INVALID_API_KEY", "message": "no", "status_code": 401}})
+        made, server, _ = gnani_client([bad])
+        with self.assertRaises(gnani.GnaniError) as caught:
+            made.speak("hello", "en")
+        self.assertEqual((caught.exception.status, caught.exception.code), (401, "INVALID_API_KEY"))
+        self.assertIn("GNANI_API_KEY", caught.exception.advice())
+        self.assertEqual(len(server.requests), 1)
+
+        made, _, _ = gnani_client([(402, {"detail": {"message": "no credit"}})])
+        with self.assertRaises(gnani.GnaniError) as caught:
+            made.speak("hello", "en")
+        self.assertIn("out of credits", caught.exception.advice())
+
+    def test_listening_back_sends_the_clip_as_codemix(self):
+        reply = json.dumps({"success": True, "transcript": "ఈ sorted array లో twenty three", "model": "prisma-v3.0"}).encode()
+        made, server, _ = gnani_client([reply])
+        heard = made.transcribe(wav(0.5), "te", keyterms=["sorted", "array"])
+        self.assertEqual(heard, "ఈ sorted array లో twenty three")
+        request = server.requests[0]
+        self.assertEqual(request.full_url, "https://api.vachana.ai/stt/v3")
+        self.assertTrue(request.get_header("Content-type").startswith("multipart/form-data; boundary="))
+        body = request.data
+        for part in (b'name="model"\r\n\r\nprisma-v3.0', b'name="language_code"\r\n\r\nte-IN,en-IN',
+                     b'name="format"\r\n\r\ncodemix', b'name="keyterms"\r\n\r\n["sorted", "array"]',
+                     b'name="audio_file"; filename="clip.wav"', b"RIFF"):
+            self.assertIn(part, body)
+
+        stt_error = (400, {"success": False, "error": {"type": "MAX_AUDIO_DURATION_EXCEEDED", "message": "too long"}})
+        made, _, _ = gnani_client([stt_error])
+        with self.assertRaises(gnani.GnaniError) as caught:
+            made.transcribe(wav(), "en")
+        self.assertEqual(caught.exception.code, "MAX_AUDIO_DURATION_EXCEEDED")
+
+
+class Providers(unittest.TestCase):
+    def test_gnani_is_the_default_and_sarvam_is_kept(self):
+        saved = os.environ.pop("CEVG_TTS", None)
+        try:
+            self.assertEqual(providers.current().name, "gnani")
+            self.assertEqual(providers.current("sarvam").name, "sarvam")
+            os.environ["CEVG_TTS"] = "sarvam"
+            self.assertEqual(providers.current().name, "sarvam")
+            with self.assertRaisesRegex(ValueError, "must be `gnani` or `sarvam`"):
+                providers.current("other")
+        finally:
+            os.environ.pop("CEVG_TTS", None)
+            if saved:
+                os.environ["CEVG_TTS"] = saved
+        g = providers.Gnani()
+        self.assertEqual(g.default_speaker("te"), "Suhana")
+        self.assertIn("Suhana", g.speakers("te"))
+        self.assertNotIn("Girish", g.speakers("te"))
+        v3 = providers.Gnani("timbre-v3.0")
+        self.assertEqual(v3.default_speaker("te"), "Yashraj")
+        self.assertEqual(len(v3.speakers("te")), 13)
+        with self.assertRaisesRegex(ValueError, "unknown Gnani model"):
+            providers.Gnani("timbre-v9")
+
 
 try:
     from cevg_shell import server as mcp_server
@@ -243,9 +431,11 @@ class McpServer(unittest.TestCase):
     def test_voices_are_listed_and_read_only_tools_are_marked(self):
         import asyncio
         listed = self.studio.voices()
-        self.assertEqual(listed["default"], "shubh")
-        self.assertEqual(len(listed["female_sounding_names"]) + len(listed["male_sounding_names"]), 37)
-        self.assertIn("kavya", listed["female_sounding_names"])
+        self.assertTrue(listed["service"].startswith("Gnani Timbre"))
+        self.assertEqual(listed["default"]["te"], "Suhana")
+        self.assertEqual(len(listed["voices"]), 42)
+        self.assertIn({"name": "Girish", "gender": "male", "language": "en", "suits": "warm, expressive storytelling"},
+                      listed["voices"])
         tools = {t.name: t for t in asyncio.run(mcp_server.build(self.studio).list_tools())}
         for name in ("guide", "validate", "preview", "estimate", "voices", "status"):
             self.assertTrue(tools[name].annotations.read_only_hint, name)
@@ -261,7 +451,7 @@ class McpServer(unittest.TestCase):
         self.assertIn("7 steps have no `ta`", self.studio.estimate(self.script, "ta")["problem"])
 
     def test_a_silent_render_job_runs_to_the_end(self):
-        job = self.studio.render(self.script, "te", False, True, "shubh", 1.0)
+        job = self.studio.render(self.script, "te", False, True, "", 1.0)
         for _ in range(600):
             report = self.studio.status(job.id)
             if report["state"] in ("done", "failed"):
@@ -273,15 +463,21 @@ class McpServer(unittest.TestCase):
         self.assertEqual(self.studio.status("nope")["state"], "unknown")
 
     def test_speech_is_refused_without_a_key_and_broken_scripts_before_rendering(self):
-        saved = os.environ.pop("SARVAM_API_KEY", None)
+        saved = os.environ.pop("GNANI_API_KEY", None)
         try:
-            with self.assertRaisesRegex(ValueError, "no SARVAM_API_KEY"):
+            with self.assertRaisesRegex(ValueError, "no GNANI_API_KEY"):
+                self.studio.render(self.script, "en", True, False, "", 1.0)
+            os.environ["GNANI_API_KEY"] = "test-key"
+            with self.assertRaisesRegex(ValueError, "unknown voice `shubh`"):
                 self.studio.render(self.script, "en", True, False, "shubh", 1.0)
+            with self.assertRaisesRegex(ValueError, "pace 1.5 is outside"):
+                self.studio.render(self.script, "en", True, False, "Girish", 1.5)
         finally:
+            os.environ.pop("GNANI_API_KEY", None)
             if saved:
-                os.environ["SARVAM_API_KEY"] = saved
+                os.environ["GNANI_API_KEY"] = saved
         with self.assertRaisesRegex(ValueError, "has errors"):
-            self.studio.render({"version": 1}, "en", False, False, "shubh", 1.0)
+            self.studio.render({"version": 1}, "en", False, False, "", 1.0)
 
 
 if __name__ == "__main__":

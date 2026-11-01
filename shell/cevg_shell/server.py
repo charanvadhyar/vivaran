@@ -5,7 +5,7 @@ One server, two ways to reach it:
 - stdio, for an app on the same computer (Claude Desktop, Claude Code);
 - streamable HTTP, for apps that only reach servers over the internet
   (ChatGPT, claude.ai). The address then carries a secret, because whoever
-  has it can spend the Sarvam credits of the key this server runs with.
+  has it can spend the voice credits of the key this server runs with.
 
 The tools follow the order an assistant should work in: read the guide,
 write a script, validate it, look at a few frames, then render. Rendering
@@ -31,9 +31,9 @@ from mcp.server.mcpserver import Image
 from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
 
-from . import sarvam
+from . import providers
 from .narrate import NarrateError, find_cevg, narrate
-from .voice import Cache, SarvamVoice
+from .voice import Cache
 
 CHARS_PER_SECOND = 16.0  # Bulbul v3 at pace 1, measured on the binary search example
 HOLD = 0.35  # the rest after each step, as in the renderer
@@ -182,12 +182,11 @@ class Studio:
             raise ValueError("the script has errors; call `validate`, fix them, then render:\n"
                              + json.dumps(report.get("diagnostics", []), ensure_ascii=False, indent=1))
         if voice:
-            if not os.environ.get("SARVAM_API_KEY"):
-                raise ValueError("this server has no SARVAM_API_KEY, so it cannot speak. Render with voice=false "
+            provider = providers.current()
+            if not provider.available():
+                raise ValueError(f"this server has no {provider.key_env}, so it cannot speak. Render with voice=false "
                                  "(a silent video with captions), or ask the owner to set the key and restart.")
-            if speaker not in sarvam.SPEAKERS:
-                raise ValueError(f"unknown speaker `{speaker}`; choose one of: {', '.join(sarvam.SPEAKERS)}")
-            sarvam.language_code(language)  # raises with the list of languages
+            provider.check(speaker or None, language, pace)  # raises with the list of voices or languages
 
         job = Job(id=uuid.uuid4().hex[:12], title=str(report.get("summary", {}).get("title", "video")))
         self.jobs[job.id] = job
@@ -209,8 +208,7 @@ class Studio:
 
             try:
                 if voice:
-                    client = sarvam.Sarvam(os.environ["SARVAM_API_KEY"], requests_per_minute=self.requests_per_minute)
-                    result = narrate(script, out, SarvamVoice(client, speaker=speaker, pace=pace), language=language,
+                    result = narrate(script, out, self._voice(speaker, pace), language=language,
                                      cache_dir=self.cache_dir, cevg=self.cevg, burn_captions=captions,
                                      progress=progress)
                     job.result = {"seconds": round(result.seconds, 1), "steps": result.steps,
@@ -230,37 +228,31 @@ class Studio:
                 if self.link(name):
                     job.result["url"] = self.link(name)
                 job.state, job.progress = "done", "finished"
-            except sarvam.SarvamError as e:
+            except providers.VoiceError as e:
                 job.state, job.error = "failed", f"{e}\n{e.advice()}"
             except Exception as e:  # a job must always end in a state the assistant can read
                 job.state, job.error = "failed", str(e)
             finally:
                 job.finished = time.time()
 
+    def _voice(self, speaker: str | None, pace: float):
+        provider = providers.current()
+        if provider.name == "sarvam":
+            return provider.voice(speaker or None, pace, requests_per_minute=self.requests_per_minute)
+        return provider.voice(speaker or None, pace)
+
     def voices(self) -> dict[str, Any]:
-        female = [v for v in sarvam.SPEAKERS if v in FEMALE_NAMES]
-        male = [v for v in sarvam.SPEAKERS if v not in FEMALE_NAMES]
-        return {
-            "default": sarvam.DEFAULT_SPEAKER,
-            "female_sounding_names": female,
-            "male_sounding_names": male,
-            "languages": sorted(sarvam.LANGUAGES),
-            "pace": "0.5 (slow) to 2.0 (fast); 1.0 is normal",
-            "note": "The grouping is read off the names; Sarvam does not describe the voices. "
-                    "Use `voice_sample` to hear one before choosing.",
-            "voice_available": bool(os.environ.get("SARVAM_API_KEY")),
-        }
+        return providers.current().describe()
 
     def voice_sample(self, speaker: str, language: str, pace: float) -> dict[str, Any]:
-        if not os.environ.get("SARVAM_API_KEY"):
-            raise ValueError("this server has no SARVAM_API_KEY, so it cannot make a sample")
-        if speaker not in sarvam.SPEAKERS:
-            raise ValueError(f"unknown speaker `{speaker}`; choose one of: {', '.join(sarvam.SPEAKERS)}")
-        sarvam.language_code(language)
+        provider = providers.current()
+        if not provider.available():
+            raise ValueError(f"this server has no {provider.key_env}, so it cannot make a sample")
+        provider.check(speaker or None, language, pace)
+        speaker = speaker or provider.default_speaker(language)
         text = SAMPLE_LINES.get(language, SAMPLE_LINES["en"])
-        client = sarvam.Sarvam(os.environ["SARVAM_API_KEY"], requests_per_minute=self.requests_per_minute)
         cache = Cache(self.cache_dir / "voice")
-        clip = cache.get(SarvamVoice(client, speaker=speaker, pace=pace), text, language)
+        clip = cache.get(self._voice(speaker, pace), text, language)
         name = f"voice-{speaker}-{language}-{pace:g}.wav"
         (self.out_dir / name).write_bytes(Path(clip).read_bytes())
         result: dict[str, Any] = {"speaker": speaker, "language": language, "said": text,
@@ -288,10 +280,6 @@ class Studio:
 # app may run them without asking the user each time.
 READ_ONLY = ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=False)
 MAKES_FILES = ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=True)
-
-# Sarvam does not publish a description of each voice. This grouping is read off the
-# names and is only a starting point; `voice_sample` lets the user hear one.
-FEMALE_NAMES = "ritu priya neha pooja simran kavya ishita shreya roopa tanya shruti suhani kavitha rupali".split()
 
 SAMPLE_LINES = {
     "en": "Hello. This is how I will explain your topic, one step at a time.",
@@ -342,30 +330,32 @@ def build(studio: Studio) -> MCPServer:
 
     @server.tool(title="List the narration voices", annotations=READ_ONLY)
     def voices() -> dict[str, Any]:
-        """The voices a video can be narrated in (Sarvam Bulbul v3) and the languages they speak. Every
-        voice speaks every language. Show this to the user and let them choose; use `voice_sample` if they
-        want to hear one first. Pass the chosen name as `speaker` to `render`."""
+        """The voices a video can be narrated in, what each suits and which language it prefers, and the
+        default voice per language. Show this to the user and let them choose a voice that suits the video's
+        language; use `voice_sample` if they want to hear one first. Pass the chosen name as `speaker` to
+        `render`, or leave `speaker` empty for the default."""
         return studio.voices()
 
     @server.tool(title="Hear a voice", annotations=MAKES_FILES)
-    def voice_sample(speaker: str, language: str = "en", pace: float = 1.0) -> dict[str, Any]:
+    def voice_sample(speaker: str = "", language: str = "en", pace: float = 1.0) -> dict[str, Any]:
         """Make a short audio sample of one voice in one language so the user can hear it before choosing.
-        Returns `file` (and `url` when the server is reachable over the internet). Costs a few Sarvam
+        Returns `file` (and `url` when the server is reachable over the internet). Costs a few voice
         credits the first time for each voice and language; after that it is reused."""
         try:
             return studio.voice_sample(speaker, language, pace)
-        except sarvam.SarvamError as e:
+        except providers.VoiceError as e:
             raise ToolError(f"{e}\n{e.advice()}") from None
         except (ValueError, NarrateError) as e:
             raise ToolError(str(e)) from None
 
     @server.tool(title="Start rendering the video", annotations=MAKES_FILES)
     def render(script: dict[str, Any], language: str = "en", voice: bool = True, captions: bool = False,
-               speaker: str = sarvam.DEFAULT_SPEAKER, pace: float = 1.0) -> dict[str, Any]:
+               speaker: str = "", pace: float = 1.0) -> dict[str, Any]:
         """Start making the video and return a job id at once; then call `status` until it is done.
         `language` picks which narration in each step's `say` is spoken (`en`, `hi`, `te`, ...); every step
         must have it. `voice=false` makes a silent video timed from the text. `captions=true` shows the
-        narration under the picture. `speaker` is a Sarvam Bulbul v3 voice and `pace` is 0.5 to 2.0.
+        narration under the picture. `speaker` is a voice from `voices` (empty for the language's default) and `pace`
+        is within the range `voices` gives.
         Speech costs the server owner credits per character, so validate and preview first, and do not
         render the same script twice without a reason."""
         try:
@@ -421,8 +411,13 @@ def serve_http(out_dir: Path, cache_dir: Path, *, cevg: str | None, host: str, p
                                          allowed_origins=origins + ["https://chatgpt.com", "https://claude.ai"])
 
     print(f"CEVG MCP server\n  connector address: {base}/mcp\n  videos are kept in: {studio.out_dir}\n"
-          f"  voice: {'Sarvam key found' if os.environ.get('SARVAM_API_KEY') else 'NO SARVAM_API_KEY, silent videos only'}\n"
-          "Treat the connector address like a password: anyone who has it can spend your Sarvam credits.",
+          f"  voice: {_voice_line()}\n"
+          "Treat the connector address like a password: anyone who has it can spend your voice credits.",
           flush=True)
     anyio.run(lambda: server.run_streamable_http_async(host=host, port=port, streamable_http_path=f"/{secret}/mcp",
                                                        transport_security=security))
+
+
+def _voice_line() -> str:
+    provider = providers.current()
+    return f"{provider.label}, key found" if provider.available() else f"NO {provider.key_env}, silent videos only"

@@ -1,4 +1,5 @@
-import { WAITLIST } from "@/lib/mode";
+import { notFound } from "next/navigation";
+import { CREATOR_PAY, WAITLIST } from "@/lib/mode";
 import { Container } from "@/components/layout/Container";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Alert } from "@/components/ui/Alert";
@@ -10,6 +11,7 @@ import styles from "./page.module.css";
 export const metadata = { title: "Creator terms" };
 
 export default function Terms() {
+  if (!CREATOR_PAY) notFound();
   return (
     <Container main narrow>
       <PageHeader title="How creators earn" lead={`${BRAND.name} is free to use. Videos you publish go on the ${BRAND.name} YouTube channel with your name on them, and you are paid for the views they get.`} />
@@ -27,7 +29,7 @@ export default function Terms() {
           <ul className={styles.list}>
             <li><strong>₹50 per 1,000 views</strong> on YouTube, counted 30 days after upload from YouTube's own figures, on videos where viewers watch at least 30% on average.</li>
             <li><strong>₹500 bonus</strong> when a video passes 10,000 views.</li>
-            <li>Up to ₹1,000 per video. Paid monthly once your balance reaches ₹500.</li>
+            <li>Paid monthly once your balance reaches ₹500.</li>
             <li>These are fixed amounts for reaching view milestones. There is no revenue share: what the channel earns from ads is not part of the deal.</li>
           </ul>
           <Alert tone="info">These are introductory rates and can change with 30 days' notice. Views that YouTube removes as invalid are not counted, and we may withhold payment on sudden, unexplained spikes.</Alert>

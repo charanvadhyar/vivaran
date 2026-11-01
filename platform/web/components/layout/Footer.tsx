@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BRAND } from "@/lib/brand";
-import { WAITLIST } from "@/lib/mode";
+import { CREATOR_PAY, WAITLIST } from "@/lib/mode";
 import { Container } from "./Container";
 import styles from "./Footer.module.css";
 
@@ -11,7 +11,7 @@ export function Footer() {
         <div className={styles.inner}>
           <span>{BRAND.name} · {BRAND.native}</span>
           <nav className={styles.links} aria-label="Footer">
-            <Link href="/terms">Creator terms</Link>
+            {CREATOR_PAY ? <Link href="/terms">Creator terms</Link> : null}
             {WAITLIST ? null : <Link href="/design">Design</Link>}
           </nav>
           <span>Videos are made by their creators with AI assistance. Check anything important against your textbook.</span>

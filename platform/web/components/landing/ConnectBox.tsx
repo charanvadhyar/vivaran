@@ -11,7 +11,7 @@ export function ConnectBox({ signedIn, waitlist = false }: { signedIn: boolean; 
         <div className={styles.step}><span className={styles.num}>3</span><span><strong>Ask for a video.</strong> It is rendered and saved to your account; you check it and publish.</span></div>
         <div style={{ marginTop: 8 }}>
           {waitlist
-            ? <Button href="#waitlist" variant="primary">Join the waitlist for an address</Button>
+            ? <Button href="#waitlist" variant="primary">Join the creator list for an address</Button>
             : <Button href={signedIn ? "/dashboard" : "/login"} variant="primary">{signedIn ? "Open my dashboard" : "Get my connector address"}</Button>}
         </div>
       </div>

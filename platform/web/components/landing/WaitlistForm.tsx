@@ -8,13 +8,14 @@ import { cx } from "../ui/cx";
 import styles from "./WaitlistForm.module.css";
 
 const ROLES = [
-  { value: "learner", label: "I want to watch" },
   { value: "creator", label: "I want to make videos" },
   { value: "teacher", label: "I teach" },
+  { value: "learner", label: "I want to watch" },
 ];
 
-/** The one thing a visitor can do before launch: leave an email.
-    `compact` is the hero version (email and button on one line); the full version adds who they are and a note. */
+/** Leave an email. `compact` is the hero version for students: one line, and
+    we write when new videos for their exams go up. The full version is the
+    creator waitlist: who they are and what they would explain. */
 export function WaitlistForm({ compact = false, source = "hero" }: { compact?: boolean; source?: string }) {
   const [result, act, pending] = useActionState<WaitlistResult, FormData>(joinWaitlist, null);
 
@@ -23,8 +24,8 @@ export function WaitlistForm({ compact = false, source = "hero" }: { compact?: b
       <div className={cx(styles.done, compact && styles.compact)} role="status">
         <Icon name="check" className={styles.tick} size={20} />
         <div>
-          <strong>{result.already ? "You are already on the list." : `You are number ${result.position} on the list.`}</strong>
-          <span>We open after Sunday. One email when the doors open, nothing else.</span>
+          <strong>{result.already ? "You are already on the list." : compact ? "You are on the list." : `You are number ${result.position} on the creator list.`}</strong>
+          <span>{compact ? "We write when new videos for your exams go up. Nothing else." : "Connector addresses go out in batches. We write when yours is ready."}</span>
         </div>
       </div>
     );
@@ -41,7 +42,7 @@ export function WaitlistForm({ compact = false, source = "hero" }: { compact?: b
           className={styles.email} aria-label="Email address" aria-invalid={result && !result.ok ? true : undefined}
         />
         <Button type="submit" variant="primary" size={compact ? "lg" : "md"} loading={pending} icon={<Icon name="spark" />}>
-          Join the waitlist
+          {compact ? "Get new videos" : "Join the creator list"}
         </Button>
       </div>
       {compact ? (
@@ -62,7 +63,7 @@ export function WaitlistForm({ compact = false, source = "hero" }: { compact?: b
         </>
       )}
       {result && !result.ok ? <p className={styles.error} role="alert">{result.error}</p> : null}
-      <p className={styles.fine}>No spam. One email at launch, and you can tell us to forget you any time.</p>
+      <p className={styles.fine}>No spam, and you can tell us to forget you any time.</p>
     </form>
   );
 }

@@ -1,10 +1,11 @@
 """Command line for the CEVG shell.
 
-    python -m cevg_shell narrate script.json -o out.mp4 --lang te --speaker kavya
-    python -m cevg_shell check --lang hi --speaker ritu
-    python -m cevg_shell speakers
+    python -m cevg_shell narrate script.json -o out.mp4 --lang te --listen
+    python -m cevg_shell check --lang te --speaker Suhana --listen
+    python -m cevg_shell voices
 
-The Sarvam key is read from the SARVAM_API_KEY environment variable. It is
+The voice service is Gnani (Timbre speaks, Prisma listens back) unless
+CEVG_TTS=sarvam. Keys are read from GNANI_API_KEY or SARVAM_API_KEY and
 never written to disk, to the cache or to any output.
 """
 
@@ -16,34 +17,32 @@ import os
 import sys
 from pathlib import Path
 
-from . import sarvam
+from . import providers
 from .narrate import NarrateError, narrate
-from .voice import SarvamVoice, StandInVoice
+from .voice import StandInVoice
 
 
 def _voice(args) -> object:
     if args.dry_run:
         return StandInVoice()
-    key = os.environ.get("SARVAM_API_KEY", "").strip()
-    if not key:
-        raise NarrateError(
-            "SARVAM_API_KEY is not set. Get a key at dashboard.sarvam.ai, then run\n"
-            "    export SARVAM_API_KEY=your-key        (Linux, macOS)\n"
-            "    $env:SARVAM_API_KEY = \"your-key\"      (Windows PowerShell)\n"
-            "or add --dry-run to test the pipeline with stand-in audio and no key."
-        )
-    client = sarvam.Sarvam(key, requests_per_minute=args.rate)
-    return SarvamVoice(client, speaker=args.speaker, pace=args.pace, temperature=args.temperature,
-                       preprocess=args.preprocess)
+    provider = providers.current(args.service)
+    provider.check(args.speaker, args.lang, args.pace)
+    if provider.name == "sarvam":
+        return provider.voice(args.speaker, args.pace, requests_per_minute=args.rate,
+                              temperature=args.temperature, preprocess=args.preprocess)
+    return provider.voice(args.speaker, args.pace)
 
 
 def _add_voice_options(p: argparse.ArgumentParser) -> None:
-    p.add_argument("--lang", default="en", help="narration language: en, hi, te, ta, bn, gu, kn, ml, mr, pa, od")
-    p.add_argument("--speaker", default=sarvam.DEFAULT_SPEAKER, help="a Bulbul v3 voice; see `speakers`")
-    p.add_argument("--pace", type=float, default=1.0, help="speaking speed, 0.5 to 2.0 (default 1.0)")
-    p.add_argument("--temperature", type=float, default=None, help="expressiveness, 0.01 to 2.0 (Sarvam default 0.6)")
-    p.add_argument("--preprocess", action="store_true", help="let Sarvam normalise numbers and mixed-language text")
-    p.add_argument("--rate", type=float, default=30, help="requests per minute your plan allows (Starter: 30)")
+    p.add_argument("--lang", default="en", help="narration language: en, hi, te, ta, kn, ml, mr, pa, bn, gu")
+    p.add_argument("--service", default=None, help="gnani or sarvam (default: $CEVG_TTS, else gnani)")
+    p.add_argument("--speaker", "--voice", dest="speaker", default=None,
+                   help="a voice name; see `voices` (default: the service's narration voice for the language)")
+    p.add_argument("--pace", type=float, default=1.0, help="speaking speed (Gnani 0.85 to 1.15, Sarvam 0.5 to 2.0)")
+    p.add_argument("--listen", action="store_true", help="Gnani: have Prisma transcribe each clip and flag lines that do not match")
+    p.add_argument("--temperature", type=float, default=None, help="Sarvam only: expressiveness, 0.01 to 2.0")
+    p.add_argument("--preprocess", action="store_true", help="Sarvam only: let Sarvam normalise numbers")
+    p.add_argument("--rate", type=float, default=30, help="Sarvam only: requests per minute your plan allows")
     p.add_argument("--dry-run", action="store_true", help="no key, no network: stand-in audio of about the right length")
 
 
@@ -68,7 +67,9 @@ def main(argv: list[str] | None = None) -> int:
     c.add_argument("-o", "--out", type=Path, default=Path("check.wav"))
     _add_voice_options(c)
 
-    sub.add_parser("speakers", help="list the Bulbul v3 voices")
+    v = sub.add_parser("voices", aliases=["speakers"], help="list the voices of the voice service")
+    v.add_argument("--service", default=None, help="gnani or sarvam (default: $CEVG_TTS, else gnani)")
+    v.add_argument("--lang", default=None, help="only voices that suit this language")
 
     m = sub.add_parser("serve", help="run the MCP server, for Claude, ChatGPT and other assistants")
     m.add_argument("--http", action="store_true", help="serve over HTTP (for ChatGPT and claude.ai) instead of stdio")
@@ -140,8 +141,14 @@ def main(argv: list[str] | None = None) -> int:
                 server.serve_stdio(server.Studio(args.out, args.cache, args.cevg, requests_per_minute=args.rate))
             return 0
 
-        if args.command == "speakers":
-            print("\n".join(sarvam.SPEAKERS))
+        if args.command in ("voices", "speakers"):
+            provider = providers.current(args.service)
+            info = provider.describe()
+            print(f"{info['service']}: default " + ", ".join(f"{k} {v}" for k, v in info["default"].items()))
+            for entry in info["voices"]:
+                if args.lang and entry.get("language") not in ("any", args.lang):
+                    continue
+                print("  " + "  ".join(str(entry.get(k, "")) for k in ("name", "gender", "language", "suits")).rstrip())
             return 0
 
         if args.command == "check":
@@ -151,22 +158,33 @@ def main(argv: list[str] | None = None) -> int:
                 "te": "ఇది narration voice కోసం ఒక పరీక్ష.",
             }
             text = args.text or samples.get(args.lang, samples["en"])
-            args.out.write_bytes(_voice(args).speak(text, args.lang))
+            voice = _voice(args)
+            audio = voice.speak(text, args.lang)
+            args.out.write_bytes(audio)
             print(f"wrote {args.out}: \"{text}\"")
+            if args.listen and hasattr(voice, "listen"):
+                score, heard = voice.listen(audio, text, args.lang)
+                print(f"heard ({score:.0%} of the words): \"{heard}\"")
             return 0
 
         def show(message: str) -> None:
             print(f"\r{message:<40}", end="", file=sys.stderr, flush=True)
 
         result = narrate(args.script, args.out, _voice(args), language=args.lang, cache_dir=args.cache,
-                         cevg=args.cevg, burn_captions=args.captions, progress=show)
+                         cevg=args.cevg, burn_captions=args.captions, listen=args.listen, progress=show)
         print(file=sys.stderr)
         minutes, seconds = divmod(round(result.seconds), 60)
         print(f"wrote {result.video} ({minutes} min {seconds} s, {result.steps} steps) and {result.captions}")
         print(f"voice: {result.spoken} lines spoken, {result.reused} reused from the cache, "
               f"{result.characters} characters of narration in all")
+        if result.heard is not None:
+            doubtful = result.doubtful()
+            checked = sum(1 for h in result.heard if h.get("match") is not None)
+            print(f"listened back to {checked} of {result.steps} lines: {len(doubtful)} to check by ear")
+            for h in doubtful:
+                print(f"  step {h['step']} ({h['match']:.0%}): said \"{h['said']}\"\n      heard \"{h['heard']}\"")
         return 0
-    except sarvam.SarvamError as e:
+    except providers.VoiceError as e:
         print(f"\ncevg_shell: {e}\n{e.advice()}", file=sys.stderr)
         return 1
     except (NarrateError, ValueError) as e:

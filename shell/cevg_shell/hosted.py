@@ -13,7 +13,9 @@ Settings come from the environment:
     DATABASE_URL        postgres://user:password@host:port/dbname   (required)
     SITE_URL            where the website is reached, e.g. https://cevg.example
     CEVG_STORAGE        folder for videos and thumbnails (default ./storage)
-    SARVAM_API_KEY      the platform's voice key; without it videos are silent
+    CEVG_TTS            voice service: gnani (default) or sarvam
+    GNANI_API_KEY       the platform's Gnani key (or SARVAM_API_KEY for Sarvam);
+                        without it videos are silent
     CEVG_WATERMARK      text in the corner of every video (default "Vivaran")
     CEVG_DAILY_VOICE_MINUTES   voiced minutes one user may render per day (default 10)
     CEVG_MAX_MINUTES    longest single video, in minutes (default 12)
@@ -37,10 +39,9 @@ from mcp.server.mcpserver.exceptions import ToolError
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
-from . import sarvam
+from . import providers
 from .narrate import NarrateError, narrate
-from .server import INSTRUCTIONS, MAKES_FILES, READ_ONLY, Studio
-from .voice import SarvamVoice
+from .server import INSTRUCTIONS, MAKES_FILES, READ_ONLY, Studio, _voice_line
 
 USER_HEADER = "x-cevg-user-id"
 
@@ -138,11 +139,11 @@ class Platform(Studio):
         if "problem" in estimate:
             raise ValueError(estimate["problem"])
         if voice:
-            if not os.environ.get("SARVAM_API_KEY"):
+            provider = providers.current()
+            if not provider.available():
                 raise ValueError("voice is not available on this server right now; render with voice=false")
-            if speaker not in sarvam.SPEAKERS:
-                raise ValueError(f"unknown speaker `{speaker}`; call `voices` for the list")
-            sarvam.language_code(language)
+            provider.check(speaker or None, language, pace)
+            speaker = speaker or provider.default_speaker(language)
         self._check_limits(user["id"], estimate["seconds"], voice)
 
         video_id = uuid.uuid4().hex[:12]
@@ -170,12 +171,18 @@ class Platform(Studio):
             mark = f"{self.watermark} · {user['handle']}" if self.watermark else None
             try:
                 characters = 0
+                note = "finished"
                 if voice:
-                    client = sarvam.Sarvam(os.environ["SARVAM_API_KEY"], requests_per_minute=self.requests_per_minute)
-                    result = narrate(script, out, SarvamVoice(client, speaker=speaker, pace=pace), language=language,
+                    voice_obj = self._voice(speaker, pace)
+                    result = narrate(script, out, voice_obj, language=language,
                                      cache_dir=self.cache_dir, cevg=self.cevg, burn_captions=captions, watermark=mark,
-                                     progress=progress)
+                                     listen=hasattr(voice_obj, "listen"), progress=progress)
                     seconds, characters = result.seconds, result.characters
+                    doubtful = result.doubtful()
+                    if doubtful:
+                        steps = ", ".join(str(h["step"]) for h in doubtful)
+                        note = (f"finished; listening back, the voice may have skipped or garbled words in "
+                                f"step(s) {steps}: watch those before publishing")
                 else:
                     progress("rendering video")
                     command = ["render", str(script), "--json", "-o", str(out)]
@@ -189,9 +196,9 @@ class Platform(Studio):
                     seconds = json.loads(done.stdout)["seconds"]
                 # A still from the last step is the thumbnail on the site.
                 self._run("frame", str(script), "-o", str(self.out_dir / f"{video_id}.png"))
-                self._execute("update videos set status = 'done', progress = 'finished', seconds = %s, "
-                              "characters = %s, finished_at = now() where id = %s", (seconds, characters, video_id))
-            except sarvam.SarvamError as e:
+                self._execute("update videos set status = 'done', progress = %s, seconds = %s, "
+                              "characters = %s, finished_at = now() where id = %s", (note, seconds, characters, video_id))
+            except providers.VoiceError as e:
                 self._fail(video_id, f"{e}\n{e.advice()}")
             except Exception as e:  # a job must always end in a state the assistant can read
                 self._fail(video_id, str(e))
@@ -249,7 +256,7 @@ def build(platform: Platform) -> MCPServer:
     def guarded(call):
         try:
             return call()
-        except sarvam.SarvamError as e:
+        except providers.VoiceError as e:
             raise ToolError(f"{e}\n{e.advice()}") from None
         except (ValueError, NarrateError) as e:
             raise ToolError(str(e)) from None
@@ -290,7 +297,7 @@ def build(platform: Platform) -> MCPServer:
         return platform.voices()
 
     @server.tool(title="Hear a voice", annotations=MAKES_FILES)
-    def voice_sample(ctx: Context, speaker: str, language: str = "en", pace: float = 1.0) -> dict[str, Any]:
+    def voice_sample(ctx: Context, speaker: str = "", language: str = "en", pace: float = 1.0) -> dict[str, Any]:
         """Make a short audio sample of one voice in one language so the user can hear it before choosing.
         Returns a `url` to play."""
         who(ctx)
@@ -298,7 +305,7 @@ def build(platform: Platform) -> MCPServer:
 
     @server.tool(title="Start rendering the video", annotations=MAKES_FILES)
     def render(ctx: Context, script: dict[str, Any], language: str = "en", voice: bool = True,
-               captions: bool = False, speaker: str = sarvam.DEFAULT_SPEAKER, pace: float = 1.0,
+               captions: bool = False, speaker: str = "", pace: float = 1.0,
                subject: str | None = None) -> dict[str, Any]:
         """Start making the video and return a job id at once; then call `status` until it is done.
         `subject` files the video on the site: dsa (data structures and algorithms), ml, dbms, os, coa
@@ -399,6 +406,6 @@ def serve(host: str = "127.0.0.1", port: int = 8765) -> None:
     print(f"CEVG platform MCP server on http://{host}:{port}\n"
           f"  connector addresses look like: <public address>/u/<token>/mcp\n"
           f"  storage: {platform.out_dir.parent}\n"
-          f"  voice: {'Sarvam key found' if os.environ.get('SARVAM_API_KEY') else 'no SARVAM_API_KEY, silent videos only'}",
+          f"  voice: {_voice_line()}",
           flush=True)
     uvicorn.run(gate(app, platform), host=host, port=port, log_level="warning")

@@ -1,6 +1,8 @@
 """From a scene script to a narrated video.
 
-    script --> one WAV per step (Sarvam, cached)
+    script --> one WAV per step (Gnani Timbre or Sarvam, cached)
+           --> optionally, listen back: Gnani Prisma transcribes each clip
+               and it is scored against the line, to catch skipped words
            --> measure each WAV
            --> `cevg render --speech <lengths>`   (video timed to the audio)
            --> lay each WAV at its step's start on one audio track
@@ -40,6 +42,11 @@ class Result:
     characters: int
     spoken: int
     reused: int
+    heard: list = None  # per step, when listened back: {"step", "match", "said", "heard"}
+
+    def doubtful(self, below: float = 0.8) -> list:
+        """Steps whose transcript matched less than `below` of the line."""
+        return [h for h in (self.heard or []) if h.get("match") is not None and h["match"] < below]
 
 
 def find_cevg(explicit: str | None = None) -> str:
@@ -113,7 +120,7 @@ def _stamp(t: float) -> str:
 
 def narrate(script_path: Path, out: Path, voice, *, language: str = "en", cache_dir: Path = Path(".cevg-cache"),
             cevg: str | None = None, burn_captions: bool = False, watermark: str | None = None,
-            progress=lambda message: None) -> Result:
+            listen: bool = False, progress=lambda message: None) -> Result:
     """Make `out` (an .mp4) from the script, narrated by `voice` in `language`."""
     script_path, out = Path(script_path), Path(out)
     binary = find_cevg(cevg)
@@ -130,7 +137,7 @@ def narrate(script_path: Path, out: Path, voice, *, language: str = "en", cache_
         tmp = Path(tmp)
 
         # 1. Speak and measure.
-        clips, lengths = [], []
+        clips, lengths, heard = [], [], []
         for i, line in enumerate(lines):
             progress(f"voice {i + 1}/{len(lines)}")
             raw = cache.get(voice, line, language)
@@ -146,6 +153,9 @@ def narrate(script_path: Path, out: Path, voice, *, language: str = "en", cache_
                     f"speaking the remaining {len(lines) - i - 1} lines. The line was: {line}"
                 )
             clips.append(clip)
+            if listen and hasattr(voice, "listen"):
+                progress(f"listening {i + 1}/{len(lines)}")
+                heard.append(_listen(voice, raw, line, language, lengths[-1], i + 1))
 
         # 2. Render the picture to those lengths.
         progress("rendering video")
@@ -192,4 +202,19 @@ def narrate(script_path: Path, out: Path, voice, *, language: str = "en", cache_
     captions.write_text("\n".join(blocks), encoding="utf-8")
 
     return Result(video=out, captions=captions, seconds=total, steps=len(lines),
-                  characters=sum(len(line) for line in lines), spoken=cache.spoken, reused=cache.reused)
+                  characters=sum(len(line) for line in lines), spoken=cache.spoken, reused=cache.reused,
+                  heard=heard if listen else None)
+
+
+def _listen(voice, clip: Path, line: str, language: str, seconds: float, step: int) -> dict:
+    """Transcribe one cached clip and score it, keeping the answer beside the
+    clip so a re-run does not pay to listen again."""
+    record = Path(clip).with_suffix(".heard.json")
+    if record.exists():
+        return {"step": step, **json.loads(record.read_text(encoding="utf-8"))}
+    if seconds > 29.5:  # Prisma takes at most 30 seconds
+        return {"step": step, "match": None, "said": line, "heard": "", "note": "longer than 30 s; not checked"}
+    score, transcript = voice.listen(Path(clip).read_bytes(), line, language)
+    entry = {"match": round(score, 3), "said": line, "heard": transcript}
+    record.write_text(json.dumps(entry, ensure_ascii=False), encoding="utf-8")
+    return {"step": step, **entry}

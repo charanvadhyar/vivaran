@@ -9,7 +9,7 @@ import { WaitlistForm } from "@/components/landing/WaitlistForm";
 import { Button } from "@/components/ui/Button";
 import { VideoGrid } from "@/components/video/VideoGrid";
 import { currentUser } from "@/lib/auth";
-import { WAITLIST } from "@/lib/mode";
+import { CREATOR_PAY, WAITLIST } from "@/lib/mode";
 import { siteStats } from "@/lib/stats";
 import { publicVideos } from "@/lib/videos";
 import styles from "./page.module.css";
@@ -21,7 +21,7 @@ export default async function Home() {
   const [user, latest, stats] = await Promise.all([currentUser(), publicVideos({}, 8), siteStats()]);
   // The demo shows the richest recent video: voiced if there is one, with the most parts.
   const sample = [...latest].sort((a, b) => Number(b.voiced) - Number(a.voiced) || (b.outline?.length ?? 0) - (a.outline?.length ?? 0))[0] ?? null;
-  const total = 4;
+  const total = CREATOR_PAY ? 4 : 3;
   // Before launch the numbers say what the thing is; a library of two demos is nothing to count.
   const proof = WAITLIST
     ? [
@@ -51,7 +51,7 @@ export default async function Home() {
         {latest.length ? (
           <div className={styles.latest}>
             <VideoGrid videos={latest.slice(0, 4)} />
-            <div className={styles.more}><Button href="/explore">{WAITLIST ? "Watch the demos" : "Explore by subject"}</Button></div>
+            <div className={styles.more}><Button href="/explore">Explore by subject</Button></div>
           </div>
         ) : null}
       </section>
@@ -65,6 +65,7 @@ export default async function Home() {
         <ConnectBox signedIn={Boolean(user)} waitlist={WAITLIST} />
       </section>
 
+      {CREATOR_PAY ? (
       <section className={styles.section}>
         <SectionLabel index={3} total={total} text="Earn" />
         <div className={styles.head}>
@@ -73,17 +74,18 @@ export default async function Home() {
         </div>
         <Earn />
       </section>
+      ) : null}
 
       <section className={styles.section}>
-        <SectionLabel index={4} total={total} text="Standard" />
+        <SectionLabel index={total} total={total} text="Standard" />
         <div className={styles.head}>
           <h2>The exam standard</h2>
           <p>A video passes only if a student could redo the working in an exam from it alone: every term in a formula named, every number traced to where it came from, every decision said out loud. That rule is in the guide the assistant reads before it writes a single line.</p>
         </div>
         {WAITLIST ? (
           <div id="waitlist" className={styles.waitlist}>
-            <h3>Be there when the doors open</h3>
-            <p>We are finishing the hosting and the first creator terms. Leave an email and you get a connector address in the first batch.</p>
+            <h3>Make videos like these</h3>
+            <p>Creators get connector addresses in batches. Leave an email and tell us what you would explain; the first batch goes out soon.</p>
             <WaitlistForm source="footer" />
           </div>
         ) : (

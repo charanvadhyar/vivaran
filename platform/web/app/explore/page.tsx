@@ -6,7 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { SubjectChips } from "@/components/video/SubjectChips";
 import { VideoGrid } from "@/components/video/VideoGrid";
 import { BRAND, SUBJECTS, subjectName } from "@/lib/brand";
-import { WAITLIST } from "@/lib/mode";
+import { CREATOR_PAY, WAITLIST } from "@/lib/mode";
 import { publicVideos, type Video } from "@/lib/videos";
 import styles from "./page.module.css";
 
@@ -31,8 +31,8 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
           <h1>Every step, <span className={styles.mark}>shown</span>.</h1>
           <p>{BRAND.description}</p>
           <div className={styles.actions}>
-            <Button href={WAITLIST ? "/#waitlist" : "/dashboard"} variant="primary" size="lg" icon={<Icon name="spark" />}>{WAITLIST ? "Join the waitlist" : "Make a video"}</Button>
-            <Button href="/terms" variant="ghost" size="lg">How creators earn</Button>
+            <Button href={WAITLIST ? "/#waitlist" : "/dashboard"} variant="primary" size="lg" icon={<Icon name="spark" />}>{WAITLIST ? "Make videos like these" : "Make a video"}</Button>
+            {CREATOR_PAY ? <Button href="/terms" variant="ghost" size="lg">How creators earn</Button> : null}
           </div>
         </section>
       )}
@@ -44,7 +44,7 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
           aside={`${videos.length} ${videos.length === 1 ? "video" : "videos"}`}>
           {videos.length ? <VideoGrid videos={videos} /> : (
             <EmptyState icon="search" title="Nothing here yet" text="Try another word, or make the first video on this topic."
-              action={<Button href={WAITLIST ? "/#waitlist" : "/dashboard"} variant="primary">{WAITLIST ? "Join the waitlist" : "Make a video"}</Button>} />
+              action={<Button href={WAITLIST ? "/#waitlist" : "/dashboard"} variant="primary">{WAITLIST ? "Make videos like these" : "Make a video"}</Button>} />
           )}
         </Section>
       ) : shelves.length ? (
@@ -55,7 +55,7 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
           </Section>
         ))
       ) : (
-        <EmptyState title="No public videos yet" text="The first one could be yours." action={<Button href={WAITLIST ? "/#waitlist" : "/dashboard"} variant="primary">{WAITLIST ? "Join the waitlist" : "Make a video"}</Button>} />
+        <EmptyState title="No public videos yet" text="The first one could be yours." action={<Button href={WAITLIST ? "/#waitlist" : "/dashboard"} variant="primary">{WAITLIST ? "Make videos like these" : "Make a video"}</Button>} />
       )}
     </Container>
   );

@@ -1,6 +1,7 @@
 """Voices: something that turns one narration line into one WAV file.
 
-`SarvamVoice` is the real one. `StandInVoice` needs no key and no network:
+`GnaniVoice` (Timbre) is the default; `SarvamVoice` is kept for anyone with
+a Sarvam key. `StandInVoice` needs no key and no network:
 it makes a quiet tick followed by silence of about the right length, so the
 whole pipeline (timing, track assembly, muxing, captions) can be run and
 checked before any credits are spent.
@@ -18,7 +19,24 @@ import struct
 import wave
 from pathlib import Path
 
-from . import sarvam
+from . import gnani, sarvam
+
+
+class GnaniVoice:
+    def __init__(self, client: gnani.Gnani, *, voice: str | None = None, model: str = gnani.DEFAULT_MODEL,
+                 speed: float = 1.0):
+        self.client, self.voice, self.model, self.speed = client, voice, model, speed
+
+    def identity(self) -> str:
+        return f"gnani|{self.model}|{self.voice or 'default'}|{self.speed}"
+
+    def speak(self, text: str, language: str) -> bytes:
+        return self.client.speak(text, language, voice=self.voice, model=self.model, speed=self.speed)
+
+    def listen(self, wav: bytes, text: str, language: str) -> tuple[float, str]:
+        """Have Prisma transcribe a clip and score it against the line."""
+        heard = self.client.transcribe(wav, language, keyterms=gnani.keyterms(text))
+        return gnani.match(text, heard), heard
 
 
 class SarvamVoice:
