@@ -313,7 +313,7 @@ class GnaniWords(unittest.TestCase):
 class GnaniClient(unittest.TestCase):
     def test_a_line_is_spoken_with_the_documented_request(self):
         made, server, _ = gnani_client([wav(0.2)])
-        audio = made.speak("We look for 23 in this sorted array.", "en")
+        audio = made.speak("We look for 23 in this sorted array.", "en", model="timbre-v2.5")
         self.assertEqual(audio[:4], b"RIFF")
         request = server.requests[0]
         self.assertEqual(request.full_url, "https://api.vachana.ai/api/v1/tts/inference")
@@ -328,7 +328,7 @@ class GnaniClient(unittest.TestCase):
     def test_telugu_gets_its_default_voice_and_long_text_is_joined(self):
         made, server, _ = gnani_client([wav(0.1), wav(0.2)])
         line = "ఇది ఒక sorted array. " * 30
-        audio = made.speak(line.strip(), "te")
+        audio = made.speak(line.strip(), "te", model="timbre-v2.5")
         self.assertEqual(len(server.requests), 2)
         self.assertEqual(json.loads(server.requests[0].data)["voice"], "Suhana")
         self.assertEqual(json.loads(server.requests[0].data)["language"], "auto")
@@ -337,7 +337,8 @@ class GnaniClient(unittest.TestCase):
 
     def test_bad_voices_and_speeds_are_refused_before_any_request(self):
         made, server, _ = gnani_client([])
-        with self.assertRaisesRegex(ValueError, "`shubh` is not a timbre-v2.5 voice"):
+        self.assertEqual(gnani.default_voice(gnani.DEFAULT_MODEL, "te"), "Vasudha")
+        with self.assertRaisesRegex(ValueError, "`shubh` is not a timbre-v3.0 voice"):
             made.speak("hi", "en", voice="shubh")
         with self.assertRaisesRegex(ValueError, "speed 2 is outside"):
             made.speak("hi", "en", speed=2)
@@ -397,12 +398,13 @@ class Providers(unittest.TestCase):
             os.environ.pop("CEVG_TTS", None)
             if saved:
                 os.environ["CEVG_TTS"] = saved
-        g = providers.Gnani()
+        g = providers.Gnani("timbre-v2.5")
         self.assertEqual(g.default_speaker("te"), "Suhana")
         self.assertIn("Suhana", g.speakers("te"))
         self.assertNotIn("Girish", g.speakers("te"))
         v3 = providers.Gnani("timbre-v3.0")
-        self.assertEqual(v3.default_speaker("te"), "Yashraj")
+        self.assertEqual(v3.default_speaker("te"), "Vasudha")
+        self.assertEqual(providers.Gnani().model, "timbre-v3.0")
         self.assertEqual(len(v3.speakers("te")), 13)
         with self.assertRaisesRegex(ValueError, "unknown Gnani model"):
             providers.Gnani("timbre-v9")
@@ -444,9 +446,9 @@ class McpServer(unittest.TestCase):
         import asyncio
         listed = self.studio.voices()
         self.assertTrue(listed["service"].startswith("Gnani Timbre"))
-        self.assertEqual(listed["default"]["te"], "Suhana")
-        self.assertEqual(len(listed["voices"]), 42)
-        self.assertIn({"name": "Girish", "gender": "male", "language": "en", "suits": "warm, expressive storytelling"},
+        self.assertEqual(listed["default"], {"en": "Vasudha", "te": "Vasudha", "hi": "Vasudha"})
+        self.assertEqual(len(listed["voices"]), 13)
+        self.assertIn({"name": "Vasudha", "gender": "female", "language": "any", "suits": "composed; narration and e-learning"},
                       listed["voices"])
         tools = {t.name: t for t in asyncio.run(mcp_server.build(self.studio).list_tools())}
         for name in ("guide", "validate", "preview", "estimate", "voices", "status"):
@@ -483,7 +485,7 @@ class McpServer(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "unknown voice `shubh`"):
                 self.studio.render(self.script, "en", True, False, "shubh", 1.0)
             with self.assertRaisesRegex(ValueError, "pace 1.5 is outside"):
-                self.studio.render(self.script, "en", True, False, "Girish", 1.5)
+                self.studio.render(self.script, "en", True, False, "Vasudha", 1.5)
         finally:
             os.environ.pop("GNANI_API_KEY", None)
             if saved:

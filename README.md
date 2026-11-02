@@ -110,7 +110,7 @@ nothing is covered. `render` also writes an `.srt` file beside the video.
 
 The Python shell in `shell/` speaks every step, measures each clip, renders
 the video to those lengths and puts the audio under it. The voice service is
-**Gnani**: Timbre (`timbre-v2.5`, or `timbre-v3.0` with `GNANI_MODEL`) speaks,
+**Gnani**: Timbre (`timbre-v3.0`, or `timbre-v2.5` with `GNANI_MODEL`) speaks,
 and Prisma (`prisma-v3.0`) can listen back to every clip and flag lines the
 voice skipped or garbled. Sarvam (Bulbul v3) is kept: set `CEVG_TTS=sarvam`.
 The shell needs Python 3.10 or later and nothing from pip; `ffmpeg` and
@@ -135,9 +135,10 @@ reachable from the machine that narrates.
 
 `--lang` picks the narration (`en`, `te`, `hi`, `ta`, `kn`, `ml`, `mr`,
 `pa`, `bn`, `gu`). Every step must have that language in its `say`.
-`--voice` picks the voice; without it each language gets a narration voice
-(Girish for English, Suhana for Telugu, Jalaj for Hindi on `timbre-v2.5`;
-Yashraj for every language on `timbre-v3.0`). `--pace` is 0.85 to 1.15 on
+`--voice` picks the voice. Vivaran's narrator is Vasudha on `timbre-v3.0`
+(the default model), in every language; with `GNANI_MODEL=timbre-v2.5` each
+language gets its own voice (Girish for English, Suhana for Telugu, Jalaj
+for Hindi). `--pace` is 0.85 to 1.15 on
 Gnani. `--captions` burns the narration in.
 
 What the shell does for Gnani, from its documentation (1 November 2026):

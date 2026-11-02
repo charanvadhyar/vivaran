@@ -25,7 +25,7 @@ class Gnani:
     pace_range = (0.85, 1.15)
 
     def __init__(self, model: str | None = None):
-        self.model = model or os.environ.get("GNANI_MODEL", gnani.DEFAULT_MODEL)
+        self.model = model or os.environ.get("GNANI_MODEL", "").strip() or gnani.DEFAULT_MODEL
         gnani.voices(self.model)  # an unknown model fails here, not mid-render
 
     def available(self) -> bool:

@@ -1,0 +1,1334 @@
+{
+ "version": 1,
+ "title": "OS: Banker's algorithm, worked step by step",
+ "objects": [
+  {
+   "id": "heading",
+   "type": "text",
+   "region": "title",
+   "text": "Banker's algorithm: avoiding deadlock"
+  },
+  {
+   "id": "roadmap",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we find",
+    "why"
+   ],
+   "rows": [
+    [
+     1,
+     "Need matrix",
+     "what each process may still ask for"
+    ],
+    [
+     2,
+     "Available",
+     "what is free right now"
+    ],
+    [
+     3,
+     "Safety check",
+     "an order in which every process can finish"
+    ],
+    [
+     4,
+     "A new request",
+     "grant it only if the state stays safe"
+    ]
+   ]
+  },
+  {
+   "id": "mat",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "process",
+    "Allocation",
+    "Max",
+    "Need",
+    "Finish"
+   ],
+   "rows": [
+    [
+     "P0",
+     "0 1 0",
+     "7 5 3",
+     "",
+     "F"
+    ],
+    [
+     "P1",
+     "2 0 0",
+     "3 2 2",
+     "",
+     "F"
+    ],
+    [
+     "P2",
+     "3 0 2",
+     "9 0 2",
+     "",
+     "F"
+    ],
+    [
+     "P3",
+     "2 1 1",
+     "2 2 2",
+     "",
+     "F"
+    ],
+    [
+     "P4",
+     "0 0 2",
+     "4 3 3",
+     "",
+     "F"
+    ]
+   ]
+  },
+  {
+   "id": "status",
+   "type": "text",
+   "region": "bottom",
+   "text": "Total: A = 10, B = 5, C = 7"
+  },
+  {
+   "id": "needeq",
+   "type": "math",
+   "region": "right",
+   "lines": [
+    "\"Need\" = \"Max\" - \"Allocation\"",
+    "P_0 : (7, 5, 3) - (0, 1, 0) = (7, 4, 3)",
+    "P_1 : (3, 2, 2) - (2, 0, 0) = (1, 2, 2)",
+    "P_2, P_3, P_4 : (6, 0, 0), (0, 1, 1), (4, 3, 1)"
+   ]
+  },
+  {
+   "id": "avail",
+   "type": "math",
+   "region": "right",
+   "lines": [
+    "\"Available\" = \"Total\" - sum \"Allocation\"",
+    "sum \"Allocation\" = (7, 2, 5)",
+    "(10, 5, 7) - (7, 2, 5) = (3, 3, 2)"
+   ]
+  },
+  {
+   "id": "rule",
+   "type": "math",
+   "region": "right",
+   "lines": [
+    "\"Work\" = \"Available\" = (3, 3, 2)",
+    "\"if\" \"Need\"_i <= \"Work\" :",
+    "\"Work\" = \"Work\" + \"Allocation\"_i , quad \"Finish\"_i = T"
+   ]
+  },
+  {
+   "id": "log",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "check",
+    "Need ≤ Work?",
+    "Work after"
+   ],
+   "rows": [
+    [
+     "P0",
+     "7 4 3 ≤ 3 3 2: no",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "req",
+   "type": "math",
+   "region": "right",
+   "lines": [
+    "\"Request\"_1 = (1, 0, 2)",
+    "(1, 0, 2) <= \"Need\"_1 = (1, 2, 2) quad \"yes\"",
+    "(1, 0, 2) <= \"Available\" = (3, 3, 2) quad \"yes\"",
+    "\"Available\" = (3, 3, 2) - (1, 0, 2) = (2, 3, 0)",
+    "\"Allocation\"_1 = (2, 0, 0) + (1, 0, 2) = (3, 0, 2)"
+   ]
+  },
+  {
+   "id": "log2",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "check",
+    "Need ≤ Work?",
+    "Work after"
+   ],
+   "rows": [
+    [
+     "P0",
+     "7 4 3 ≤ 2 3 0: no",
+     ""
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "overview",
+   "steps": [
+    {
+     "say": {
+      "en": "Banker's algorithm decides whether the operating system can safely give resources to a process, without ever reaching deadlock.",
+      "te": "Banker's algorithm అంటే, deadlock రాకుండా, ఒక process కు resources ఇవ్వడం safe అవునా కాదా అని operating system decide చేసే method."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "heading"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It is named after a bank, which lends money only if it can still pay every customer back in some order.",
+      "te": "దీనికి bank పేరు ఎందుకంటే, ఒక bank తన customers అందరికీ ఏదో ఒక order లో pay చేయగలిగితేనే loan ఇస్తుంది."
+     },
+     "do": []
+    },
+    {
+     "say": {
+      "en": "We will work one exam problem through four stages.",
+      "te": "మనం ఒక exam problem ను four stages లో solve చేస్తాం."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "roadmap"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "First the need matrix, then the available vector, then the safety check, and last a new request.",
+      "te": "First need matrix, తర్వాత available vector, తర్వాత safety check, last గా ఒక new request."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "roadmap[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "roadmap[1]",
+       "delay": 0.25
+      },
+      {
+       "action": "highlight",
+       "target": "roadmap[2]",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "roadmap[3]",
+       "delay": 0.75
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "problem",
+   "steps": [
+    {
+     "say": {
+      "en": "Here is the problem. There are five processes, P0 to P4, and three resource types, A, B and C.",
+      "te": "ఇది problem. ఇక్కడ P0 నుంచి P4 వరకు five processes, A, B, C అనే three resource types ఉన్నాయి."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "heading",
+       "text": "The problem"
+      },
+      {
+       "action": "hide",
+       "target": "roadmap"
+      },
+      {
+       "action": "show",
+       "target": "mat",
+       "delay": 0.2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The system has 10 instances of A, 5 of B and 7 of C in total.",
+      "te": "System లో total గా A వి 10, B వి 5, C వి 7 instances ఉన్నాయి."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "status"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The allocation column is what each process holds right now. P0 holds zero A, one B and zero C.",
+      "te": "Allocation column అంటే ప్రతి process ఇప్పుడు hold చేస్తున్న resources. P0 దగ్గర zero A, one B, zero C ఉన్నాయి."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mat.Allocation"
+      },
+      {
+       "action": "highlight",
+       "target": "mat[0][1]",
+       "delay": 0.55
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The max column is the most each process may ever ask for. P0 may need up to seven A, five B and three C.",
+      "te": "Max column అంటే ప్రతి process ever అడగగలిగే maximum. P0 కు up to seven A, five B, three C అవసరం కావచ్చు."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mat.Max"
+      },
+      {
+       "action": "highlight",
+       "target": "mat[0][2]",
+       "delay": 0.55
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every process declares its max in advance. That is what lets the system plan ahead.",
+      "te": "ప్రతి process తన max ను advance గా declare చేస్తుంది. అందుకే system advance గా plan చేయగలదు."
+     },
+     "do": [
+      {
+       "action": "reset",
+       "target": "mat"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "need",
+   "steps": [
+    {
+     "say": {
+      "en": "The first question is how much more each process can still ask for. That is called its need.",
+      "te": "First question: ప్రతి process ఇంకా ఎంత more అడగగలదు? దాన్నే need అంటారు."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "heading",
+       "text": "Stage 1 of 4: the need matrix"
+      },
+      {
+       "action": "show",
+       "target": "needeq"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Need is max minus allocation: the most it may want, minus what it already holds.",
+      "te": "Need అంటే max minus allocation: అది want చేసే maximum లో నుంచి already hold చేస్తున్నది minus చేస్తాం."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "needeq[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For P0, seven five three minus zero one zero gives seven four three.",
+      "te": "P0 కు, seven five three minus zero one zero చేస్తే seven four three వస్తుంది."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "needeq[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "mat[0]"
+      },
+      {
+       "action": "set",
+       "target": "mat[0][3]",
+       "value": "7 4 3",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For P1, three two two minus two zero zero gives one two two.",
+      "te": "P1 కు, three two two minus two zero zero చేస్తే one two two వస్తుంది."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "needeq[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "mat[1]"
+      },
+      {
+       "action": "set",
+       "target": "mat[1][3]",
+       "value": "1 2 2",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The same subtraction for P2, P3 and P4 gives six zero zero, zero one one, and four three one.",
+      "te": "అదే subtraction P2, P3, P4 కు చేస్తే six zero zero, zero one one, four three one వస్తాయి."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "needeq[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "mat[2..5]"
+      },
+      {
+       "action": "set",
+       "target": "mat[2][3]",
+       "value": "6 0 0",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "mat[3][3]",
+       "value": "0 1 1",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "mat[4][3]",
+       "value": "4 3 1",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A quick check: no need can be negative, because no process holds more than its max.",
+      "te": "ఒక quick check: ఏ need కూడా negative కాకూడదు, ఎందుకంటే ఏ process కూడా తన max కంటే more hold చేయదు."
+     },
+     "do": [
+      {
+       "action": "reset",
+       "target": "mat"
+      },
+      {
+       "action": "mark",
+       "target": "mat.Need"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "available",
+   "steps": [
+    {
+     "say": {
+      "en": "Next, how much of each resource is free right now. This is the available vector.",
+      "te": "Next, ఇప్పుడు ప్రతి resource ఎంత free గా ఉంది? దీన్నే available vector అంటారు."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "heading",
+       "text": "Stage 2 of 4: what is available"
+      },
+      {
+       "action": "hide",
+       "target": "needeq"
+      },
+      {
+       "action": "show",
+       "target": "avail",
+       "delay": 0.2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Available is the total minus everything that is already allocated.",
+      "te": "Available అంటే total minus already allocate అయినవి అన్నీ."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "avail[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add down the allocation column. For A, zero plus two plus three plus two plus zero is seven. B adds to two, and C to five.",
+      "te": "Allocation column ను add చేద్దాం. A కు zero plus two plus three plus two plus zero, seven. B add చేస్తే two, C add చేస్తే five."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "avail[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "mat.Allocation"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Ten five seven minus seven two five leaves three three two free.",
+      "te": "Ten five seven minus seven two five చేస్తే three three two free గా ఉంటాయి."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "avail[2]"
+      },
+      {
+       "action": "reset",
+       "target": "mat"
+      },
+      {
+       "action": "mark",
+       "target": "mat.Need"
+      },
+      {
+       "action": "replace",
+       "target": "status",
+       "text": "Total (10, 5, 7)    Available (3, 3, 2)",
+       "delay": 0.5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "safety",
+   "steps": [
+    {
+     "say": {
+      "en": "Now the main question: is there an order in which every process can finish? If there is, the state is safe.",
+      "te": "ఇప్పుడు main question: ప్రతి process finish అయ్యే order ఏదైనా ఉందా? ఉంటే, ఆ state safe."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "heading",
+       "text": "Stage 3 of 4: the safety check"
+      },
+      {
+       "action": "hide",
+       "target": "avail"
+      },
+      {
+       "action": "show",
+       "target": "rule",
+       "delay": 0.2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "We start with work equal to available, three three two, and every process marked not finished.",
+      "te": "Work = available, అంటే three three two తో start చేస్తాం, ప్రతి process not finished గా ఉంటుంది."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rule[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "mat.Finish"
+      },
+      {
+       "action": "replace",
+       "target": "status",
+       "text": "Work = (3, 3, 2)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The rule: if a process's need fits in work, it can run to the end and then give back everything it holds.",
+      "te": "Rule: ఒక process need, work లో fit అయితే, అది end వరకు run అయి, తను hold చేసినవన్నీ return చేస్తుంది."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rule[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "rule[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So work grows by that process's allocation, and we mark it finished.",
+      "te": "కాబట్టి work కు ఆ process allocation add అవుతుంది, దాన్ని finished గా mark చేస్తాం."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rule[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "rule[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "We scan from P0 to P4, and go back to the top until no process can move.",
+      "te": "P0 నుంచి P4 వరకు scan చేస్తాం, ఏ process కూడా move చేయలేనంత వరకు మళ్ళీ top నుంచి start చేస్తాం."
+     },
+     "do": [
+      {
+       "action": "reset",
+       "target": "rule"
+      },
+      {
+       "action": "reset",
+       "target": "mat"
+      },
+      {
+       "action": "mark",
+       "target": "mat.Need"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "P0 needs seven four three, but work has only three A. Seven does not fit in three, so P0 waits.",
+      "te": "P0 కు seven four three need, కానీ work లో three A మాత్రమే. Seven, three లో fit కాదు, కాబట్టి P0 wait చేస్తుంది."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rule"
+      },
+      {
+       "action": "show",
+       "target": "log"
+      },
+      {
+       "action": "highlight",
+       "target": "mat[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "P1 needs one two two. One is at most three, two is at most three, and two is at most two, so it fits.",
+      "te": "P1 కు one two two need. One, three కంటే less, two, three కంటే less, two, two కి equal, కాబట్టి fit అవుతుంది."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mat[1]"
+      },
+      {
+       "action": "add_row",
+       "target": "log",
+       "values": [
+        "P1",
+        "1 2 2 ≤ 3 3 2: yes",
+        ""
+       ]
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "P1 finishes and returns two zero zero. Work becomes three three two plus two zero zero, which is five three two.",
+      "te": "P1 finish అయి two zero zero return చేస్తుంది. Work, three three two plus two zero zero, అంటే five three two."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "mat[1][4]",
+       "value": "T"
+      },
+      {
+       "action": "set",
+       "target": "log[1][2]",
+       "value": "5 3 2",
+       "delay": 0.4
+      },
+      {
+       "action": "replace",
+       "target": "status",
+       "text": "Work = (5, 3, 2)    order: P1",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "P2 needs six A, but work has five. It waits.",
+      "te": "P2 కు six A need, కానీ work లో five మాత్రమే. అది wait చేస్తుంది."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mat[2]"
+      },
+      {
+       "action": "add_row",
+       "target": "log",
+       "values": [
+        "P2",
+        "6 0 0 ≤ 5 3 2: no",
+        ""
+       ]
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "P3 needs zero one one, which fits in five three two.",
+      "te": "P3 కు zero one one need, అది five three two లో fit అవుతుంది."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mat[3]"
+      },
+      {
+       "action": "add_row",
+       "target": "log",
+       "values": [
+        "P3",
+        "0 1 1 ≤ 5 3 2: yes",
+        ""
+       ]
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "P3 returns two one one, so work becomes seven four three.",
+      "te": "P3 two one one return చేస్తుంది, కాబట్టి work seven four three అవుతుంది."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "mat[3][4]",
+       "value": "T"
+      },
+      {
+       "action": "set",
+       "target": "log[3][2]",
+       "value": "7 4 3",
+       "delay": 0.3
+      },
+      {
+       "action": "replace",
+       "target": "status",
+       "text": "Work = (7, 4, 3)    order: P1, P3",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "P4 needs four three one, which fits in seven four three.",
+      "te": "P4 కు four three one need, అది seven four three లో fit అవుతుంది."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mat[4]"
+      },
+      {
+       "action": "add_row",
+       "target": "log",
+       "values": [
+        "P4",
+        "4 3 1 ≤ 7 4 3: yes",
+        ""
+       ]
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "P4 returns zero zero two, so work becomes seven four five.",
+      "te": "P4 zero zero two return చేస్తుంది, కాబట్టి work seven four five అవుతుంది."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "mat[4][4]",
+       "value": "T"
+      },
+      {
+       "action": "set",
+       "target": "log[4][2]",
+       "value": "7 4 5",
+       "delay": 0.3
+      },
+      {
+       "action": "replace",
+       "target": "status",
+       "text": "Work = (7, 4, 5)    order: P1, P3, P4",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Back to the top. P0 needs seven four three, and now that fits in seven four five.",
+      "te": "మళ్ళీ top కు. P0 కు seven four three need, ఇప్పుడు అది seven four five లో fit అవుతుంది."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mat[0]"
+      },
+      {
+       "action": "add_row",
+       "target": "log",
+       "values": [
+        "P0",
+        "7 4 3 ≤ 7 4 5: yes",
+        ""
+       ]
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "P0 returns zero one zero, so work becomes seven five five.",
+      "te": "P0 zero one zero return చేస్తుంది, కాబట్టి work seven five five అవుతుంది."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "mat[0][4]",
+       "value": "T"
+      },
+      {
+       "action": "set",
+       "target": "log[5][2]",
+       "value": "7 5 5",
+       "delay": 0.3
+      },
+      {
+       "action": "replace",
+       "target": "status",
+       "text": "Work = (7, 5, 5)    order: P1, P3, P4, P0",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "P2 needs six zero zero, which fits in seven five five. It returns three zero two, and work becomes ten five seven.",
+      "te": "P2 కు six zero zero need, అది seven five five లో fit అవుతుంది. అది three zero two return చేస్తుంది, work ten five seven అవుతుంది."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mat[2]"
+      },
+      {
+       "action": "add_row",
+       "target": "log",
+       "values": [
+        "P2",
+        "6 0 0 ≤ 7 5 5: yes",
+        ""
+       ]
+      },
+      {
+       "action": "set",
+       "target": "mat[2][4]",
+       "value": "T",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "log[6][2]",
+       "value": "10 5 7",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every process finished, so the state is safe. The safe sequence is P1, P3, P4, P0, P2.",
+      "te": "ప్రతి process finish అయ్యింది, కాబట్టి ఈ state safe. Safe sequence: P1, P3, P4, P0, P2."
+     },
+     "do": [
+      {
+       "action": "reset",
+       "target": "mat"
+      },
+      {
+       "action": "mark",
+       "target": "mat.Finish"
+      },
+      {
+       "action": "replace",
+       "target": "status",
+       "text": "Safe sequence: P1 → P3 → P4 → P0 → P2",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check: the final work, ten five seven, equals the total. Every resource came back, as it must.",
+      "te": "Check: final work ten five seven, total కి equal. ప్రతి resource back వచ్చింది, అలాగే రావాలి."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "log[6][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Other orders can be safe too, such as P1, P3, P4, P2, P0. Any order where each need fits is accepted, so show your scan in the exam.",
+      "te": "వేరే orders కూడా safe కావచ్చు, example గా P1, P3, P4, P2, P0. ప్రతి need fit అయ్యే ఏ order అయినా accept చేస్తారు, కాబట్టి exam లో మీ scan ను show చేయండి."
+     },
+     "do": [
+      {
+       "action": "reset",
+       "target": "log"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "request",
+   "steps": [
+    {
+     "say": {
+      "en": "Now P1 asks for one more A and two more C: the request one zero two. Should the system grant it?",
+      "te": "ఇప్పుడు P1, one more A, two more C అడుగుతుంది: request one zero two. System దాన్ని grant చేయాలా?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "heading",
+       "text": "Stage 4 of 4: a new request"
+      },
+      {
+       "action": "hide",
+       "target": "log"
+      },
+      {
+       "action": "show",
+       "target": "req",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "mat[0][4]",
+       "value": "F"
+      },
+      {
+       "action": "set",
+       "target": "mat[1][4]",
+       "value": "F"
+      },
+      {
+       "action": "set",
+       "target": "mat[2][4]",
+       "value": "F"
+      },
+      {
+       "action": "set",
+       "target": "mat[3][4]",
+       "value": "F"
+      },
+      {
+       "action": "set",
+       "target": "mat[4][4]",
+       "value": "F"
+      },
+      {
+       "action": "reset",
+       "target": "mat"
+      },
+      {
+       "action": "replace",
+       "target": "status",
+       "text": "Available = (3, 3, 2)",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "First check: a request may not exceed the process's need. One zero two is within P1's need, one two two.",
+      "te": "First check: request, process need ను exceed చేయకూడదు. One zero two, P1 need అయిన one two two within లోనే ఉంది."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "req[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "mat[1][3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Second check: it may not exceed what is available, three three two. It does not, so the resources exist.",
+      "te": "Second check: అది available అయిన three three two ను exceed చేయకూడదు. చేయదు, కాబట్టి resources ఉన్నాయి."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "req[2]"
+      },
+      {
+       "action": "reset",
+       "target": "mat"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now we pretend to grant it. Available drops to two three zero.",
+      "te": "ఇప్పుడు grant చేసినట్టు pretend చేస్తాం. Available, two three zero కు drop అవుతుంది."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "req[3]"
+      },
+      {
+       "action": "replace",
+       "target": "status",
+       "text": "Available = (2, 3, 0)    (pretend)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "P1's allocation rises to three zero two, and its need falls to zero two zero.",
+      "te": "P1 allocation three zero two కు rise అవుతుంది, దాని need zero two zero కు fall అవుతుంది."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "req[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "mat[1]"
+      },
+      {
+       "action": "set",
+       "target": "mat[1][1]",
+       "value": "3 0 2",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "mat[1][3]",
+       "value": "0 2 0",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The request is granted only if this new state is still safe, so we run the safety check again.",
+      "te": "ఈ new state ఇంకా safe అయితేనే request grant అవుతుంది, కాబట్టి safety check మళ్ళీ run చేస్తాం."
+     },
+     "do": [
+      {
+       "action": "reset",
+       "target": "mat"
+      },
+      {
+       "action": "hide",
+       "target": "req"
+      },
+      {
+       "action": "show",
+       "target": "log2",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With work two three zero, P0 does not fit, but P1 now needs only zero two zero, and fits. Work becomes five three two.",
+      "te": "Work two three zero తో P0 fit కాదు, కానీ P1 కు ఇప్పుడు zero two zero మాత్రమే need, fit అవుతుంది. Work five three two అవుతుంది."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mat[1]"
+      },
+      {
+       "action": "add_row",
+       "target": "log2",
+       "values": [
+        "P1",
+        "0 2 0 ≤ 2 3 0: yes",
+        "5 3 2"
+       ]
+      },
+      {
+       "action": "set",
+       "target": "mat[1][4]",
+       "value": "T",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "P2 still does not fit. P3 fits, making seven four three, and then P4 fits, making seven four five.",
+      "te": "P2 ఇంకా fit కాదు. P3 fit అయి seven four three, తర్వాత P4 fit అయి seven four five అవుతుంది."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mat[2..5]"
+      },
+      {
+       "action": "add_row",
+       "target": "log2",
+       "values": [
+        "P2",
+        "6 0 0 ≤ 5 3 2: no",
+        ""
+       ]
+      },
+      {
+       "action": "add_row",
+       "target": "log2",
+       "values": [
+        "P3",
+        "0 1 1 ≤ 5 3 2: yes",
+        "7 4 3"
+       ],
+       "delay": 0.3
+      },
+      {
+       "action": "add_row",
+       "target": "log2",
+       "values": [
+        "P4",
+        "4 3 1 ≤ 7 4 3: yes",
+        "7 4 5"
+       ],
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "mat[3][4]",
+       "value": "T",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "mat[4][4]",
+       "value": "T",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On the second pass P0 fits, giving seven five five, and P2 fits, giving ten five seven.",
+      "te": "Second pass లో P0 fit అయి seven five five, P2 fit అయి ten five seven వస్తుంది."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mat[0]"
+      },
+      {
+       "action": "add_row",
+       "target": "log2",
+       "values": [
+        "P0",
+        "7 4 3 ≤ 7 4 5: yes",
+        "7 5 5"
+       ]
+      },
+      {
+       "action": "add_row",
+       "target": "log2",
+       "values": [
+        "P2",
+        "6 0 0 ≤ 7 5 5: yes",
+        "10 5 7"
+       ],
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "mat[0][4]",
+       "value": "T",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "mat[2][4]",
+       "value": "T",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every process can still finish, so the new state is safe and the request is granted. The sequence is again P1, P3, P4, P0, P2.",
+      "te": "ప్రతి process ఇంకా finish అవ్వగలదు, కాబట్టి new state safe, request grant అవుతుంది. Sequence మళ్ళీ P1, P3, P4, P0, P2."
+     },
+     "do": [
+      {
+       "action": "reset",
+       "target": "mat"
+      },
+      {
+       "action": "mark",
+       "target": "mat.Finish"
+      },
+      {
+       "action": "replace",
+       "target": "status",
+       "text": "Safe: request (1, 0, 2) granted to P1",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If some process could never fit, the request would be refused and P1 would wait, even though the resources are free.",
+      "te": "ఏదైనా process ఎప్పటికీ fit కాకపోతే, request refuse అవుతుంది, resources free గా ఉన్నా P1 wait చేయాలి."
+     },
+     "do": [
+      {
+       "action": "reset",
+       "target": "log2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "To recap the four stages. One: need is max minus allocation.",
+      "te": "Four stages ను recap చేద్దాం. One: need అంటే max minus allocation."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "heading",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "mat"
+      },
+      {
+       "action": "hide",
+       "target": "log2"
+      },
+      {
+       "action": "hide",
+       "target": "status"
+      },
+      {
+       "action": "show",
+       "target": "roadmap",
+       "delay": 0.3
+      },
+      {
+       "action": "mark",
+       "target": "roadmap[0]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two: available is the total minus everything allocated.",
+      "te": "Two: available అంటే total minus allocate అయినవి అన్నీ."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "roadmap[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three: the safety check grows work one finished process at a time. The state is safe if every process can finish.",
+      "te": "Three: safety check లో ఒక్కో process finish అయినప్పుడు work grow అవుతుంది. ప్రతి process finish అవ్వగలిగితే state safe."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "roadmap[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Four: a request is granted only if it fits the need, fits what is available, and leaves the state safe.",
+      "te": "Four: request need లో fit అయి, available లో fit అయి, state ను safe గా ఉంచితేనే grant అవుతుంది."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "roadmap[3]"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -42,7 +42,7 @@ BASE = "https://api.vachana.ai"
 TTS_URL = BASE + "/api/v1/tts/inference"
 STT_URL = BASE + "/stt/v3"
 STT_MODEL = "prisma-v3.0"
-DEFAULT_MODEL = "timbre-v2.5"
+DEFAULT_MODEL = "timbre-v3.0"  # Vivaran's narrator is Vasudha, in every language
 MAX_CHARS = 400  # our own cautious limit per request; Gnani publishes none
 RATE = 48000
 # Gnani sits behind Cloudflare, which refuses Python's default user agent
@@ -95,7 +95,7 @@ VOICES = {
 DEFAULT_VOICES = {
     "timbre-v2.5": {"en": "Girish", "te": "Suhana", "hi": "Jalaj", "ta": "Vedika", "kn": "Kavin",
                     "ml": "Reshma", "mr": "Ishaan", "pa": "Mehuli", "bn": "Dhruva", "gu": "Falak"},
-    "timbre-v3.0": {"*": "Yashraj"},
+    "timbre-v3.0": {"*": "Vasudha"},
 }
 
 
