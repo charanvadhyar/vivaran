@@ -45,6 +45,9 @@ STT_MODEL = "prisma-v3.0"
 DEFAULT_MODEL = "timbre-v2.5"
 MAX_CHARS = 400  # our own cautious limit per request; Gnani publishes none
 RATE = 48000
+# Gnani sits behind Cloudflare, which refuses Python's default user agent
+# (error 1010, seen 2 November 2026); every request names itself instead.
+USER_AGENT = "cevg-shell/1.0 (+https://vivaran-kappa.vercel.app)"
 
 LANGUAGES = {
     "en": "en-IN", "hi": "hi-IN", "te": "te-IN", "ta": "ta-IN", "kn": "kn-IN", "ml": "ml-IN",
@@ -108,6 +111,8 @@ class GnaniError(Exception):
             return "The key was not accepted. Check GNANI_API_KEY against app.gnani.ai/voice."
         if self.status == 402:
             return "The account is out of credits. Check the balance at app.gnani.ai/voice."
+        if self.status == 403 and "1010" in self.message:
+            return "Gnani's firewall refused the request itself (Cloudflare 1010), not the key."
         if self.status == 403:
             return "The key is not allowed to use this API (SCOPE_NOT_ALLOWED)."
         if self.status == 429:
@@ -325,7 +330,8 @@ class Gnani:
         wait = 1.0
         for attempt in range(1, self._max_attempts + 1):
             request = urllib.request.Request(url, data=data, method="POST",
-                                             headers={"X-API-Key-ID": self._key, "Content-Type": content_type})
+                                             headers={"X-API-Key-ID": self._key, "Content-Type": content_type,
+                                                      "User-Agent": USER_AGENT})
             try:
                 with self._open(request, timeout=self._timeout) as response:
                     return response.read()
@@ -341,10 +347,13 @@ class Gnani:
 
     @staticmethod
     def _read_error(http: urllib.error.HTTPError) -> GnaniError:
+        raw = b""
         try:
-            payload = json.loads(http.read().decode("utf-8"))
+            raw = http.read()
+            payload = json.loads(raw.decode("utf-8"))
         except (ValueError, AttributeError):
-            return GnaniError(http.code, "UNKNOWN", http.reason or "")
+            text = raw.decode("utf-8", "replace").strip()[:200] if raw else ""
+            return GnaniError(http.code, "UNKNOWN", text or http.reason or "")
         detail = payload.get("detail") if isinstance(payload, dict) else None
         if isinstance(detail, dict):
             return GnaniError(http.code, detail.get("error_code") or "UNKNOWN", detail.get("message", ""))
@@ -358,17 +367,84 @@ class Gnani:
 
 def _words(text: str) -> list[str]:
     text = spoken(text).lower()
-    return [w for w in re.split(r"[^\wऀ-෿]+", text) if w]
+    return [w for w in re.split(r"[^\w\u0900-\u0DFF]+", text) if w]
+
+
+# Devanagari and Telugu share one layout (Telugu is Devanagari + 0x300), so
+# one table romanises both, roughly: enough to see that సెర్చ్ is "search".
+_CONSONANTS = dict(zip(
+    "कखगघङचछजझञटठडढणतथदधनपफबभमयरलळवशषसह",
+    "k kh g gh n ch ch j jh n t th d dh n t th d dh n p ph b bh m y r l l v sh sh s h".split()))
+_VOWELS = dict(zip("अआइईउऊऋएऐओऔऎऒ", "a a i i u u ru e ai o au e o".split()))
+_SIGNS = dict(zip("ािीुूृेैोौॆॊ", "a i i u u ru e ai o au e o".split()))
+_VIRAMA, _ANUSVARA = "्", "ं"
+
+
+def _romanise(word: str) -> str:
+    out, pending = [], False  # pending: a consonant still carrying its inherent "a"
+    for ch in word:
+        code = ord(ch)
+        if 0x0C00 <= code <= 0x0C7F:
+            ch = chr(code - 0x300)
+        if ch in _CONSONANTS:
+            if pending:
+                out.append("a")
+            out.append(_CONSONANTS[ch])
+            pending = True
+        elif ch in _SIGNS:
+            out.append(_SIGNS[ch])
+            pending = False
+        elif ch == _VIRAMA:
+            pending = False
+        else:
+            if pending:
+                out.append("a")
+                pending = False
+            if ch in _VOWELS:
+                out.append(_VOWELS[ch])
+            elif ch == _ANUSVARA:
+                out.append("n")
+            elif ch.isascii():
+                out.append(ch)
+    if pending:
+        out.append("a")
+    return "".join(out)
+
+
+def _sound(word: str) -> str:
+    """A rough key for how a word sounds, the same for both scripts: vowels
+    and doubled letters squeezed, so "search" and "serch", "hi" and "high" are close."""
+    w = _romanise(word.lower())
+    w = re.sub(r"gh$", "", w)            # high -> hi
+    w = re.sub(r"[aeiouy]+", "a", w)     # every vowel run is one vowel
+    return re.sub(r"(.)\1+", r"\1", w)
+
+
+def _alike(a: str, b: str) -> bool:
+    if a == b:
+        return True
+    sa, sb = _sound(a), _sound(b)
+    if sa == sb:
+        return True
+    return len(sa) > 2 and len(sb) > 2 and SequenceMatcher(None, sa, sb).ratio() >= 0.7
 
 
 def match(said: str, heard: str) -> float:
     """How much of the line was heard, from 0 to 1: the share of the script's
-    words that appear, in order, in the transcript."""
+    words found, in order, in the transcript. Words match across scripts
+    (Prisma may write an English word in Telugu letters), loosely enough that
+    "lo" and "low" agree, and a word heard glued to a suffix ("arrayలో") still counts."""
     expected, got = _words(said), _words(heard)
     if not expected:
         return 1.0
-    blocks = SequenceMatcher(None, expected, got, autojunk=False).get_matching_blocks()
-    return sum(b.size for b in blocks) / len(expected)
+    found, j = 0, 0
+    for word in expected:
+        for k in range(j, min(j + 4, len(got))):
+            if _alike(word, got[k]) or (len(_sound(word)) > 3 and _sound(got[k]).startswith(_sound(word))):
+                found += 1
+                j = k + 1
+                break
+    return found / len(expected)
 
 
 def keyterms(text: str) -> list[str]:

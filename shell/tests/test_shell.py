@@ -298,6 +298,17 @@ class GnaniWords(unittest.TestCase):
         self.assertEqual(gnani.match("ఈ sorted array లో", "ఈ sorted array లో"), 1.0)
         self.assertIn("Dijkstra", gnani.keyterms("Run Dijkstra on the graph from LRU"))
 
+    def test_match_reads_english_words_heard_in_telugu_letters(self):
+        # Real Prisma codemix transcripts of Timbre clips, 2 November 2026.
+        said = "ఈ sorted array లో మనం 23 ను search చేస్తున్నాం. lo, hi అనే two pointers, మనం ఇంకా search చేయాల్సిన part ను mark చేస్తాయి."
+        heard_in_telugu = ("ఈ సోర్టెడ్ అరేలో మనం twenty three ను సెర్చ్ చేస్తున్నాం, లో హాయ్ అనే టూ పాయింటర్స్ మనం ఇంకా "
+                           "సెర్చ్ చేయాల్సిన పార్ట్ ను మార్క్ చేస్తాయి.")
+        heard_mixed = "ఈ sorted arrayలో మనం twenty three ను search చేస్తున్నాం. లో, హై అనే two pointers మనం ఇంకా search చేయాల్సిన partను mark చేస్తాయి."
+        self.assertGreaterEqual(gnani.match(said, heard_in_telugu), 0.85)
+        self.assertGreaterEqual(gnani.match(said, heard_mixed), 0.85)
+        self.assertLess(gnani.match(said, "ఈ sorted array లో మనం twenty three ను search చేస్తున్నాం."), 0.5)
+        self.assertEqual(gnani._romanise("సెర్చ్"), "serch")
+
 
 class GnaniClient(unittest.TestCase):
     def test_a_line_is_spoken_with_the_documented_request(self):
@@ -307,6 +318,7 @@ class GnaniClient(unittest.TestCase):
         request = server.requests[0]
         self.assertEqual(request.full_url, "https://api.vachana.ai/api/v1/tts/inference")
         self.assertEqual(request.get_header("X-api-key-id"), "test-key")
+        self.assertTrue(request.get_header("User-agent").startswith("cevg-shell/"))
         body = json.loads(request.data)
         self.assertEqual(body["text"], "We look for twenty three in this sorted array.")
         self.assertEqual((body["model"], body["voice"], body["language"], body["speed"]), ("timbre-v2.5", "Girish", "en-IN", 1.0))
