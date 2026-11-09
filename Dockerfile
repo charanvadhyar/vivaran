@@ -11,6 +11,8 @@ FROM rust:1.92-bookworm AS renderer
 WORKDIR /src
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
+# The Studio commands embed the Blender script, so it is part of the build.
+COPY studio ./studio
 RUN cargo build --release -p cevg-cli && strip target/release/cevg
 
 FROM python:3.12-slim-bookworm
