@@ -180,6 +180,7 @@
     {
      "say": {
       "en": "Banker's algorithm decides whether the operating system can safely give resources to a process, without ever reaching deadlock.",
+      "hi": "Banker's algorithm वो method है जिससे operating system decide करता है कि किसी process को resources देना safe है या नहीं, ताकि deadlock कभी न आए।",
       "te": "Banker's algorithm అంటే, deadlock రాకుండా, ఒక process కు resources ఇవ్వడం safe అవునా కాదా అని operating system decide చేసే method."
      },
      "do": [
@@ -192,6 +193,7 @@
     {
      "say": {
       "en": "It is named after a bank, which lends money only if it can still pay every customer back in some order.",
+      "hi": "इसका नाम bank से आया है, क्योंकि bank तभी loan देता है जब वो अपने सारे customers को किसी order में pay कर सके।",
       "te": "దీనికి bank పేరు ఎందుకంటే, ఒక bank తన customers అందరికీ ఏదో ఒక order లో pay చేయగలిగితేనే loan ఇస్తుంది."
      },
      "do": []
@@ -199,6 +201,7 @@
     {
      "say": {
       "en": "We will work one exam problem through four stages.",
+      "hi": "हम एक exam problem को four stages में solve करेंगे।",
       "te": "మనం ఒక exam problem ను four stages లో solve చేస్తాం."
      },
      "do": [
@@ -211,6 +214,7 @@
     {
      "say": {
       "en": "First the need matrix, then the available vector, then the safety check, and last a new request.",
+      "hi": "First need matrix, फिर available vector, फिर safety check, और last में एक new request।",
       "te": "First need matrix, తర్వాత available vector, తర్వాత safety check, last గా ఒక new request."
      },
      "do": [
@@ -243,6 +247,7 @@
     {
      "say": {
       "en": "Here is the problem. There are five processes, P0 to P4, and three resource types, A, B and C.",
+      "hi": "ये है problem। यहाँ P0 से P4 तक five processes हैं, और A, B, C नाम के three resource types हैं।",
       "te": "ఇది problem. ఇక్కడ P0 నుంచి P4 వరకు five processes, A, B, C అనే three resource types ఉన్నాయి."
      },
      "do": [
@@ -265,6 +270,7 @@
     {
      "say": {
       "en": "The system has 10 instances of A, 5 of B and 7 of C in total.",
+      "hi": "System में total A के 10, B के 5 और C के 7 instances हैं।",
       "te": "System లో total గా A వి 10, B వి 5, C వి 7 instances ఉన్నాయి."
      },
      "do": [
@@ -277,6 +283,7 @@
     {
      "say": {
       "en": "The allocation column is what each process holds right now. P0 holds zero A, one B and zero C.",
+      "hi": "Allocation column यानी हर process अभी जो hold कर रहा है। P0 के पास zero A, one B और zero C हैं।",
       "te": "Allocation column అంటే ప్రతి process ఇప్పుడు hold చేస్తున్న resources. P0 దగ్గర zero A, one B, zero C ఉన్నాయి."
      },
      "do": [
@@ -294,6 +301,7 @@
     {
      "say": {
       "en": "The max column is the most each process may ever ask for. P0 may need up to seven A, five B and three C.",
+      "hi": "Max column यानी हर process ज़्यादा से ज़्यादा जितना माँग सकता है। P0 को up to seven A, five B और three C चाहिए हो सकते हैं।",
       "te": "Max column అంటే ప్రతి process ever అడగగలిగే maximum. P0 కు up to seven A, five B, three C అవసరం కావచ్చు."
      },
      "do": [
@@ -311,6 +319,7 @@
     {
      "say": {
       "en": "Every process declares its max in advance. That is what lets the system plan ahead.",
+      "hi": "हर process अपना max advance में declare करता है। इसी से system advance में plan कर पाता है।",
       "te": "ప్రతి process తన max ను advance గా declare చేస్తుంది. అందుకే system advance గా plan చేయగలదు."
      },
      "do": [
@@ -328,6 +337,7 @@
     {
      "say": {
       "en": "The first question is how much more each process can still ask for. That is called its need.",
+      "hi": "First question: हर process अभी और कितना माँग सकता है? इसी को need कहते हैं।",
       "te": "First question: ప్రతి process ఇంకా ఎంత more అడగగలదు? దాన్నే need అంటారు."
      },
      "do": [
@@ -345,6 +355,7 @@
     {
      "say": {
       "en": "Need is max minus allocation: the most it may want, minus what it already holds.",
+      "hi": "Need यानी max minus allocation: जितना चाहिए हो सकता है, उसमें से जो already hold है वो minus करते हैं।",
       "te": "Need అంటే max minus allocation: అది want చేసే maximum లో నుంచి already hold చేస్తున్నది minus చేస్తాం."
      },
      "do": [
@@ -357,6 +368,7 @@
     {
      "say": {
       "en": "For P0, seven five three minus zero one zero gives seven four three.",
+      "hi": "P0 के लिए seven five three minus zero one zero करने पर seven four three आता है।",
       "te": "P0 కు, seven five three minus zero one zero చేస్తే seven four three వస్తుంది."
      },
      "do": [
@@ -379,6 +391,7 @@
     {
      "say": {
       "en": "For P1, three two two minus two zero zero gives one two two.",
+      "hi": "P1 के लिए three two two minus two zero zero करने पर one two two आता है।",
       "te": "P1 కు, three two two minus two zero zero చేస్తే one two two వస్తుంది."
      },
      "do": [
@@ -401,6 +414,7 @@
     {
      "say": {
       "en": "The same subtraction for P2, P3 and P4 gives six zero zero, zero one one, and four three one.",
+      "hi": "यही subtraction P2, P3 और P4 के लिए करने पर six zero zero, zero one one और four three one आते हैं।",
       "te": "అదే subtraction P2, P3, P4 కు చేస్తే six zero zero, zero one one, four three one వస్తాయి."
      },
      "do": [
@@ -435,6 +449,7 @@
     {
      "say": {
       "en": "A quick check: no need can be negative, because no process holds more than its max.",
+      "hi": "एक quick check: कोई भी need negative नहीं हो सकता, क्योंकि कोई process अपने max से more hold नहीं करता।",
       "te": "ఒక quick check: ఏ need కూడా negative కాకూడదు, ఎందుకంటే ఏ process కూడా తన max కంటే more hold చేయదు."
      },
      "do": [
@@ -456,6 +471,7 @@
     {
      "say": {
       "en": "Next, how much of each resource is free right now. This is the available vector.",
+      "hi": "Next, अभी हर resource कितना free है? इसे available vector कहते हैं।",
       "te": "Next, ఇప్పుడు ప్రతి resource ఎంత free గా ఉంది? దీన్నే available vector అంటారు."
      },
      "do": [
@@ -478,6 +494,7 @@
     {
      "say": {
       "en": "Available is the total minus everything that is already allocated.",
+      "hi": "Available यानी total minus जो कुछ already allocate हो चुका है।",
       "te": "Available అంటే total minus already allocate అయినవి అన్నీ."
      },
      "do": [
@@ -490,6 +507,7 @@
     {
      "say": {
       "en": "Add down the allocation column. For A, zero plus two plus three plus two plus zero is seven. B adds to two, and C to five.",
+      "hi": "Allocation column को add करते हैं। A के लिए zero plus two plus three plus two plus zero, seven। B add करने पर two, और C पर five।",
       "te": "Allocation column ను add చేద్దాం. A కు zero plus two plus three plus two plus zero, seven. B add చేస్తే two, C add చేస్తే five."
      },
      "do": [
@@ -506,6 +524,7 @@
     {
      "say": {
       "en": "Ten five seven minus seven two five leaves three three two free.",
+      "hi": "Ten five seven minus seven two five करने पर three three two free बचते हैं।",
       "te": "Ten five seven minus seven two five చేస్తే three three two free గా ఉంటాయి."
      },
      "do": [
@@ -537,6 +556,7 @@
     {
      "say": {
       "en": "Now the main question: is there an order in which every process can finish? If there is, the state is safe.",
+      "hi": "अब main question: क्या कोई order है जिसमें हर process finish हो सके? अगर है, तो state safe है।",
       "te": "ఇప్పుడు main question: ప్రతి process finish అయ్యే order ఏదైనా ఉందా? ఉంటే, ఆ state safe."
      },
      "do": [
@@ -559,6 +579,7 @@
     {
      "say": {
       "en": "We start with work equal to available, three three two, and every process marked not finished.",
+      "hi": "हम work को available के equal, यानी three three two से start करते हैं, और हर process not finished रहता है।",
       "te": "Work = available, అంటే three three two తో start చేస్తాం, ప్రతి process not finished గా ఉంటుంది."
      },
      "do": [
@@ -581,6 +602,7 @@
     {
      "say": {
       "en": "The rule: if a process's need fits in work, it can run to the end and then give back everything it holds.",
+      "hi": "Rule: अगर किसी process का need work में fit होता है, तो वो end तक run होकर अपना सब कुछ return कर देता है।",
       "te": "Rule: ఒక process need, work లో fit అయితే, అది end వరకు run అయి, తను hold చేసినవన్నీ return చేస్తుంది."
      },
      "do": [
@@ -597,6 +619,7 @@
     {
      "say": {
       "en": "So work grows by that process's allocation, and we mark it finished.",
+      "hi": "इसलिए work में उस process का allocation add होता है, और उसे finished mark करते हैं।",
       "te": "కాబట్టి work కు ఆ process allocation add అవుతుంది, దాన్ని finished గా mark చేస్తాం."
      },
      "do": [
@@ -613,6 +636,7 @@
     {
      "say": {
       "en": "We scan from P0 to P4, and go back to the top until no process can move.",
+      "hi": "हम P0 से P4 तक scan करते हैं, और top से फिर start करते हैं जब तक कोई process move न कर सके।",
       "te": "P0 నుంచి P4 వరకు scan చేస్తాం, ఏ process కూడా move చేయలేనంత వరకు మళ్ళీ top నుంచి start చేస్తాం."
      },
      "do": [
@@ -633,6 +657,7 @@
     {
      "say": {
       "en": "P0 needs seven four three, but work has only three A. Seven does not fit in three, so P0 waits.",
+      "hi": "P0 को seven four three चाहिए, लेकिन work में सिर्फ़ three A हैं। Seven, three में fit नहीं होता, इसलिए P0 wait करता है।",
       "te": "P0 కు seven four three need, కానీ work లో three A మాత్రమే. Seven, three లో fit కాదు, కాబట్టి P0 wait చేస్తుంది."
      },
      "do": [
@@ -653,6 +678,7 @@
     {
      "say": {
       "en": "P1 needs one two two. One is at most three, two is at most three, and two is at most two, so it fits.",
+      "hi": "P1 को one two two चाहिए। One, three से less, two, three से less, और two, two के equal है, इसलिए fit होता है।",
       "te": "P1 కు one two two need. One, three కంటే less, two, three కంటే less, two, two కి equal, కాబట్టి fit అవుతుంది."
      },
      "do": [
@@ -674,6 +700,7 @@
     {
      "say": {
       "en": "P1 finishes and returns two zero zero. Work becomes three three two plus two zero zero, which is five three two.",
+      "hi": "P1 finish होकर two zero zero return करता है। Work, three three two plus two zero zero, यानी five three two हो जाता है।",
       "te": "P1 finish అయి two zero zero return చేస్తుంది. Work, three three two plus two zero zero, అంటే five three two."
      },
      "do": [
@@ -699,6 +726,7 @@
     {
      "say": {
       "en": "P2 needs six A, but work has five. It waits.",
+      "hi": "P2 को six A चाहिए, लेकिन work में सिर्फ़ five हैं। वो wait करता है।",
       "te": "P2 కు six A need, కానీ work లో five మాత్రమే. అది wait చేస్తుంది."
      },
      "do": [
@@ -720,6 +748,7 @@
     {
      "say": {
       "en": "P3 needs zero one one, which fits in five three two.",
+      "hi": "P3 को zero one one चाहिए, जो five three two में fit होता है।",
       "te": "P3 కు zero one one need, అది five three two లో fit అవుతుంది."
      },
      "do": [
@@ -741,6 +770,7 @@
     {
      "say": {
       "en": "P3 returns two one one, so work becomes seven four three.",
+      "hi": "P3 two one one return करता है, इसलिए work seven four three हो जाता है।",
       "te": "P3 two one one return చేస్తుంది, కాబట్టి work seven four three అవుతుంది."
      },
      "do": [
@@ -766,6 +796,7 @@
     {
      "say": {
       "en": "P4 needs four three one, which fits in seven four three.",
+      "hi": "P4 को four three one चाहिए, जो seven four three में fit होता है।",
       "te": "P4 కు four three one need, అది seven four three లో fit అవుతుంది."
      },
      "do": [
@@ -787,6 +818,7 @@
     {
      "say": {
       "en": "P4 returns zero zero two, so work becomes seven four five.",
+      "hi": "P4 zero zero two return करता है, इसलिए work seven four five हो जाता है।",
       "te": "P4 zero zero two return చేస్తుంది, కాబట్టి work seven four five అవుతుంది."
      },
      "do": [
@@ -812,6 +844,7 @@
     {
      "say": {
       "en": "Back to the top. P0 needs seven four three, and now that fits in seven four five.",
+      "hi": "फिर से top पर। P0 को seven four three चाहिए, और अब वो seven four five में fit होता है।",
       "te": "మళ్ళీ top కు. P0 కు seven four three need, ఇప్పుడు అది seven four five లో fit అవుతుంది."
      },
      "do": [
@@ -833,6 +866,7 @@
     {
      "say": {
       "en": "P0 returns zero one zero, so work becomes seven five five.",
+      "hi": "P0 zero one zero return करता है, इसलिए work seven five five हो जाता है।",
       "te": "P0 zero one zero return చేస్తుంది, కాబట్టి work seven five five అవుతుంది."
      },
      "do": [
@@ -858,6 +892,7 @@
     {
      "say": {
       "en": "P2 needs six zero zero, which fits in seven five five. It returns three zero two, and work becomes ten five seven.",
+      "hi": "P2 को six zero zero चाहिए, जो seven five five में fit होता है। वो three zero two return करता है, और work ten five seven हो जाता है।",
       "te": "P2 కు six zero zero need, అది seven five five లో fit అవుతుంది. అది three zero two return చేస్తుంది, work ten five seven అవుతుంది."
      },
      "do": [
@@ -891,6 +926,7 @@
     {
      "say": {
       "en": "Every process finished, so the state is safe. The safe sequence is P1, P3, P4, P0, P2.",
+      "hi": "हर process finish हो गया, इसलिए ये state safe है। Safe sequence है P1, P3, P4, P0, P2।",
       "te": "ప్రతి process finish అయ్యింది, కాబట్టి ఈ state safe. Safe sequence: P1, P3, P4, P0, P2."
      },
      "do": [
@@ -913,6 +949,7 @@
     {
      "say": {
       "en": "Check: the final work, ten five seven, equals the total. Every resource came back, as it must.",
+      "hi": "Check: final work ten five seven, total के equal है। हर resource वापस आया, जैसा आना चाहिए।",
       "te": "Check: final work ten five seven, total కి equal. ప్రతి resource back వచ్చింది, అలాగే రావాలి."
      },
      "do": [
@@ -925,6 +962,7 @@
     {
      "say": {
       "en": "Other orders can be safe too, such as P1, P3, P4, P2, P0. Any order where each need fits is accepted, so show your scan in the exam.",
+      "hi": "दूसरे orders भी safe हो सकते हैं, जैसे P1, P3, P4, P2, P0। जिस order में हर need fit हो, वो accept होता है, इसलिए exam में अपना scan show करें।",
       "te": "వేరే orders కూడా safe కావచ్చు, example గా P1, P3, P4, P2, P0. ప్రతి need fit అయ్యే ఏ order అయినా accept చేస్తారు, కాబట్టి exam లో మీ scan ను show చేయండి."
      },
      "do": [
@@ -942,6 +980,7 @@
     {
      "say": {
       "en": "Now P1 asks for one more A and two more C: the request one zero two. Should the system grant it?",
+      "hi": "अब P1 one more A और two more C माँगता है: request one zero two। क्या system इसे grant करे?",
       "te": "ఇప్పుడు P1, one more A, two more C అడుగుతుంది: request one zero two. System దాన్ని grant చేయాలా?"
      },
      "do": [
@@ -999,6 +1038,7 @@
     {
      "say": {
       "en": "First check: a request may not exceed the process's need. One zero two is within P1's need, one two two.",
+      "hi": "First check: request, process के need को exceed नहीं कर सकती। One zero two, P1 के need one two two के within है।",
       "te": "First check: request, process need ను exceed చేయకూడదు. One zero two, P1 need అయిన one two two within లోనే ఉంది."
      },
      "do": [
@@ -1015,6 +1055,7 @@
     {
      "say": {
       "en": "Second check: it may not exceed what is available, three three two. It does not, so the resources exist.",
+      "hi": "Second check: वो available, यानी three three two को exceed नहीं कर सकती। नहीं करती, इसलिए resources मौजूद हैं।",
       "te": "Second check: అది available అయిన three three two ను exceed చేయకూడదు. చేయదు, కాబట్టి resources ఉన్నాయి."
      },
      "do": [
@@ -1031,6 +1072,7 @@
     {
      "say": {
       "en": "Now we pretend to grant it. Available drops to two three zero.",
+      "hi": "अब हम grant करने का pretend करते हैं। Available, two three zero पर drop हो जाता है।",
       "te": "ఇప్పుడు grant చేసినట్టు pretend చేస్తాం. Available, two three zero కు drop అవుతుంది."
      },
      "do": [
@@ -1049,6 +1091,7 @@
     {
      "say": {
       "en": "P1's allocation rises to three zero two, and its need falls to zero two zero.",
+      "hi": "P1 का allocation three zero two पर rise होता है, और उसका need zero two zero पर fall होता है।",
       "te": "P1 allocation three zero two కు rise అవుతుంది, దాని need zero two zero కు fall అవుతుంది."
      },
      "do": [
@@ -1077,6 +1120,7 @@
     {
      "say": {
       "en": "The request is granted only if this new state is still safe, so we run the safety check again.",
+      "hi": "Request तभी grant होती है जब ये new state भी safe हो, इसलिए हम safety check फिर से run करते हैं।",
       "te": "ఈ new state ఇంకా safe అయితేనే request grant అవుతుంది, కాబట్టి safety check మళ్ళీ run చేస్తాం."
      },
      "do": [
@@ -1098,6 +1142,7 @@
     {
      "say": {
       "en": "With work two three zero, P0 does not fit, but P1 now needs only zero two zero, and fits. Work becomes five three two.",
+      "hi": "Work two three zero के साथ P0 fit नहीं होता, लेकिन P1 को अब सिर्फ़ zero two zero चाहिए, और वो fit होता है। Work five three two हो जाता है।",
       "te": "Work two three zero తో P0 fit కాదు, కానీ P1 కు ఇప్పుడు zero two zero మాత్రమే need, fit అవుతుంది. Work five three two అవుతుంది."
      },
      "do": [
@@ -1125,6 +1170,7 @@
     {
      "say": {
       "en": "P2 still does not fit. P3 fits, making seven four three, and then P4 fits, making seven four five.",
+      "hi": "P2 अभी भी fit नहीं होता। P3 fit होकर seven four three, और फिर P4 fit होकर seven four five बनाता है।",
       "te": "P2 ఇంకా fit కాదు. P3 fit అయి seven four three, తర్వాత P4 fit అయి seven four five అవుతుంది."
      },
      "do": [
@@ -1178,6 +1224,7 @@
     {
      "say": {
       "en": "On the second pass P0 fits, giving seven five five, and P2 fits, giving ten five seven.",
+      "hi": "Second pass में P0 fit होकर seven five five, और P2 fit होकर ten five seven देता है।",
       "te": "Second pass లో P0 fit అయి seven five five, P2 fit అయి ten five seven వస్తుంది."
      },
      "do": [
@@ -1221,6 +1268,7 @@
     {
      "say": {
       "en": "Every process can still finish, so the new state is safe and the request is granted. The sequence is again P1, P3, P4, P0, P2.",
+      "hi": "हर process अभी भी finish हो सकता है, इसलिए new state safe है और request grant होती है। Sequence फिर से P1, P3, P4, P0, P2।",
       "te": "ప్రతి process ఇంకా finish అవ్వగలదు, కాబట్టి new state safe, request grant అవుతుంది. Sequence మళ్ళీ P1, P3, P4, P0, P2."
      },
      "do": [
@@ -1243,6 +1291,7 @@
     {
      "say": {
       "en": "If some process could never fit, the request would be refused and P1 would wait, even though the resources are free.",
+      "hi": "अगर कोई process कभी fit न हो पाता, तो request refuse होती, और resources free होने पर भी P1 को wait करना पड़ता।",
       "te": "ఏదైనా process ఎప్పటికీ fit కాకపోతే, request refuse అవుతుంది, resources free గా ఉన్నా P1 wait చేయాలి."
      },
      "do": [
@@ -1260,6 +1309,7 @@
     {
      "say": {
       "en": "To recap the four stages. One: need is max minus allocation.",
+      "hi": "Four stages को recap करते हैं। One: need यानी max minus allocation।",
       "te": "Four stages ను recap చేద్దాం. One: need అంటే max minus allocation."
      },
      "do": [
@@ -1295,6 +1345,7 @@
     {
      "say": {
       "en": "Two: available is the total minus everything allocated.",
+      "hi": "Two: available यानी total minus जो कुछ allocate हुआ है।",
       "te": "Two: available అంటే total minus allocate అయినవి అన్నీ."
      },
      "do": [
@@ -1307,6 +1358,7 @@
     {
      "say": {
       "en": "Three: the safety check grows work one finished process at a time. The state is safe if every process can finish.",
+      "hi": "Three: safety check में हर finished process के साथ work grow होता है। अगर हर process finish हो सके, तो state safe है।",
       "te": "Three: safety check లో ఒక్కో process finish అయినప్పుడు work grow అవుతుంది. ప్రతి process finish అవ్వగలిగితే state safe."
      },
      "do": [
@@ -1319,6 +1371,7 @@
     {
      "say": {
       "en": "Four: a request is granted only if it fits the need, fits what is available, and leaves the state safe.",
+      "hi": "Four: request तभी grant होती है जब वो need में fit हो, available में fit हो, और state को safe रखे।",
       "te": "Four: request need లో fit అయి, available లో fit అయి, state ను safe గా ఉంచితేనే grant అవుతుంది."
      },
      "do": [

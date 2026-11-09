@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Player } from "@/components/video/Player";
 import { PublishPanel } from "@/components/video/PublishPanel";
 import { RenderStatus } from "@/components/video/RenderStatus";
+import { SharePanel } from "@/components/video/SharePanel";
 import { StepsPanel } from "@/components/video/StepsPanel";
 import { currentUser } from "@/lib/auth";
 import { subjectName } from "@/lib/brand";
@@ -14,6 +15,8 @@ import { LANGUAGES, minutes, videoById } from "@/lib/videos";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
+
+const SITE = (process.env.SITE_URL ?? "https://vivaran-kappa.vercel.app").replace(/\/$/, "");
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const video = await videoById((await params).id);
@@ -53,6 +56,7 @@ export default async function Watch({ params }: { params: Promise<{ id: string }
             <span>{video.voiced ? `Voice: ${video.speaker}` : "Silent, with captions"}</span>
             {video.is_public ? <span>{video.views} {video.views === 1 ? "view" : "views"}</span> : null}
           </p>
+          {video.is_public && video.status === "done" ? <SharePanel url={`${SITE}/v/${id}`} title={video.title} /> : null}
           {own && video.status === "done" ? <PublishPanel video={video} setPublic={setPublic} deleteVideo={deleteVideo} /> : null}
         </div>
         {parts.length && video.status === "done" ? <aside><StepsPanel parts={parts} /></aside> : null}

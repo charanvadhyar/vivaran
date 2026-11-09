@@ -1,6 +1,8 @@
 import { Button } from "../ui/Button";
 import styles from "./ConnectBox.module.css";
 
+const SITE = (process.env.SITE_URL ?? "https://vivaran-kappa.vercel.app").replace(/\/$/, "");
+
 /** "Connect in a minute": the three steps and the thing the user pastes into their assistant. */
 export function ConnectBox({ signedIn, waitlist = false }: { signedIn: boolean; waitlist?: boolean }) {
   return (
@@ -18,7 +20,7 @@ export function ConnectBox({ signedIn, waitlist = false }: { signedIn: boolean; 
       <div className={styles.prompt}>
         <div className={styles.promptHead}><span>what you say to your assistant</span><span>example</span></div>
         <div className={styles.promptBody}>
-          Connect to <span className={styles.addr}>https://vivaran.app/u/&lt;your address&gt;/mcp</span>{"\n\n"}
+          Connect to <span className={styles.addr}>{SITE}/u/&lt;your address&gt;/mcp</span>{"\n\n"}
           Then: “Make a 3 minute Telugu video on Dijkstra’s algorithm with a worked example. Ask me about the voice first.”
         </div>
       </div>
