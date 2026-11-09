@@ -3,7 +3,7 @@
 .kicker { color: var(--accent); font-weight: 600; font-size: var(--text-sm); letter-spacing: 0.02em; }
 .head h1 { font-family: var(--font-serif); font-size: clamp(var(--text-2xl), 5vw, var(--text-4xl)); line-height: 1.1; }
 .mark { background: linear-gradient(transparent 62%, var(--accent-mark) 62%, var(--accent-mark) 90%, transparent 90%); }
-.lead { color: var(--fg-muted); font-size: var(--text-lg); }
+.byline { color: var(--fg-muted); font-size: var(--text-sm); }
 .video { width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); background: #0f1115; }
 .links { font-size: var(--text-sm); color: var(--fg-muted); margin-top: calc(-1 * var(--space-3)); }
 .links a { color: var(--accent); }
@@ -23,7 +23,7 @@
   .video, .links { display: none; }
   .page { gap: 10px; font-size: 10.5pt; }
   .head h1 { font-size: 22pt; }
-  .lead { font-size: 11pt; }
+  .byline { font-size: 9.5pt; }
   .page h2 { font-size: 13pt; }
   .page p, .page li { line-height: 1.35; }
 }

@@ -3,79 +3,84 @@ import styles from "./page.module.css";
 
 export const metadata = {
   title: "Pitch",
-  description: "Vivaran: exam explanations that show every step, narrated in English, code-mixed Telugu and code-mixed Hindi by Gnani.",
+  description: "Vivaran: every student learns by making videos that teach others, in their own Indian language. Built on Gnani AI.",
 };
 
-/** The one-page solution pitch for the Gnani AI challenge, with the demo. Prints on one page. */
+/** The one-page submission for the Gnani AI challenge, with the demo. Same text as PITCH.md; prints on one page. */
 export default function Pitch() {
   return (
     <Container main narrow>
       <article className={styles.page}>
         <header className={styles.head}>
-          <p className={styles.kicker}>Great Indian AI Internship Challenge · built on Gnani AI</p>
-          <h1>Vivaran: every step, <span className={styles.mark}>shown</span>.</h1>
-          <p className={styles.lead}>Exam explanations as animated videos that trace every number to where it came from, narrated in
-            English, code-mixed Telugu and code-mixed Hindi by Gnani Timbre, and checked line by line by Gnani Prisma.</p>
+          <p className={styles.kicker}>Great Indian AI Internship Challenge submission · built on Gnani AI</p>
+          <h1>Vivaran: every student learns by making videos that <span className={styles.mark}>teach others</span>, in their own Indian language</h1>
+          <p className={styles.byline}>Vadhyar Sai Charan, M.Tech CSE (AI &amp; ML), VIT Vellore · solo entry</p>
         </header>
 
         <video className={styles.video} controls preload="metadata" poster="/pitch/vivaran-demo.jpg" src="/pitch/vivaran-gnani-demo.mp4" />
         <p className={styles.links}>
-          <a href="/pitch/vivaran-gnani-demo.mp4">Demo, 2:33</a> · <a href="/">Live site</a> · <a href="/explore?subject=os">Banker&apos;s algorithm in three languages</a> · <a href="/pitch/vivaran-pitch.pdf">This page as PDF</a>
+          <a href="/pitch/vivaran-gnani-demo.mp4">Demo video, 2:33</a> · <a href="/">Live project</a> · <a href="/explore?subject=os">Banker&apos;s algorithm in three languages</a> · <a href="/pitch/vivaran-pitch.pdf">This page as PDF</a> · <a href="https://github.com/charanvadhyar/vivaran">Code</a>
         </p>
 
         <section>
           <h2>Problem</h2>
-          <p>Before semester finals, students revise from textbooks and notes that give the answer but skip the working.
-            Lecturers teach in Telugu or Hindi mixed with English, yet most explanation videos are English only, and a
-            step-by-step animation takes hours to make for every topic.</p>
+          <p>Across India, students learn in their own language mixed with English: Telugu, Tamil, Kannada, Malayalam, Marathi,
+            Bengali, Gujarati, Punjabi, Hindi. That is how their lecturers teach. But almost all good explanation videos are in
+            English, and textbooks give the final answer while skipping the working.</p>
+          <p>Students already learn best by explaining: working a topic out step by step, so that a friend can follow it, is how
+            it really sinks in. But turning an explanation into a step-by-step animated video takes hours and animation skills, so
+            students never get to learn this way, and their explanations never reach anyone beyond their own group.</p>
         </section>
 
         <section>
           <h2>Solution</h2>
-          <ol>
-            <li>A student or teacher asks Claude or ChatGPT for a video. Through Vivaran&apos;s connector (MCP) the assistant writes
-              a scene script to an exam standard: every symbol named, every number traced, every decision said out loud.</li>
-            <li>Vivaran&apos;s own renderer (Rust) draws each step: tables, typeset maths, graphs, plots, timelines.</li>
-            <li><strong>Gnani Timbre</strong> speaks every line (Timbre v3.0; the library uses Vasudha, this demo Lakshmi) in English or code-mixed Telugu and Hindi;
-              the picture is timed to the measured voice.</li>
-            <li><strong>Gnani Prisma</strong> listens back to every clip (Prisma v3.0, codemix) and scores it against the script; lines
-              under 80% are flagged for a human before anything is published.</li>
-          </ol>
+          <p><strong>With Vivaran, every student can create an educational video, in their own language, and learn by making it.</strong>{" "}
+            A student picks a topic, even one they are still learning, and asks their AI assistant for a video. Vivaran draws every
+            step, and Gnani&apos;s voice narrates it in English or in an Indian language mixed with English, the way students really
+            talk. Before publishing, the student checks every step, and checking each step is where the learning happens. No
+            animation skills, no recording studio, no editing.</p>
+          <p>Every video <strong>shows every step</strong>: each number on screen is traced back to where it came from, and nothing
+            is skipped. And every video is made to be shared: one tap to WhatsApp, LinkedIn or X, with chapters so a friend can jump
+            straight to the step they are stuck on.</p>
+          <p>So every video teaches twice: the student who made it learns the topic, and every student who watches it learns too, in
+            the language they think in.</p>
+        </section>
+
+        <section>
+          <h2>How Gnani AI is used</h2>
+          <ul>
+            <li><strong>Gnani&apos;s voice (Timbre)</strong> narrates every line. Because Timbre speaks English and nine Indian
+              languages, a video can be made in any of them, and code-mixed lines (an Indian language with English terms) sound
+              natural. The animation is timed to the voice, so each step appears exactly when it is spoken.</li>
+            <li><strong>Gnani&apos;s listening AI (Prisma)</strong> hears every spoken line back and compares it with the script. Any
+              line the voice got wrong is flagged for the creator to check before the video is published, so quality does not
+              depend on the creator&apos;s ear alone.</li>
+          </ul>
         </section>
 
         <section className={styles.two}>
           <div>
-            <h2>Built on Gnani</h2>
+            <h2>What we built</h2>
             <ul>
-              <li>Timbre REST TTS, <code>language: auto</code> for mixed-script lines, numbers sent as words.</li>
-              <li>Prisma REST STT, <code>format: codemix</code>, <code>te-IN,en-IN</code> hints, the script&apos;s terms as keyterms.</li>
-              <li>A real catch: Timbre read “P4” as “చార్” (Hindi four) in Telugu. Names are now spelled out and re-checked.</li>
+              <li>A working website, free to watch: <strong>vivaran-kappa.vercel.app</strong>.</li>
+              <li>The first topic, <strong>Banker&apos;s algorithm</strong> (a common operating-systems exam question), made in three
+                languages to show the same explanation crossing languages: English, code-mixed Telugu and code-mixed Hindi, about
+                seven minutes each.</li>
+              <li><strong>159 narrated lines</strong>, every one spoken by Gnani&apos;s voice and checked by Gnani&apos;s listening AI.</li>
+              <li>A watch page for every video, with chapters and one-tap sharing.</li>
             </ul>
           </div>
           <div>
-            <h2>Live today</h2>
+            <h2>Who it helps</h2>
             <ul>
-              <li>Banker&apos;s algorithm in English (6:27), Telugu (7:13) and Hindi (7:03), 53 steps each.</li>
-              <li>159 clips spoken by Timbre, 159 listened back by Prisma.</li>
-              <li>Every video has chapters and a share panel (WhatsApp, LinkedIn, X).</li>
+              <li><strong>Students who make videos</strong>, who learn a topic properly by explaining it step by step, in their own
+                language, without animation skills.</li>
+              <li><strong>Students who watch them</strong>, who get explanations in the language they think in, from people who
+                learned it the same way.</li>
+              <li><strong>Teachers</strong>, whose explanations can keep working after class.</li>
             </ul>
           </div>
         </section>
-
-        <section className={styles.two}>
-          <div>
-            <h2>Who it is for</h2>
-            <p>Engineering and MCA students before exams, starting with Telugu and Hindi speakers; and every student who
-              understands a topic well and wants to explain it: they connect Vivaran once, ask for a video, check each step, publish.</p>
-          </div>
-          <div>
-            <h2>Next</h2>
-            <p>The rest of the exam set (page replacement, normalisation, Dijkstra, backpropagation), opening the connector to
-              student creators, and more Indian languages through Timbre.</p>
-          </div>
-        </section>
-
-        <footer className={styles.foot}>Vadhyar Sai Charan · M.Tech CSE (AI &amp; ML), VIT Vellore · solo entry · vivaran-kappa.vercel.app</footer>
       </article>
     </Container>
   );

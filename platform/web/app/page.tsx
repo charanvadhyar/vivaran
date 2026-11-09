@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Container } from "@/components/layout/Container";
 import { ConnectBox } from "@/components/landing/ConnectBox";
 import { DemoChat } from "@/components/landing/DemoChat";
@@ -39,6 +40,11 @@ export default async function Home() {
 
   return (
     <Container main>
+      <Link href="/pitch" className={styles.pitch}>
+        <span className={styles.pitchTag}>Great Indian AI Internship Challenge</span>
+        <span>Read our submission and watch the demo</span>
+        <span aria-hidden="true">→</span>
+      </Link>
       <Hero demo={<DemoChat sample={sample} />} cta={WAITLIST ? <WaitlistForm compact source="hero" /> : undefined} />
 
       <section className={styles.section}>
