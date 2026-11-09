@@ -1,4 +1,4 @@
-# Vivaran: exam explanations that show every step
+# Vivaran: every student can create educational videos, in their own Indian language
 
 **Great Indian AI Internship Challenge submission** · built on Gnani AI
 
@@ -8,30 +8,34 @@
 
 ## Problem
 
-When students revise for semester exams, their textbooks and notes give the final answer but skip the working. Many students learn in a mix of Telugu or Hindi and English, the way their lecturers teach, but most explanation videos are in English only. Making a good step-by-step animated explanation takes hours for each topic, so for most exam topics none exists.
+Across India, students learn in their own language mixed with English: Telugu, Tamil, Kannada, Malayalam, Marathi, Bengali, Gujarati, Punjabi, Hindi. That is how their lecturers teach. But almost all good explanation videos are in English, and textbooks give the final answer while skipping the working.
+
+The students who could fix this are already in every classroom: the ones who understand a topic and explain it to their friends. But making a step-by-step animated video takes hours and animation skills, so their explanations never reach anyone beyond their own group.
 
 ## Solution
 
-Vivaran turns an explanation into a short animated video that **shows every step**: each number on screen is traced back to where it came from, and nothing is skipped. The narration is in **English, code-mixed Telugu or code-mixed Hindi**, the way lecturers really speak.
+**With Vivaran, every student can create an educational video, in their own language.** A student asks their AI assistant for a video on a topic they understand. Vivaran draws every step, and Gnani's voice narrates it in English or in an Indian language mixed with English, the way students really talk. No animation skills, no recording studio, no editing: the student checks each step and publishes.
 
-A student or teacher asks their AI assistant for a video on a topic. Vivaran draws each step, and Gnani's voice narrates it. Anyone who understands a topic can make a video without any animation skills, and every video can be shared with a batch in one tap.
+Every video **shows every step**: each number on screen is traced back to where it came from, and nothing is skipped. And every video is made to be shared: one tap to WhatsApp, LinkedIn or X, with chapters so a friend can jump straight to the step they are stuck on.
+
+One student's explanation of one topic can now reach every student who speaks their language.
 
 ## How Gnani AI is used
 
-- **Gnani's voice (Timbre)** speaks every line of every video in English, code-mixed Telugu and code-mixed Hindi. The animation is timed to the voice, so each step appears exactly when it is spoken.
-- **Gnani's listening AI (Prisma)** hears every spoken line back and compares it with the script. Any line the voice got wrong is flagged for a person to check before the video is published.
+- **Gnani's voice (Timbre)** narrates every line. Because Timbre speaks English and nine Indian languages, a video can be made in any of them, and code-mixed lines (an Indian language with English terms) sound natural. The animation is timed to the voice, so each step appears exactly when it is spoken.
+- **Gnani's listening AI (Prisma)** hears every spoken line back and compares it with the script. Any line the voice got wrong is flagged for the creator to check before the video is published, so quality does not depend on the creator's ear alone.
 - The check found a real mistake on the first video: in a Telugu sentence, the voice read "P4" (process four) as the Hindi word for four. We changed how such names are sent to the voice and checked the line again.
 
 ## What we built
 
 - A working website, free to watch: **vivaran-kappa.vercel.app**.
-- **Banker's algorithm**, a common operating-systems exam question, worked step by step in three full videos: English, Telugu and Hindi, about seven minutes each.
+- The first topic, **Banker's algorithm** (a common operating-systems exam question), made in three languages to show the same explanation crossing languages: English, code-mixed Telugu and code-mixed Hindi, about seven minutes each.
 - **159 narrated lines**, every one spoken by Gnani's voice and checked by Gnani's listening AI.
-- A watch page for every video, with chapters to jump to any step and sharing to WhatsApp, LinkedIn and X.
+- A watch page for every video, with chapters and one-tap sharing.
 - A 2½-minute demo video showing the problem, the solution, sharing and creating, narrated in all three languages by Gnani.
 
 ## Who it helps
 
-- **Students revising for exams**, starting with engineering and MCA students who think in Telugu or Hindi.
-- **Teachers** who want their explanation to reach students after class.
-- **Students who understand a topic well** and want to explain it to others.
+- **Students who understand a topic** and want to teach it, in their own language, without animation skills.
+- **Students revising for exams**, who get explanations in the language they think in.
+- **Teachers**, whose explanations can keep working after class.
