@@ -1,5 +1,7 @@
 # CEVG
 
+> **Vivaran** is the live product built on this engine: [vivaran-kappa.vercel.app](https://vivaran-kappa.vercel.app). One-page solution pitch for the Gnani challenge: [PITCH.md](PITCH.md) ([PDF](platform/web/public/pitch/vivaran-pitch.pdf), [demo video](https://vivaran-kappa.vercel.app/pitch/vivaran-gnani-demo.mp4)).
+
 Turns a CS or math explanation into a narrated video. Claude writes a scene
 script, a Rust core draws it, and a Python shell adds Gnani voiceover and
 serves the whole thing to Claude over MCP.
