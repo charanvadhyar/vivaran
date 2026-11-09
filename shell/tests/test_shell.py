@@ -267,6 +267,8 @@ class GnaniWords(unittest.TestCase):
             "2^10 is 1024": "two to the power ten is one thousand twenty four",
             "ఈ sorted array లో మనం 23 ను search": "ఈ sorted array లో మనం twenty three ను search",
             "timbre-v2.5 and B+ tree": "timbre-v2.5 and B+ tree",
+            "P1, P3, P4, P0, P2": "P one, P three, P four, P zero, P two",
+            "P10 కు one two two need": "P one zero కు one two two need",
         }
         for said, expected in cases.items():
             self.assertEqual(gnani.spoken(said), expected, said)
@@ -295,6 +297,8 @@ class GnaniWords(unittest.TestCase):
         self.assertEqual(gnani.match(said, "two pointers lo and hi mark the part we still have to search"), 1.0)
         self.assertLess(gnani.match(said, "two pointers mark the part"), 0.5)
         self.assertEqual(gnani.match("We look for 23.", "we look for twenty three"), 1.0)
+        self.assertEqual(gnani.match("For P0, seven five three minus zero one zero gives seven four three.",
+                                     "For P zero, 753 minus 010 gives 743."), 1.0)
         self.assertEqual(gnani.match("ఈ sorted array లో", "ఈ sorted array లో"), 1.0)
         self.assertIn("Dijkstra", gnani.keyterms("Run Dijkstra on the graph from LRU"))
 
@@ -334,6 +338,13 @@ class GnaniClient(unittest.TestCase):
         self.assertEqual(json.loads(server.requests[0].data)["language"], "auto")
         with wave.open(io.BytesIO(audio)) as w:
             self.assertAlmostEqual(w.getnframes() / w.getframerate(), 0.3, places=2)
+
+    def test_a_streaming_header_is_rewritten_with_the_true_length(self):
+        clip = bytearray(wav(0.5))
+        clip[40:44] = (0xFFFFFFFF - 8).to_bytes(4, "little")  # data size as a streaming placeholder
+        made, _, _ = gnani_client([bytes(clip)])
+        with wave.open(io.BytesIO(made.speak("hello", "en"))) as w:
+            self.assertAlmostEqual(w.getnframes() / w.getframerate(), 0.5, places=3)
 
     def test_bad_voices_and_speeds_are_refused_before_any_request(self):
         made, server, _ = gnani_client([])

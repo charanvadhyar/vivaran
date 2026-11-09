@@ -58,6 +58,7 @@ def main(argv: list[str] | None = None) -> int:
     n.add_argument("script", type=Path)
     n.add_argument("-o", "--out", type=Path, default=Path("narrated.mp4"))
     n.add_argument("--captions", action="store_true", help="also show the narration under the picture")
+    n.add_argument("--watermark", default=None, help="text in the top corner, e.g. Vivaran")
     n.add_argument("--cache", type=Path, default=Path(".cevg-cache"), help="where spoken lines are kept between runs")
     n.add_argument("--cevg", default=None, help="path to the cevg program (default: $CEVG_BIN, PATH, target/release)")
     _add_voice_options(n)
@@ -171,7 +172,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"\r{message:<40}", end="", file=sys.stderr, flush=True)
 
         result = narrate(args.script, args.out, _voice(args), language=args.lang, cache_dir=args.cache,
-                         cevg=args.cevg, burn_captions=args.captions, listen=args.listen, progress=show)
+                         cevg=args.cevg, burn_captions=args.captions, watermark=args.watermark, listen=args.listen,
+                         progress=show)
         print(file=sys.stderr)
         minutes, seconds = divmod(round(result.seconds), 60)
         print(f"wrote {result.video} ({minutes} min {seconds} s, {result.steps} steps) and {result.captions}")

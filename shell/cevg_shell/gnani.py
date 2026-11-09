@@ -196,6 +196,7 @@ def _ordinal(n: int) -> str:
     return " ".join(words)
 
 
+_NAME = re.compile(r"(?<![\w.])([A-Za-z])(\d{1,2})(?![\w.])")
 _NUMBER = re.compile(r"(?<![\w.])(-)?(\d{1,3}(?:,\d{2,3})+|\d+)(?:\.(\d+))?(st|nd|rd|th)?(%)?(?![\w])")
 
 
@@ -221,6 +222,9 @@ def spoken(text: str) -> str:
         return words
 
     text = re.sub(r"(?<=\d)\s*\^\s*(?=\d)", " to the power ", text)
+    # Names like P0, P4, R2: a letter with a number glued on. Sent raw, Timbre
+    # read "P4" as "P char" in Telugu and "P3" as "Tree" in English.
+    text = _NAME.sub(lambda m: m.group(1) + " " + " ".join(_ONES[int(d)] for d in m.group(2)), text)
     return _NUMBER.sub(one, text)
 
 
@@ -253,14 +257,17 @@ def _split(text: str, limit: int = MAX_CHARS) -> list[str]:
 
 
 def _join_wavs(parts: list[bytes]) -> bytes:
-    if len(parts) == 1:
-        return parts[0]
+    """One WAV from the pieces, always with a fresh header: Timbre's header
+    gives a streaming placeholder length (seen 9 November 2026), which made a
+    3-second clip read as 44,739 seconds."""
     out = io.BytesIO()
     with wave.open(out, "wb") as writer:
         for i, part in enumerate(parts):
             with wave.open(io.BytesIO(part), "rb") as reader:
-                if i == 0:
-                    writer.setparams(reader.getparams())
+                if i == 0:  # not setparams: that would copy the bogus frame count
+                    writer.setnchannels(reader.getnchannels())
+                    writer.setsampwidth(reader.getsampwidth())
+                    writer.setframerate(reader.getframerate())
                 writer.writeframes(reader.readframes(reader.getnframes()))
     return out.getvalue()
 
@@ -365,7 +372,15 @@ class Gnani:
 
 # ---------------------------------------------------------------- listening back
 
-def _words(text: str) -> list[str]:
+# Bump when `spoken` changes what is sent, so cached clips are spoken again.
+TEXT_VERSION = 2
+
+
+def _words(text: str, digits: bool = False) -> list[str]:
+    """Words of a line. With `digits`, a run of digits in a transcript is read
+    one digit at a time: Prisma writes "743" where we said "seven four three"."""
+    if digits:
+        text = re.sub(r"\d+", lambda m: " " + " ".join(_ONES[int(d)] for d in m.group()) + " ", text)
     text = spoken(text).lower()
     return [w for w in re.split(r"[^\w\u0900-\u0DFF]+", text) if w]
 
@@ -434,7 +449,7 @@ def match(said: str, heard: str) -> float:
     words found, in order, in the transcript. Words match across scripts
     (Prisma may write an English word in Telugu letters), loosely enough that
     "lo" and "low" agree, and a word heard glued to a suffix ("arrayలో") still counts."""
-    expected, got = _words(said), _words(heard)
+    expected, got = _words(said), _words(heard, digits=True)
     if not expected:
         return 1.0
     found, j = 0, 0

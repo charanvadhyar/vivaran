@@ -28,7 +28,7 @@ class GnaniVoice:
         self.client, self.voice, self.model, self.speed = client, voice, model, speed
 
     def identity(self) -> str:
-        return f"gnani|{self.model}|{self.voice or 'default'}|{self.speed}"
+        return f"gnani|{self.model}|{self.voice or 'default'}|{self.speed}|text{gnani.TEXT_VERSION}"
 
     def speak(self, text: str, language: str) -> bytes:
         return self.client.speak(text, language, voice=self.voice, model=self.model, speed=self.speed)
