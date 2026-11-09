@@ -4,7 +4,7 @@
 
 **Participant:** Vadhyar Sai Charan, M.Tech CSE (AI & ML), VIT Vellore · solo entry
 
-**Demo video (2½ min):** [vivaran-gnani-demo.mp4](https://vivaran-kappa.vercel.app/pitch/vivaran-gnani-demo.mp4) · **Live project:** [vivaran-kappa.vercel.app](https://vivaran-kappa.vercel.app) · [One-page PDF](PITCH.pdf)
+**Demo video (2½ min):** [youtube.com/watch?v=MOc8587YlkA](https://www.youtube.com/watch?v=MOc8587YlkA) · **Live project:** [vivaran-kappa.vercel.app](https://vivaran-kappa.vercel.app) · [One-page PDF](PITCH.pdf)
 
 ## Problem
 

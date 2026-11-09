@@ -19,7 +19,7 @@ export default function Pitch() {
 
         <video className={styles.video} controls preload="metadata" poster="/pitch/vivaran-demo.jpg" src="/pitch/vivaran-gnani-demo.mp4" />
         <p className={styles.links}>
-          <a href="/pitch/vivaran-gnani-demo.mp4">Demo video, 2:33</a> · <a href="/">Live project</a> · <a href="/explore?subject=os">Banker&apos;s algorithm in three languages</a> · <a href="/pitch/vivaran-pitch.pdf">This page as PDF</a> · <a href="https://github.com/charanvadhyar/vivaran">Code</a>
+          <a href="https://www.youtube.com/watch?v=MOc8587YlkA">Demo on YouTube, 2:33</a> · <a href="/">Live project</a> · <a href="/explore?subject=os">Banker&apos;s algorithm in three languages</a> · <a href="/pitch/vivaran-pitch.pdf">This page as PDF</a> · <a href="https://github.com/charanvadhyar/vivaran">Code</a>
         </p>
 
         <section>
