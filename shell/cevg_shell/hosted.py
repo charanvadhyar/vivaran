@@ -350,6 +350,8 @@ def gate(app, platform: Platform):
         parts = scope["path"].strip("/").split("/")
         if len(parts) == 1 and parts[0] == "health":
             return await refuse(send, 200, "ok")
+        if len(parts) == 3 and parts[0] == "files":
+            return await files(scope, receive, send, parts[1], parts[2])
         if len(parts) != 3 or parts[0] != "u" or parts[2] != "mcp":
             return await refuse(send, 404, "not found")
         import anyio
@@ -359,6 +361,22 @@ def gate(app, platform: Platform):
         headers = [(k, v) for k, v in scope["headers"] if k.lower() != USER_HEADER.encode()]
         headers.append((USER_HEADER.encode(), user["id"].encode()))
         return await app({**scope, "path": "/mcp", "raw_path": b"/mcp", "headers": headers}, receive, send)
+
+    async def files(scope, receive, send, kind: str, name: str):
+        """Videos, thumbnails and voice samples, for the website only: it checks who
+        may watch, then asks for the file with the shared internal token."""
+        import hmac
+        from starlette.responses import FileResponse
+        token = os.environ.get("CEVG_INTERNAL_TOKEN", "")
+        given = dict(scope["headers"]).get(b"x-cevg-internal", b"").decode("latin-1")
+        if not token or not hmac.compare_digest(token, given):
+            return await refuse(send, 404, "not found")
+        folders = {"videos": platform.out_dir, "samples": platform.samples}
+        types = {".mp4": "video/mp4", ".png": "image/png", ".wav": "audio/wav"}
+        path = folders.get(kind, Path("/nonexistent")) / name
+        if Path(name).name != name or path.suffix not in types or not path.is_file():
+            return await refuse(send, 404, "not found")
+        return await FileResponse(path, media_type=types[path.suffix])(scope, receive, send)
 
     return gated
 

@@ -3,7 +3,8 @@
 # so the runtime needs only ffmpeg.
 #
 # Build settings come from the environment (see platform/.env.example):
-#   DATABASE_URL, SITE_URL, CEVG_STORAGE=/data (a Railway volume), SARVAM_API_KEY,
+#   DATABASE_URL, SITE_URL, CEVG_STORAGE=/data (a Railway volume), GNANI_API_KEY,
+#   CEVG_INTERNAL_TOKEN (shared with the site, which fetches videos from /files),
 #   CEVG_WATERMARK, CEVG_DAILY_VOICE_MINUTES, CEVG_MAX_MINUTES. PORT is set by Railway.
 
 FROM rust:1.92-bookworm AS renderer
