@@ -308,7 +308,7 @@ class Gnani:
             raise ValueError(f"`{voice}` is not a {model} voice; it has: {', '.join(catalogue)}")
         if not 0.85 <= speed <= 1.15:
             raise ValueError(f"speed {speed} is outside 0.85 to 1.15")
-        text = _SAY_AS.sub(lambda m: next(v for k, v in SAY_AS.items() if k.lower() == m.group(1).lower()), spoken(text))
+        text = say_as(spoken(text), language)
         parts = []
         for piece in _split(text):
             body = {
@@ -373,14 +373,27 @@ class Gnani:
 # ---------------------------------------------------------------- listening back
 
 # Bump when `spoken` changes what is sent, so cached clips are spoken again.
-TEXT_VERSION = 3
+TEXT_VERSION = 4
 
-# Words the voice gets wrong, and the spelling that makes it say them right.
-# Only what Timbre hears changes; captions keep the real spelling.
+# Words the voice gets wrong, and the spelling that makes it say them right,
+# per language ("*" for any language without its own). Only what Timbre hears
+# changes; captions keep the real spelling.
 SAY_AS = {
-    "Vivaran": "Vivran",  # read as "vivvaaran" otherwise; Sai chose this spelling (9 Nov 2026), in every language
+    # "vi-va-run". Latin spellings come out as "vivvaaran" or "vivran" in a
+    # sentence; the Indic spellings are the ones Sai picked by ear (9 Nov 2026),
+    # and English uses the Telugu one.
+    "Vivaran": {"hi": "विवरन", "*": "వివరన్"},
 }
 _SAY_AS = re.compile(r"\b(" + "|".join(map(re.escape, SAY_AS)) + r")\b", re.IGNORECASE)
+
+
+def say_as(text: str, language: str) -> str:
+    """`text` with the words in SAY_AS respelled for `language`."""
+    lang = language.split("-")[0].lower()
+    def swap(m):
+        by = next(v for k, v in SAY_AS.items() if k.lower() == m.group(1).lower())
+        return by.get(lang, by["*"])
+    return _SAY_AS.sub(swap, text)
 
 
 def _words(text: str, digits: bool = False) -> list[str]:

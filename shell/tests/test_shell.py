@@ -330,14 +330,17 @@ class GnaniClient(unittest.TestCase):
                                                 "encoding": "linear_pcm", "container": "wav"})
 
     def test_the_name_is_spelled_the_way_it_should_sound(self):
-        made, server, _ = gnani_client([wav(), wav(), wav()])
+        made, server, _ = gnani_client([wav(), wav(), wav(), wav()])
         made.speak("Vivaran shows you every step.", "en")
         made.speak("Watch at vivaran kappa dot vercel dot app.", "en")
-        self.assertEqual(json.loads(server.requests[1].data)["text"], "Watch at Vivran kappa dot vercel dot app.")
-        server.requests.pop(1)
         made.speak("Vivaran మీకు ప్రతి step చూపిస్తుంది.", "te")
-        self.assertEqual(json.loads(server.requests[0].data)["text"], "Vivran shows you every step.")
-        self.assertTrue(json.loads(server.requests[1].data)["text"].startswith("Vivran మీకు"))
+        made.speak("Vivaran आपको हर step दिखाता है।", "hi")
+        sent = [json.loads(r.data) for r in server.requests]
+        self.assertEqual(sent[0]["text"], "వివరన్ shows you every step.")
+        self.assertEqual(sent[0]["language"], "auto")  # mixed scripts
+        self.assertEqual(sent[1]["text"], "Watch at వివరన్ kappa dot vercel dot app.")
+        self.assertTrue(sent[2]["text"].startswith("వివరన్ మీకు"))
+        self.assertTrue(sent[3]["text"].startswith("विवरन आपको"))
 
     def test_telugu_gets_its_default_voice_and_long_text_is_joined(self):
         made, server, _ = gnani_client([wav(0.1), wav(0.2)])
