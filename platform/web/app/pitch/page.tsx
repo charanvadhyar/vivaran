@@ -20,7 +20,7 @@ export default function Pitch() {
 
         <video className={styles.video} controls preload="metadata" poster="/pitch/vivaran-demo.jpg" src="/pitch/vivaran-gnani-demo.mp4" />
         <p className={styles.links}>
-          <a href="/pitch/vivaran-gnani-demo.mp4">Demo, 2:49</a> · <a href="/">Live site</a> · <a href="/explore?subject=os">Banker&apos;s algorithm in three languages</a> · <a href="/pitch/vivaran-pitch.pdf">This page as PDF</a>
+          <a href="/pitch/vivaran-gnani-demo.mp4">Demo, 2:33</a> · <a href="/">Live site</a> · <a href="/explore?subject=os">Banker&apos;s algorithm in three languages</a> · <a href="/pitch/vivaran-pitch.pdf">This page as PDF</a>
         </p>
 
         <section>
@@ -36,7 +36,7 @@ export default function Pitch() {
             <li>A student or teacher asks Claude or ChatGPT for a video. Through Vivaran&apos;s connector (MCP) the assistant writes
               a scene script to an exam standard: every symbol named, every number traced, every decision said out loud.</li>
             <li>Vivaran&apos;s own renderer (Rust) draws each step: tables, typeset maths, graphs, plots, timelines.</li>
-            <li><strong>Gnani Timbre</strong> speaks every line (voice Vasudha, Timbre v3.0) in English or code-mixed Telugu and Hindi;
+            <li><strong>Gnani Timbre</strong> speaks every line (Timbre v3.0; the library uses Vasudha, this demo Lakshmi) in English or code-mixed Telugu and Hindi;
               the picture is timed to the measured voice.</li>
             <li><strong>Gnani Prisma</strong> listens back to every clip (Prisma v3.0, codemix) and scores it against the script; lines
               under 80% are flagged for a human before anything is published.</li>
