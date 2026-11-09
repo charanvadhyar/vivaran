@@ -308,7 +308,7 @@ class Gnani:
             raise ValueError(f"`{voice}` is not a {model} voice; it has: {', '.join(catalogue)}")
         if not 0.85 <= speed <= 1.15:
             raise ValueError(f"speed {speed} is outside 0.85 to 1.15")
-        text = spoken(text)
+        text = _SAY_AS.sub(lambda m: next(v for k, v in SAY_AS.items() if k.lower() == m.group(1).lower()), spoken(text))
         parts = []
         for piece in _split(text):
             body = {
@@ -373,7 +373,14 @@ class Gnani:
 # ---------------------------------------------------------------- listening back
 
 # Bump when `spoken` changes what is sent, so cached clips are spoken again.
-TEXT_VERSION = 2
+TEXT_VERSION = 3
+
+# Words the voice gets wrong, and the spelling that makes it say them right.
+# Only what Timbre hears changes; captions keep the real spelling.
+SAY_AS = {
+    "Vivaran": "Vivran",  # read as "vivvaaran" otherwise; Sai chose this spelling (9 Nov 2026), in every language
+}
+_SAY_AS = re.compile(r"\b(" + "|".join(map(re.escape, SAY_AS)) + r")\b", re.IGNORECASE)
 
 
 def _words(text: str, digits: bool = False) -> list[str]:
