@@ -35,7 +35,3 @@ A student or teacher asks their AI assistant for a video on a topic. Vivaran dra
 - **Students revising for exams**, starting with engineering and MCA students who think in Telugu or Hindi.
 - **Teachers** who want their explanation to reach students after class.
 - **Students who understand a topic well** and want to explain it to others.
-
-## Award categories it fits
-
-**Mixed Vibes** (code-mixed Telugu and Hindi voice), **Main Character** (regional language), **Solo Ninja** (solo entry).
