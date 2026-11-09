@@ -24,7 +24,6 @@ So every video teaches twice: the student who made it learns the topic, and ever
 
 - **Gnani's voice (Timbre)** narrates every line. Because Timbre speaks English and nine Indian languages, a video can be made in any of them, and code-mixed lines (an Indian language with English terms) sound natural. The animation is timed to the voice, so each step appears exactly when it is spoken.
 - **Gnani's listening AI (Prisma)** hears every spoken line back and compares it with the script. Any line the voice got wrong is flagged for the creator to check before the video is published, so quality does not depend on the creator's ear alone.
-- The check found a real mistake on the first video: in a Telugu sentence, the voice read "P4" (process four) as the Hindi word for four. We changed how such names are sent to the voice and checked the line again.
 
 ## What we built
 
@@ -32,7 +31,6 @@ So every video teaches twice: the student who made it learns the topic, and ever
 - The first topic, **Banker's algorithm** (a common operating-systems exam question), made in three languages to show the same explanation crossing languages: English, code-mixed Telugu and code-mixed Hindi, about seven minutes each.
 - **159 narrated lines**, every one spoken by Gnani's voice and checked by Gnani's listening AI.
 - A watch page for every video, with chapters and one-tap sharing.
-- A 2½-minute demo video showing the problem, the solution, sharing and creating, narrated in all three languages by Gnani.
 
 ## Who it helps
 
