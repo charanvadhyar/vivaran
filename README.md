@@ -10,9 +10,8 @@ serves the whole thing to Claude over MCP.
 
 Milestones 1 to 5 of 8 are done: the scene script and validator, still
 frames, all seven families, and animated silent video, with captions for
-checking a script by eye. Milestone 6, voice, is written from the Gnani
-documentation and tested against a stand-in server; and it runs against the real
-Sarvam service. Milestone 7, the MCP server, is written and tested with an
+checking a script by eye. Milestone 6, voice, runs on Gnani: Timbre speaks
+every line and Prisma listens back to check it. Milestone 7, the MCP server, is written and tested with an
 MCP client over stdio and HTTP; it has not yet been connected to Claude
 Desktop or ChatGPT. Next is hosting.
 
@@ -58,7 +57,7 @@ draws in three dimensions. All are built.
 | `crates/cevg-studio` | Vivaran Studio: film-quality 3D scenes (parametric parts, timeline, glTF export, callouts and captions). |
 | `studio/blender/render.py` | The Cycles renderer for studio scenes, run inside Blender. |
 | `crates/cevg-cli` | The `cevg` command-line tool. |
-| `shell/cevg_shell/sarvam.py` | The Sarvam text-to-speech client: one request, retries, request spacing. |
+| `shell/cevg_shell/gnani.py` | The Gnani client: Timbre text-to-speech and Prisma listen-back, with retries. |
 | `shell/cevg_shell/voice.py` | Voices and the cache of spoken lines. |
 | `shell/cevg_shell/narrate.py` | Script to narrated video: speak, measure, render, place the audio, mux. |
 | `shell/cevg_shell/server.py` | The MCP server: guide, validate, preview, render, status. |
@@ -251,7 +250,7 @@ authentication". In Claude: Settings, Connectors, add a custom connector
 with the same address.
 
 The secret in the address is the only lock. Anyone who has the address can
-spend your Sarvam credits, so treat it like a password. Set `--secret` or
+spend your Gnani credits, so treat it like a password. Set `--secret` or
 `CEVG_SECRET` to keep the same address between runs; otherwise a new one is
 made each time. A quick tunnel's address also changes each time it starts.
 
