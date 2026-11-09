@@ -1,14 +1,14 @@
 # CEVG
 
 Turns a CS or math explanation into a narrated video. Claude writes a scene
-script, a Rust core draws it, and a Python shell adds Sarvam voiceover and
+script, a Rust core draws it, and a Python shell adds Gnani voiceover and
 serves the whole thing to Claude over MCP.
 
 ## Status
 
 Milestones 1 to 5 of 8 are done: the scene script and validator, still
 frames, all seven families, and animated silent video, with captions for
-checking a script by eye. Milestone 6, voice, is written from the Sarvam
+checking a script by eye. Milestone 6, voice, is written from the Gnani
 documentation and tested against a stand-in server; and it runs against the real
 Sarvam service. Milestone 7, the MCP server, is written and tested with an
 MCP client over stdio and HTTP; it has not yet been connected to Claude
@@ -112,7 +112,7 @@ The Python shell in `shell/` speaks every step, measures each clip, renders
 the video to those lengths and puts the audio under it. The voice service is
 **Gnani**: Timbre (`timbre-v3.0`, or `timbre-v2.5` with `GNANI_MODEL`) speaks,
 and Prisma (`prisma-v3.0`) can listen back to every clip and flag lines the
-voice skipped or garbled. Sarvam (Bulbul v3) is kept: set `CEVG_TTS=sarvam`.
+voice skipped or garbled..
 The shell needs Python 3.10 or later and nothing from pip; `ffmpeg` and
 `ffprobe` must be on the PATH, and the `cevg` binary must be built.
 
@@ -129,7 +129,7 @@ python -m cevg_shell check --lang te --listen     # one sentence to check.wav, t
 python -m cevg_shell narrate ../examples/binary_search.json --lang te --listen -o bs-te.mp4
 ```
 
-Keys are read only from `GNANI_API_KEY` (or `SARVAM_API_KEY`). They are never
+Keys are read only from `GNANI_API_KEY` . They are never
 written to disk, to the cache or to any output. `api.vachana.ai` must be
 reachable from the machine that narrates.
 
@@ -213,7 +213,7 @@ with your own paths, then restart Claude Desktop:
       "args": ["-m", "cevg_shell", "serve"],
       "env": {
         "PYTHONPATH": "C:\\Users\\you\\cevg\\shell",
-        "SARVAM_API_KEY": "your-key"
+        "GNANI_API_KEY": "your-key"
       }
     }
   }
@@ -221,7 +221,7 @@ with your own paths, then restart Claude Desktop:
 ```
 
 Videos are written to `cevg-videos` in your home folder (`--out` changes
-it). Without `SARVAM_API_KEY` the server still works and makes silent
+it). Without `GNANI_API_KEY` the server still works and makes silent
 videos with captions.
 
 ### ChatGPT, and Claude on the web (HTTP)
@@ -238,7 +238,7 @@ second terminal:
 
 ```
 cd shell
-$env:SARVAM_API_KEY = "your-key"
+$env:GNANI_API_KEY = "your-key"
 python -m cevg_shell serve --http --public-url https://....trycloudflare.com
 ```
 
