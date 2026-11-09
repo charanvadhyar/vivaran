@@ -1,51 +1,41 @@
-# Vivaran
+# Vivaran: exam explanations that show every step
 
-### Every step, shown, in the language your lecturer actually teaches in.
+**Great Indian AI Internship Challenge submission** · built on Gnani AI
 
-Great Indian AI Internship Challenge · built on Gnani AI · Vadhyar Sai Charan, M.Tech CSE (AI & ML), VIT Vellore · solo entry
+**Participant:** Vadhyar Sai Charan, M.Tech CSE (AI & ML), VIT Vellore · solo entry
 
-**[Watch the 2½-minute demo](https://vivaran-kappa.vercel.app/pitch/vivaran-gnani-demo.mp4)** · **[Try it live](https://vivaran-kappa.vercel.app)** · [This pitch as a one-page PDF](PITCH.pdf)
+**Demo video (2½ min):** [vivaran-gnani-demo.mp4](https://vivaran-kappa.vercel.app/pitch/vivaran-gnani-demo.mp4) · **Live project:** [vivaran-kappa.vercel.app](https://vivaran-kappa.vercel.app) · [One-page PDF](PITCH.pdf)
 
-## The night before the exam
+## Problem
 
-It is 11 pm, and tomorrow's paper has a Banker's algorithm question. The textbook gives the answer in one line. The notes copy the textbook. The videos online are in fast English, or skip the exact step the student is stuck on. The lecturer did explain it, in Telugu with the English terms mixed in, but that explanation stayed in the classroom.
+When students revise for semester exams, their textbooks and notes give the final answer but skip the working. Many students learn in a mix of Telugu or Hindi and English, the way their lecturers teach, but most explanation videos are in English only. Making a good step-by-step animated explanation takes hours for each topic, so for most exam topics none exists.
 
-Every semester, this is how students across India revise.
+## Solution
 
-## The problem
+Vivaran turns an explanation into a short animated video that **shows every step**: each number on screen is traced back to where it came from, and nothing is skipped. The narration is in **English, code-mixed Telugu or code-mixed Hindi**, the way lecturers really speak.
 
-- **Answers without the working.** Books and notes show the result, not how you get there.
-- **The wrong language.** Students learn in a mix of Telugu or Hindi and English, but most explanation videos are English only.
-- **Good explanations are expensive.** One step-by-step animation takes hours to make, so the topics that need one most never get one.
+A student or teacher asks their AI assistant for a video on a topic. Vivaran draws each step, and Gnani's voice narrates it. Anyone who understands a topic can make a video without any animation skills, and every video can be shared with a batch in one tap.
 
-## What Vivaran does
+## How Gnani AI is used
 
-Vivaran turns an explanation into a short animated video that **shows every step**. Every number on screen is traced back to where it came from, and nothing is skipped. It is narrated in **English, code-mixed Telugu or code-mixed Hindi**, the way lecturers really speak.
+- **Gnani's voice (Timbre)** speaks every line of every video in English, code-mixed Telugu and code-mixed Hindi. The animation is timed to the voice, so each step appears exactly when it is spoken.
+- **Gnani's listening AI (Prisma)** hears every spoken line back and compares it with the script. Any line the voice got wrong is flagged for a person to check before the video is published.
+- The check found a real mistake on the first video: in a Telugu sentence, the voice read "P4" (process four) as the Hindi word for four. We changed how such names are sent to the voice and checked the line again.
 
-**Anyone can make one.** A student or teacher asks their AI assistant for a video on a topic. Vivaran draws it and Gnani's voice narrates it, in minutes instead of hours.
+## What we built
 
-**Every line is checked.** After Gnani's voice speaks a line, Gnani's listening AI hears it back and flags anything said wrong before the video goes out. On our very first video it caught the voice reading "P4" as the Hindi word for four in a Telugu sentence, and we fixed it before any student heard it.
+- A working website, free to watch: **vivaran-kappa.vercel.app**.
+- **Banker's algorithm**, a common operating-systems exam question, worked step by step in three full videos: English, Telugu and Hindi, about seven minutes each.
+- **159 narrated lines**, every one spoken by Gnani's voice and checked by Gnani's listening AI.
+- A watch page for every video, with chapters to jump to any step and sharing to WhatsApp, LinkedIn and X.
+- A 2½-minute demo video showing the problem, the solution, sharing and creating, narrated in all three languages by Gnani.
 
-**Made to be shared.** Every video has its own page, with chapters to jump straight to the hard step and one-tap sharing to WhatsApp, LinkedIn and X, so it reaches the whole batch.
-
-## Live today
-
-- Free to watch at **vivaran-kappa.vercel.app**.
-- **Banker's algorithm**, an exam favourite, worked step by step in **English, Telugu and Hindi**: three full videos of about seven minutes each.
-- **159 narrated lines**, every one spoken and then checked by Gnani.
-
-## Who it is for
+## Who it helps
 
 - **Students revising for exams**, starting with engineering and MCA students who think in Telugu or Hindi.
-- **Teachers** who want their explanation to keep working after class.
-- **Students who have just understood a topic**, often the best people to explain it. With Vivaran, every one of them can become a creator with no animation skills.
+- **Teachers** who want their explanation to reach students after class.
+- **Students who understand a topic well** and want to explain it to others.
 
-## Why now
+## Award categories it fits
 
-Exams start this week. Voice AI can now speak code-mixed Telugu and Hindi naturally, and AI assistants can plan a lesson. Vivaran joins the two into one finished video a student can watch tonight.
-
-## What's next
-
-The full exam set (page replacement, normalisation, shortest paths, caches, neural networks), creating opened to every student, and more Indian languages.
-
-> **Vivaran: the explanation your textbook skipped, in the language you think in.**
+**Mixed Vibes** (code-mixed Telugu and Hindi voice), **Main Character** (regional language), **Solo Ninja** (solo entry).
