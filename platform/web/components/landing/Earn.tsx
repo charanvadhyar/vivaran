@@ -9,7 +9,7 @@ export function Earn() {
         <p><strong>Making videos is free.</strong> They render silently first so you can check every step; voice is added when you publish.</p>
         <p><strong>You own what you make.</strong> Published videos go on the Vivaran YouTube channel with your name in the title, on the end card and in the watermark.</p>
         <p><strong>You are paid fixed amounts for views</strong>, from the first thousand, and a bonus at each milestone. No percentages, no waiting for the channel to be monetised.</p>
-        <div><Button href="/terms">Read the creator terms</Button></div>
+        <div><Button href="/creator-terms">Read the creator terms</Button></div>
       </div>
       <div className={styles.rates}>
         <div className={styles.rate}><b>₹50</b><span>per 1,000 YouTube views</span></div>

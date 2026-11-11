@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signInForDevelopment, signInWithGoogle } from "../actions";
 import { Container } from "@/components/layout/Container";
@@ -20,6 +21,9 @@ export default async function Login() {
         <form action={signInWithGoogle}>
           <Button type="submit" variant="primary" size="lg" block>Continue with Google</Button>
         </form>
+        <p style={{ marginTop: 12, fontSize: "var(--text-sm)", color: "var(--fg-muted)" }}>
+          By continuing you agree to the <Link href="/terms">terms of use</Link> and the <Link href="/privacy">privacy policy</Link>.
+        </p>
         {DEV_LOGIN ? (
           <>
             <Divider label="development" />

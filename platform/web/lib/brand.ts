@@ -2,6 +2,9 @@ export const BRAND = {
   name: "Vivaran",
   native: "వివరణ · विवरण",
   tagline: "Every step, shown.",
+  // Where people write about their data, the terms, or a video. Shown on /privacy and /terms.
+  contact: "charanvadhyar@gmail.com",
+  owner: "Vadhyar Sai Charan",
   description:
     "Step-by-step animated explanations of computer science and mathematics, in English, Telugu and Hindi. See where every number comes from, so you can redo it in the exam.",
 };

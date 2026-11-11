@@ -11,7 +11,9 @@ export function Footer() {
         <div className={styles.inner}>
           <span>{BRAND.name} · {BRAND.native}</span>
           <nav className={styles.links} aria-label="Footer">
-            {CREATOR_PAY ? <Link href="/terms">Creator terms</Link> : null}
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
+            {CREATOR_PAY ? <Link href="/creator-terms">Creator terms</Link> : null}
             {WAITLIST ? null : <Link href="/design">Design</Link>}
           </nav>
           <span>Videos are made by their creators with AI assistance. Check anything important against your textbook.</span>

@@ -32,7 +32,7 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
           <p>{BRAND.description}</p>
           <div className={styles.actions}>
             <Button href={WAITLIST ? "/#waitlist" : "/dashboard"} variant="primary" size="lg" icon={<Icon name="spark" />}>{WAITLIST ? "Make videos like these" : "Make a video"}</Button>
-            {CREATOR_PAY ? <Button href="/terms" variant="ghost" size="lg">How creators earn</Button> : null}
+            {CREATOR_PAY ? <Button href="/creator-terms" variant="ghost" size="lg">How creators earn</Button> : null}
           </div>
         </section>
       )}
