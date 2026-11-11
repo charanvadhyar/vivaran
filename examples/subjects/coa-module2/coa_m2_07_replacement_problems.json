@@ -1,0 +1,4140 @@
+{
+ "version": 1,
+ "title": "Replacement problems: FIFO, LRU, Optimal, and page faults",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The three policies in one line each"
+    ],
+    [
+     2,
+     "One reference string, FIFO"
+    ],
+    [
+     3,
+     "The same string, LRU"
+    ],
+    [
+     4,
+     "The same string, Optimal"
+    ],
+    [
+     5,
+     "Belady's anomaly: more frames, more faults"
+    ],
+    [
+     6,
+     "LRU inside a set-associative cache"
+    ],
+    [
+     7,
+     "Page faults and effective access time"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "pol",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "policy",
+    "evicts",
+    "needs"
+   ],
+   "rows": [
+    [
+     "FIFO",
+     "the block that came in first",
+     "a queue of arrival order"
+    ],
+    [
+     "LRU",
+     "the block unused for the longest time",
+     "the time of each last use"
+    ],
+    [
+     "Optimal (OPT, MIN)",
+     "the block used furthest in the future",
+     "the future: only for comparison"
+    ]
+   ]
+  },
+  {
+   "id": "tf",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12"
+   ],
+   "rows": [
+    [
+     "ref",
+     "1",
+     "2",
+     "3",
+     "4",
+     "1",
+     "2",
+     "5",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5"
+    ],
+    [
+     "frame 1",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "frame 2",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "frame 3",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "fault?",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "out",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "tl",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12"
+   ],
+   "rows": [
+    [
+     "ref",
+     "1",
+     "2",
+     "3",
+     "4",
+     "1",
+     "2",
+     "5",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5"
+    ],
+    [
+     "frame 1",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "frame 2",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "frame 3",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "fault?",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "out",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "to",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12"
+   ],
+   "rows": [
+    [
+     "ref",
+     "1",
+     "2",
+     "3",
+     "4",
+     "1",
+     "2",
+     "5",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5"
+    ],
+    [
+     "frame 1",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "frame 2",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "frame 3",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "fault?",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "out",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "bel",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "frames",
+    "FIFO faults",
+    "LRU faults",
+    "Optimal faults"
+   ],
+   "rows": [
+    [
+     "3",
+     "9",
+     "10",
+     "7"
+    ],
+    [
+     "4",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "sa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "#",
+    "block",
+    "set",
+    "set holds after",
+    "result"
+   ],
+   "rows": [
+    [
+     "1",
+     "0",
+     "",
+     "",
+     ""
+    ],
+    [
+     "2",
+     "1",
+     "",
+     "",
+     ""
+    ],
+    [
+     "3",
+     "2",
+     "",
+     "",
+     ""
+    ],
+    [
+     "4",
+     "3",
+     "",
+     "",
+     ""
+    ],
+    [
+     "5",
+     "4",
+     "",
+     "",
+     ""
+    ],
+    [
+     "6",
+     "0",
+     "",
+     "",
+     ""
+    ],
+    [
+     "7",
+     "5",
+     "",
+     "",
+     ""
+    ],
+    [
+     "8",
+     "1",
+     "",
+     "",
+     ""
+    ],
+    [
+     "9",
+     "2",
+     "",
+     "",
+     ""
+    ],
+    [
+     "10",
+     "0",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "sacmp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "same 4 lines",
+    "misses out of 10"
+   ],
+   "rows": [
+    [
+     "direct-mapped",
+     "8"
+    ],
+    [
+     "2-way set-associative, LRU",
+     "9"
+    ],
+    [
+     "fully associative, LRU",
+     "9"
+    ]
+   ]
+  },
+  {
+   "id": "pf",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "on a page fault",
+    "what happens"
+   ],
+   "rows": [
+    [
+     "1",
+     "the page is not in memory: the hardware traps to the OS"
+    ],
+    [
+     "2",
+     "the OS picks a victim frame with the replacement policy"
+    ],
+    [
+     "3",
+     "if the victim is dirty, it is written to disk first"
+    ],
+    [
+     "4",
+     "the needed page is read from disk, the page table updated"
+    ],
+    [
+     "5",
+     "the instruction restarts"
+    ]
+   ]
+  },
+  {
+   "id": "eat",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"EAT\" = (1 - p) times t_\"mem\" + p times t_\"fault\"",
+    "t_\"mem\" = 100 \"ns\", quad t_\"fault\" = 8 \"ms\" = 8000000 \"ns\", quad p = 1 / 1000",
+    "\"EAT\" = 0.999 times 100 + 0.001 times 8000000 = 99.9 + 8000 approx 8100 \"ns\"",
+    "\"under 10% slower:\" quad 100 + p times 7999900 < 110 quad => quad p < 1.25 times 10^(-6)",
+    "\"70% of victims dirty:\" quad t_\"fault\" = 0.3 times 8 + 0.7 times 20 = 16.4 \"ms\""
+   ]
+  },
+  {
+   "id": "ql",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12"
+   ],
+   "rows": [
+    [
+     "ref",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5",
+     "1",
+     "2",
+     "6",
+     "1",
+     "2",
+     "3",
+     "4"
+    ],
+    [
+     "frame 1",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "frame 2",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "frame 3",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "frame 4",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "fault?",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "out",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "qo",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12"
+   ],
+   "rows": [
+    [
+     "ref",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5",
+     "1",
+     "2",
+     "6",
+     "1",
+     "2",
+     "3",
+     "4"
+    ],
+    [
+     "frame 1",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "frame 2",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "frame 3",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "frame 4",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "fault?",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "out",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "qq",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "4 frames, initially empty. Reference string:"
+   ],
+   "rows": [
+    [
+     "1, 2, 3, 4, 5, 1, 2, 6, 1, 2, 3, 4"
+    ],
+    [
+     "a) page faults with LRU"
+    ],
+    [
+     "b) page faults with Optimal"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Replacement questions are the easiest marks in the memory chapter, if you work them carefully. Here are all the kinds, worked in full."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Replacement problems"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO, LRU and Optimal on one reference string, then Belady's anomaly."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then LRU inside a set-associative cache, page faults and their cost, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pol",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: the three policies. These rules are the same for a fully associative cache with 3 lines and for 3 page frames in memory."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: the three policies"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "pol"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO evicts the block that arrived first, however often it is used."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pol[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU evicts the block that has gone unused the longest. A hit refreshes a block; in FIFO it does not."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pol[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Optimal looks into the future and evicts the block needed furthest ahead. No real system can do this, but it gives the lowest possible count, the yardstick for the others."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pol[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "FIFO: oldest arrival · LRU: oldest use · OPT: furthest next use"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fifo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: 3 frames, empty at the start, and the string 1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5. FIFO first."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: FIFO"
+      },
+      {
+       "action": "hide",
+       "target": "pol"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "tf"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1, 2 and 3 fill the empty frames: three compulsory misses."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tf[0][1]"
+      },
+      {
+       "action": "set",
+       "target": "tf[1][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "tf[2][1]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[3][1]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[4][1]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "tf[0][2]"
+      },
+      {
+       "action": "set",
+       "target": "tf[1][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "tf[2][2]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[3][2]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[4][2]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "tf[0][3]"
+      },
+      {
+       "action": "set",
+       "target": "tf[1][3]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "tf[2][3]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[3][3]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[4][3]",
+       "value": "F",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 misses. 1 came in first, so 1 goes out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tf[0][4]"
+      },
+      {
+       "action": "set",
+       "target": "tf[1][4]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "tf[2][4]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[3][4]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[4][4]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tf[5][4]",
+       "value": "1",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1 misses. The oldest now is 2, so 2 goes out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tf[0][5]"
+      },
+      {
+       "action": "set",
+       "target": "tf[1][5]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "tf[2][5]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[3][5]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[4][5]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tf[5][5]",
+       "value": "2",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2 misses. The oldest is 3: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tf[0][6]"
+      },
+      {
+       "action": "set",
+       "target": "tf[1][6]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "tf[2][6]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[3][6]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[4][6]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tf[5][6]",
+       "value": "3",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 misses. The oldest is 4: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tf[0][7]"
+      },
+      {
+       "action": "set",
+       "target": "tf[1][7]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "tf[2][7]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[3][7]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[4][7]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tf[5][7]",
+       "value": "4",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1 hits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tf[0][8]"
+      },
+      {
+       "action": "set",
+       "target": "tf[1][8]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "tf[2][8]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[3][8]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[4][8]",
+       "value": "✓",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2 hits. In FIFO, hits do not change the order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tf[0][9]"
+      },
+      {
+       "action": "set",
+       "target": "tf[1][9]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "tf[2][9]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[3][9]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[4][9]",
+       "value": "✓",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "3 misses. The oldest is 1, which arrived at step 5: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tf[0][10]"
+      },
+      {
+       "action": "set",
+       "target": "tf[1][10]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "tf[2][10]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[3][10]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[4][10]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tf[5][10]",
+       "value": "1",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 misses. The oldest is 2: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tf[0][11]"
+      },
+      {
+       "action": "set",
+       "target": "tf[1][11]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "tf[2][11]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[3][11]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[4][11]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tf[5][11]",
+       "value": "2",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 hits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tf[0][12]"
+      },
+      {
+       "action": "set",
+       "target": "tf[1][12]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "tf[2][12]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[3][12]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tf[4][12]",
+       "value": "✓",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: 9 faults out of 12."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "FIFO, 3 frames: 9 faults"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lru",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: the same string with LRU. Now every use, hit or miss, refreshes a page."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: LRU"
+      },
+      {
+       "action": "hide",
+       "target": "tf"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "tl"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1, 2 and 3 fill the frames."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tl[0][1]"
+      },
+      {
+       "action": "set",
+       "target": "tl[1][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "tl[2][1]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[3][1]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[4][1]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "tl[0][2]"
+      },
+      {
+       "action": "set",
+       "target": "tl[1][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "tl[2][2]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[3][2]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[4][2]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "tl[0][3]"
+      },
+      {
+       "action": "set",
+       "target": "tl[1][3]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "tl[2][3]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[3][3]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[4][3]",
+       "value": "F",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 misses. Looking back, 1 was used longest ago: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tl[0][4]"
+      },
+      {
+       "action": "set",
+       "target": "tl[1][4]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "tl[2][4]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[3][4]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[4][4]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tl[5][4]",
+       "value": "1",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1 misses. Least recently used is now 2: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tl[0][5]"
+      },
+      {
+       "action": "set",
+       "target": "tl[1][5]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "tl[2][5]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[3][5]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[4][5]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tl[5][5]",
+       "value": "2",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2 misses. 3 is the least recent: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tl[0][6]"
+      },
+      {
+       "action": "set",
+       "target": "tl[1][6]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "tl[2][6]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[3][6]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[4][6]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tl[5][6]",
+       "value": "3",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 misses. Looking back: 2, then 1, then 4. 4 is least recent: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tl[0][7]"
+      },
+      {
+       "action": "set",
+       "target": "tl[1][7]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "tl[2][7]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[3][7]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[4][7]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tl[5][7]",
+       "value": "4",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1 hits, and becomes the most recent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tl[0][8]"
+      },
+      {
+       "action": "set",
+       "target": "tl[1][8]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "tl[2][8]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[3][8]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[4][8]",
+       "value": "✓",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2 hits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tl[0][9]"
+      },
+      {
+       "action": "set",
+       "target": "tl[1][9]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "tl[2][9]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[3][9]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[4][9]",
+       "value": "✓",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "3 misses. Looking back: 2, 1, 5. 5 is least recent: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tl[0][10]"
+      },
+      {
+       "action": "set",
+       "target": "tl[1][10]",
+       "value": "3"
+      },
+      {
+       "action": "set",
+       "target": "tl[2][10]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[3][10]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[4][10]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tl[5][10]",
+       "value": "5",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 misses. Looking back: 3, 2, 1. 1 is least recent: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tl[0][11]"
+      },
+      {
+       "action": "set",
+       "target": "tl[1][11]",
+       "value": "3"
+      },
+      {
+       "action": "set",
+       "target": "tl[2][11]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[3][11]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[4][11]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tl[5][11]",
+       "value": "1",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 misses. Looking back: 4, 3, 2. 2 goes out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tl[0][12]"
+      },
+      {
+       "action": "set",
+       "target": "tl[1][12]",
+       "value": "3"
+      },
+      {
+       "action": "set",
+       "target": "tl[2][12]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[3][12]",
+       "value": "5",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tl[4][12]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tl[5][12]",
+       "value": "2",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: 10 faults, one more than FIFO on this string. LRU is usually better, but not on every string."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "LRU, 3 frames: 10 faults"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The method for LRU by hand: at each miss, read backwards from the current position, and the page you meet last is the victim."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tl[0][10]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "opt",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: Optimal. At each miss, look forward instead."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: Optimal"
+      },
+      {
+       "action": "hide",
+       "target": "tl"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "to"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1, 2 and 3 fill the frames."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "to[0][1]"
+      },
+      {
+       "action": "set",
+       "target": "to[1][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "to[2][1]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[3][1]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[4][1]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "to[0][2]"
+      },
+      {
+       "action": "set",
+       "target": "to[1][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "to[2][2]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[3][2]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[4][2]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "to[0][3]"
+      },
+      {
+       "action": "set",
+       "target": "to[1][3]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "to[2][3]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[3][3]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[4][3]",
+       "value": "F",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 misses. Looking ahead: 1 is next used soon, then 2, but 3 is used furthest away. 3 goes out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "to[0][4]"
+      },
+      {
+       "action": "set",
+       "target": "to[1][4]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "to[2][4]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[3][4]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[4][4]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "to[5][4]",
+       "value": "3",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1 and 2 hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "to[0][5]"
+      },
+      {
+       "action": "set",
+       "target": "to[1][5]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "to[2][5]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[3][5]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[4][5]",
+       "value": "✓",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "to[0][6]"
+      },
+      {
+       "action": "set",
+       "target": "to[1][6]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "to[2][6]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[3][6]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[4][6]",
+       "value": "✓",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 misses. Ahead: 1, 2, then 3, 4. Of the pages held, 4 comes last. 4 goes out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "to[0][7]"
+      },
+      {
+       "action": "set",
+       "target": "to[1][7]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "to[2][7]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[3][7]",
+       "value": "5",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[4][7]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "to[5][7]",
+       "value": "4",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1 and 2 hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "to[0][8]"
+      },
+      {
+       "action": "set",
+       "target": "to[1][8]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "to[2][8]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[3][8]",
+       "value": "5",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[4][8]",
+       "value": "✓",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "to[0][9]"
+      },
+      {
+       "action": "set",
+       "target": "to[1][9]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "to[2][9]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[3][9]",
+       "value": "5",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[4][9]",
+       "value": "✓",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "3 misses. Ahead only 4 and 5. Pages 1 and 2 are never used again, so either can go: we take 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "to[0][10]"
+      },
+      {
+       "action": "set",
+       "target": "to[1][10]",
+       "value": "3"
+      },
+      {
+       "action": "set",
+       "target": "to[2][10]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[3][10]",
+       "value": "5",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[4][10]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "to[5][10]",
+       "value": "1",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 misses. 3 and 2 are never used again: we take 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "to[0][11]"
+      },
+      {
+       "action": "set",
+       "target": "to[1][11]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "to[2][11]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[3][11]",
+       "value": "5",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[4][11]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "to[5][11]",
+       "value": "3",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 hits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "to[0][12]"
+      },
+      {
+       "action": "set",
+       "target": "to[1][12]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "to[2][12]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[3][12]",
+       "value": "5",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "to[4][12]",
+       "value": "✓",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Optimal: 7 faults. No policy can do better on this string with 3 frames."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Optimal, 3 frames: 7 faults · the lower bound"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case: when several pages are never used again, any of them is a correct Optimal choice. The fault count does not change."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "to[0][10]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "belady",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: give the same string 4 frames. More memory should mean fewer faults. Does it?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: Belady's anomaly"
+      },
+      {
+       "action": "hide",
+       "target": "to"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "bel"
+      },
+      {
+       "action": "highlight",
+       "target": "bel[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO with 4 frames: 10 faults. More than the 9 it made with 3 frames!"
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bel[1][1]",
+       "value": "10"
+      },
+      {
+       "action": "mark",
+       "target": "bel[1][1]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU with 4 frames drops to 8, and Optimal can only stay the same or improve."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bel[1][2]",
+       "value": "8"
+      },
+      {
+       "action": "set",
+       "target": "bel[1][3]",
+       "value": "≤ 7",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This is Belady's anomaly. It can happen with FIFO, never with LRU or Optimal. Those are stack algorithms: the pages held with n frames are always a subset of those held with n plus 1."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Belady's anomaly: FIFO only · LRU and OPT never"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "setassoc",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: in a cache, replacement happens inside one set. A 4 line cache, 2-way, so 2 sets: block b goes to set b mod 2. LRU within each set."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: LRU in a set-associative cache"
+      },
+      {
+       "action": "hide",
+       "target": "bel"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "sa"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 0 goes to set 0: miss."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sa[0]"
+      },
+      {
+       "action": "set",
+       "target": "sa[0][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "sa[0][3]",
+       "value": "0",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sa[0][4]",
+       "value": "miss",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 1, set 1: miss."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sa[1]"
+      },
+      {
+       "action": "set",
+       "target": "sa[1][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "sa[1][3]",
+       "value": "1",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sa[1][4]",
+       "value": "miss",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 2, set 0: miss. Set 0 now holds 0 and 2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sa[2]"
+      },
+      {
+       "action": "set",
+       "target": "sa[2][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "sa[2][3]",
+       "value": "0, 2",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sa[2][4]",
+       "value": "miss",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 3, set 1: miss. Set 1 holds 1 and 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sa[3]"
+      },
+      {
+       "action": "set",
+       "target": "sa[3][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "sa[3][3]",
+       "value": "1, 3",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sa[3][4]",
+       "value": "miss",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 4, set 0, which is full. The least recent there is 0: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sa[4]"
+      },
+      {
+       "action": "set",
+       "target": "sa[4][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "sa[4][3]",
+       "value": "4, 2",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sa[4][4]",
+       "value": "miss",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 0, set 0: miss. Least recent is 2: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sa[5]"
+      },
+      {
+       "action": "set",
+       "target": "sa[5][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "sa[5][3]",
+       "value": "4, 0",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sa[5][4]",
+       "value": "miss",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 5, set 1: miss. 1 is least recent: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sa[6]"
+      },
+      {
+       "action": "set",
+       "target": "sa[6][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "sa[6][3]",
+       "value": "5, 3",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sa[6][4]",
+       "value": "miss",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 1, set 1: miss. 3 goes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sa[7]"
+      },
+      {
+       "action": "set",
+       "target": "sa[7][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "sa[7][3]",
+       "value": "5, 1",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sa[7][4]",
+       "value": "miss",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 2, set 0: miss. 4 goes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sa[8]"
+      },
+      {
+       "action": "set",
+       "target": "sa[8][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "sa[8][3]",
+       "value": "2, 0",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sa[8][4]",
+       "value": "miss",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 0, set 0: it is there. Finally a hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sa[9]"
+      },
+      {
+       "action": "set",
+       "target": "sa[9][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "sa[9][3]",
+       "value": "2, 0",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sa[9][4]",
+       "value": "hit",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "9 misses out of 10. Compare the same 4 lines organized differently."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "sa"
+      },
+      {
+       "action": "show",
+       "target": "sacmp"
+      },
+      {
+       "action": "highlight",
+       "target": "sacmp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Direct-mapped makes only 8 misses here, and fully associative LRU makes 9. More associativity is better on average, but not on every string. Always simulate; never assume."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sacmp[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "sacmp[2]",
+       "delay": 0.4
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "replacement works per set · more ways is not always fewer misses"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pagefault",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: in virtual memory, a miss in main memory is a page fault, and it is enormously expensive. Here is what happens."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: page faults"
+      },
+      {
+       "action": "hide",
+       "target": "sacmp"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "pf"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The OS picks a victim using the replacement policy, and if that page is dirty it must be written to disk first."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pf[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the page is read from disk, the page table is updated, and the instruction runs again."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pf[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[4]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The cost, as an effective access time: 1 minus p, times the memory time, plus p times the fault service time."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "pf"
+      },
+      {
+       "action": "show",
+       "target": "eat"
+      },
+      {
+       "action": "highlight",
+       "target": "eat[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Memory takes 100 nanoseconds, a fault takes 8 milliseconds, which is 8 million nanoseconds, and 1 access in 1000 faults."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "eat[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "eat[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "EAT is 99.9 plus 8000, about 8100 nanoseconds. One fault in a thousand makes memory 80 times slower."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "eat[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "eat[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Working backwards: to be less than 10 percent slower, p must be below about 1.25 in a million. That is one fault in 800 thousand accesses."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "eat[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "eat[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case: dirty victims make faults costlier. If a clean fault takes 8 milliseconds, a dirty one 20, and 70 percent of victims are dirty, the average fault costs 16.4 milliseconds. Use that as the fault time."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "eat[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "eat[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "EAT = (1 − p)·t_mem + p·t_fault · units: ms → ns"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "eat"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "qq"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 frames, initially empty, and the string 1, 2, 3, 4, 5, 1, 2, 6, 1, 2, 3, 4. Count the page faults with LRU and with Optimal. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qq[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "qq[1]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "qq[2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU first."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qq"
+      },
+      {
+       "action": "show",
+       "target": "ql"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1 to 4 fill the frames."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ql[0][1]"
+      },
+      {
+       "action": "set",
+       "target": "ql[1][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "ql[2][1]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[3][1]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[4][1]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[5][1]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "ql[0][2]"
+      },
+      {
+       "action": "set",
+       "target": "ql[1][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "ql[2][2]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[3][2]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[4][2]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[5][2]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "ql[0][3]"
+      },
+      {
+       "action": "set",
+       "target": "ql[1][3]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "ql[2][3]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[3][3]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[4][3]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[5][3]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "ql[0][4]"
+      },
+      {
+       "action": "set",
+       "target": "ql[1][4]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "ql[2][4]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[3][4]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[4][4]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[5][4]",
+       "value": "F",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 misses: 1 is least recent, out. Then 1 misses: 2 out. Then 2 misses: 3 out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ql[0][5]"
+      },
+      {
+       "action": "set",
+       "target": "ql[1][5]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "ql[2][5]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[3][5]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[4][5]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[5][5]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "ql[6][5]",
+       "value": "1",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "ql[0][6]"
+      },
+      {
+       "action": "set",
+       "target": "ql[1][6]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "ql[2][6]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[3][6]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[4][6]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[5][6]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "ql[6][6]",
+       "value": "2",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "ql[0][7]"
+      },
+      {
+       "action": "set",
+       "target": "ql[1][7]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "ql[2][7]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[3][7]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[4][7]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[5][7]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "ql[6][7]",
+       "value": "3",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "6 misses: looking back, 2, 1, 5, then 4. 4 goes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ql[0][8]"
+      },
+      {
+       "action": "set",
+       "target": "ql[1][8]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "ql[2][8]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[3][8]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[4][8]",
+       "value": "6",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[5][8]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "ql[6][8]",
+       "value": "4",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1 and 2 hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ql[0][9]"
+      },
+      {
+       "action": "set",
+       "target": "ql[1][9]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "ql[2][9]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[3][9]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[4][9]",
+       "value": "6",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[5][9]",
+       "value": "✓",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "ql[0][10]"
+      },
+      {
+       "action": "set",
+       "target": "ql[1][10]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "ql[2][10]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[3][10]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[4][10]",
+       "value": "6",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[5][10]",
+       "value": "✓",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "3 misses: looking back, 2, 1, 6, 5. 5 goes. Then 4 misses: 6 goes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ql[0][11]"
+      },
+      {
+       "action": "set",
+       "target": "ql[1][11]",
+       "value": "3"
+      },
+      {
+       "action": "set",
+       "target": "ql[2][11]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[3][11]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[4][11]",
+       "value": "6",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[5][11]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "ql[6][11]",
+       "value": "5",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "ql[0][12]"
+      },
+      {
+       "action": "set",
+       "target": "ql[1][12]",
+       "value": "3"
+      },
+      {
+       "action": "set",
+       "target": "ql[2][12]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[3][12]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[4][12]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ql[5][12]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "ql[6][12]",
+       "value": "6",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: 10 faults."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "LRU: 10 faults"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now Optimal."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "ql"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "qo"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1 to 4 fill the frames."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qo[0][1]"
+      },
+      {
+       "action": "set",
+       "target": "qo[1][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qo[2][1]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[3][1]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[4][1]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[5][1]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "qo[0][2]"
+      },
+      {
+       "action": "set",
+       "target": "qo[1][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qo[2][2]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[3][2]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[4][2]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[5][2]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "qo[0][3]"
+      },
+      {
+       "action": "set",
+       "target": "qo[1][3]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qo[2][3]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[3][3]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[4][3]",
+       "value": "",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[5][3]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "qo[0][4]"
+      },
+      {
+       "action": "set",
+       "target": "qo[1][4]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qo[2][4]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[3][4]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[4][4]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[5][4]",
+       "value": "F",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 misses. Ahead: 1, 2, 6, 1, 2, 3, 4. Of 1, 2, 3, 4, page 4 comes last: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qo[0][5]"
+      },
+      {
+       "action": "set",
+       "target": "qo[1][5]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qo[2][5]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[3][5]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[4][5]",
+       "value": "5",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[5][5]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "qo[6][5]",
+       "value": "4",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1 and 2 hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qo[0][6]"
+      },
+      {
+       "action": "set",
+       "target": "qo[1][6]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qo[2][6]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[3][6]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[4][6]",
+       "value": "5",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[5][6]",
+       "value": "✓",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "qo[0][7]"
+      },
+      {
+       "action": "set",
+       "target": "qo[1][7]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qo[2][7]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[3][7]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[4][7]",
+       "value": "5",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[5][7]",
+       "value": "✓",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "6 misses. Ahead: 1, 2, 3, 4. Page 5 is never used again: out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qo[0][8]"
+      },
+      {
+       "action": "set",
+       "target": "qo[1][8]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qo[2][8]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[3][8]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[4][8]",
+       "value": "6",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[5][8]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "qo[6][8]",
+       "value": "5",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1 and 2 hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qo[0][9]"
+      },
+      {
+       "action": "set",
+       "target": "qo[1][9]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qo[2][9]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[3][9]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[4][9]",
+       "value": "6",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[5][9]",
+       "value": "✓",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "qo[0][10]"
+      },
+      {
+       "action": "set",
+       "target": "qo[1][10]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qo[2][10]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[3][10]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[4][10]",
+       "value": "6",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[5][10]",
+       "value": "✓",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "3 hits: it was kept all along."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qo[0][11]"
+      },
+      {
+       "action": "set",
+       "target": "qo[1][11]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qo[2][11]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[3][11]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[4][11]",
+       "value": "6",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[5][11]",
+       "value": "✓",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 misses. Nothing comes after, so any victim will do."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qo[0][12]"
+      },
+      {
+       "action": "set",
+       "target": "qo[1][12]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "qo[2][12]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[3][12]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[4][12]",
+       "value": "6",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qo[5][12]",
+       "value": "F",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "qo[6][12]",
+       "value": "1",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Optimal: 7 faults. So LRU makes 3 more faults than the best possible."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "LRU 10 · Optimal 7"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slips: forgetting that a hit refreshes a page in LRU, letting a hit change the queue in FIFO, and not counting the first fills as faults."
+     }
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "qo"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO evicts the oldest arrival, LRU the oldest use, Optimal the furthest next use. On our string: 9, 10 and 7 faults."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO alone can suffer Belady's anomaly. Caches replace within a set, and page faults cost millions of nanoseconds, so keep the fault rate tiny."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: the six basic cache optimizations."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: six basic cache optimizations"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

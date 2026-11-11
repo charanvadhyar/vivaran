@@ -1,0 +1,1346 @@
+{
+ "version": 1,
+ "title": "AMAT: average memory access time, and every kind of problem",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The formula, and the two ways GATE counts a miss"
+    ],
+    [
+     2,
+     "Cycles or nanoseconds"
+    ],
+    [
+     3,
+     "Where the miss penalty comes from"
+    ],
+    [
+     4,
+     "Two levels: L1 and L2, local and global miss rates"
+    ],
+    [
+     5,
+     "Split instruction and data caches"
+    ],
+    [
+     6,
+     "From AMAT to CPI and stall cycles"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "f",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"AMAT\" = \"hit time\" + \"miss rate\" times \"miss penalty\"",
+    "\"hit time 4 ns, miss rate\" 10%, \"memory 20 ns\": quad 4 + 0.1 times 20 = 6 \"ns\"",
+    "\"parallel:\" quad 0.9 times 4 + 0.1 times 20 = 5.6 \"ns\""
+   ]
+  },
+  {
+   "id": "tl",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "hit",
+    "miss: L1 first, then memory",
+    "miss: L1 and memory together"
+   ],
+   "end": 25,
+   "unit": "ns",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "conv",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the question says",
+    "a miss costs",
+    "formula"
+   ],
+   "rows": [
+    [
+     "hierarchical / look-through / not stated",
+     "hit time + memory time",
+     "h·t₁ + (1 − h)(t₁ + t₂) = t₁ + (1 − h)·t₂"
+    ],
+    [
+     "simultaneous / parallel",
+     "memory time only",
+     "h·t₁ + (1 − h)·t₂"
+    ]
+   ]
+  },
+  {
+   "id": "cy",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"2 GHz\" => 1 \"cycle\" = 0.5 \"ns\" quad \"memory 50 ns\" = 100 \"cycles\"",
+    "\"AMAT\" = 1 + 0.05 times 100 = 6 \"cycles\"",
+    "6 \"cycles\" times 0.5 \"ns\" = 3 \"ns\""
+   ]
+  },
+  {
+   "id": "mp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "memory organization",
+    "send address",
+    "access",
+    "transfer",
+    "miss penalty"
+   ],
+   "rows": [
+    [
+     "one word wide, one bank",
+     "1",
+     "4 × 15",
+     "4 × 1",
+     ""
+    ],
+    [
+     "4 interleaved banks",
+     "1",
+     "15 (all banks at once)",
+     "4 × 1",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "mpx",
+   "type": "math",
+   "region": "bottom",
+   "lines": [
+    "\"miss rate\" 5%: quad 1 + 0.05 times 65 = 4.25 quad \"vs\" quad 1 + 0.05 times 20 = 2 \"cycles\""
+   ]
+  },
+  {
+   "id": "hier",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "level",
+    "access time",
+    "miss rate"
+   ],
+   "rows": [
+    [
+     "L1",
+     "1 cycle",
+     "4%"
+    ],
+    [
+     "L2",
+     "10 cycles",
+     "50% of what reaches it"
+    ],
+    [
+     "memory",
+     "200 cycles",
+     "–"
+    ]
+   ]
+  },
+  {
+   "id": "more",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"target 4 ns:\" quad 2 + (1 - h) times 50 = 4 quad => quad 1 - h = 0.04 quad => quad h = 0.96",
+    "\"A, direct-mapped:\" quad 1 + 0.05 times 100 = 6 \"cycles\"",
+    "\"B, 2-way, slower hit:\" quad 1.2 + 0.04 times 100 = 5.2 \"cycles\"",
+    "\"penalty 25 cycles:\" quad A = 1 + 0.05 times 25 = 2.25, quad B = 1.2 + 0.04 times 25 = 2.2"
+   ]
+  },
+  {
+   "id": "two",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"AMAT\" = \"HT\"_1 + \"MR\"_1 times (\"HT\"_2 + \"MR\"_2 times \"MP\"_2)",
+    "= 1 + 0.04 times (10 + 0.5 times 200)",
+    "= 1 + 0.04 times 110 = 5.4 \"cycles\""
+   ]
+  },
+  {
+   "id": "lg",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "definition",
+    "here"
+   ],
+   "rows": [
+    [
+     "local L2 miss rate",
+     "L2 misses ÷ accesses that reach L2",
+     "20 ÷ 40 = 50%"
+    ],
+    [
+     "global L2 miss rate",
+     "L2 misses ÷ all CPU accesses",
+     "20 ÷ 1000 = 2%"
+    ],
+    [
+     "link",
+     "global = MR₁ × local MR₂",
+     "0.04 × 0.5 = 0.02"
+    ]
+   ]
+  },
+  {
+   "id": "split",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"per instruction\": 1 \"fetch\" + 0.3 \"data\" = 1.3 \"accesses\"",
+    "\"weights\": 1 / 1.3 approx 0.77, quad 0.3 / 1.3 approx 0.23",
+    "\"I-cache\": 1 + 0.01 times 100 = 2, quad \"D-cache\": 1 + 0.04 times 100 = 5",
+    "\"AMAT\" = 0.77 times 2 + 0.23 times 5 approx 2.69 \"cycles\""
+   ]
+  },
+  {
+   "id": "cpi",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"CPI\" = \"CPI\"_\"base\" + \"memory stall cycles per instruction\"",
+    "\"stalls\" = sum \"accesses per instr\" times \"miss rate\" times \"penalty\"",
+    "= 1 times 0.01 times 100 + 0.3 times 0.04 times 100 = 1 + 1.2 = 2.2",
+    "\"CPI\" = 1 + 2.2 = 3.2 quad => quad \"a perfect cache is\" 3.2 \"times faster\"",
+    "\"misses per 1000 instructions\" = 20: quad 20 / 1000 times 200 = 4 \"stall cycles\""
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "L1: 2 ns, hit ratio 0.8 · L2: 10 ns, hit ratio 0.9 · memory: 100 ns. Find:"
+   ],
+   "rows": [
+    [
+     "a) AMAT with hierarchical (look-through) access"
+    ],
+    [
+     "b) AMAT with simultaneous access to all levels"
+    ],
+    [
+     "c) the global miss rate of L2"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad 0.8 times 2 + 0.2 times 0.9 times (2 + 10) + 0.2 times 0.1 times (2 + 10 + 100)",
+    "= 1.6 + 2.16 + 2.24 = 6 \"ns\" quad = 2 + 0.2 times (10 + 0.1 times 100)",
+    "\"b)\" quad 0.8 times 2 + 0.2 times 0.9 times 10 + 0.2 times 0.1 times 100 = 1.6 + 1.8 + 2 = 5.4 \"ns\"",
+    "\"c)\" quad 0.2 times 0.1 = 0.02 = 2%"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Hit rates and miss rates alone do not say how fast memory feels. AMAT, the average memory access time, does, and it is the most asked memory question in GATE."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "AMAT"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The formula and its two conventions, units, and where the miss penalty comes from."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then two cache levels, split caches, turning AMAT into CPI, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "formula",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: every access pays the hit time. Misses also pay the miss penalty."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the formula"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "f"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So AMAT equals hit time, plus miss rate times miss penalty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "f[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Example: a 4 nanosecond cache, 10 percent misses, and 20 nanosecond memory. 4 plus 0.1 times 20 is 6 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "f[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "f[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Picture it. A hit takes 4 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "f"
+      },
+      {
+       "action": "show",
+       "target": "tl"
+      },
+      {
+       "action": "add_block",
+       "target": "tl",
+       "id": "h",
+       "lane": "hit",
+       "start": 0,
+       "end": 4,
+       "label": "L1 4"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Usually a miss first looks in the cache, fails, then goes to memory: 4 plus 20, 24 nanoseconds. This is hierarchical, or look-through, access."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "tl",
+       "id": "s1",
+       "lane": "miss: L1 first, then memory",
+       "start": 0,
+       "end": 4,
+       "label": "L1 4"
+      },
+      {
+       "action": "add_block",
+       "target": "tl",
+       "id": "s2",
+       "lane": "miss: L1 first, then memory",
+       "start": 4,
+       "end": 24,
+       "label": "memory 20",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Some designs start memory at the same time as the cache. Then a miss costs just the memory time, 20."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "tl",
+       "id": "p1",
+       "lane": "miss: L1 and memory together",
+       "start": 0,
+       "end": 20,
+       "label": "memory 20, L1 checked alongside"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That is the second convention, and the formula changes: hit fraction times 4, plus miss fraction times 20, which is 5.6."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "tl"
+      },
+      {
+       "action": "show",
+       "target": "f"
+      },
+      {
+       "action": "reveal",
+       "target": "f[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "f[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "GATE says which one it means. Hierarchical, look-through, or no word at all: the miss pays both. Simultaneous or parallel: the miss pays memory only."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "f"
+      },
+      {
+       "action": "show",
+       "target": "conv"
+      },
+      {
+       "action": "highlight",
+       "target": "conv[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Note the first formula simplifies: h times t1, plus 1 minus h times t1 plus t2, is just t1 plus the miss rate times t2. The same as hit time plus miss rate times penalty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "conv[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the parallel one does not."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "conv[1]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "look-through: t₁ + (1 − h)·t₂ · simultaneous: h·t₁ + (1 − h)·t₂"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "units",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: keep the units the same. Here the hit time is in cycles, but memory is given in nanoseconds."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: cycles or nanoseconds"
+      },
+      {
+       "action": "hide",
+       "target": "conv"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "cy"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At 2 gigahertz a cycle is 0.5 nanoseconds, so 50 nanoseconds of memory is 100 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cy[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With a 1 cycle hit and 5 percent misses, AMAT is 1 plus 0.05 times 100: 6 cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cy[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "cy[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And 6 cycles is 3 nanoseconds. Convert once, at the start or the end, never in the middle."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cy[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "cy[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "pick one unit: convert ns ↔ cycles with the clock period"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "penalty",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: sometimes you must build the miss penalty yourself. A block is 4 words. Sending the address takes 1 cycle, each memory access 15 cycles, and each word transfer 1 cycle."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: building the miss penalty"
+      },
+      {
+       "action": "hide",
+       "target": "cy"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "mp"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With memory one word wide and one bank, the 4 words are read one after another: 1 plus 4 times 15 plus 4 times 1, which is 65 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mp[0]"
+      },
+      {
+       "action": "set",
+       "target": "mp[0][4]",
+       "value": "1 + 60 + 4 = 65",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 4 interleaved banks, all 4 words are read at once, in one 15 cycle access, then sent one per cycle: 1 plus 15 plus 4, just 20 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mp[1]"
+      },
+      {
+       "action": "set",
+       "target": "mp[1][4]",
+       "value": "1 + 15 + 4 = 20",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With a 5 percent miss rate, AMAT falls from 4.25 to 2 cycles, with the same DRAM chips."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "mpx"
+      },
+      {
+       "action": "highlight",
+       "target": "mpx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case: the address is sent once, but the transfer cost is paid for every word. Count each part."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "mpx"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "penalty = address + access(es) + transfers · interleaving overlaps the accesses"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "two",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: two levels. L1 takes 1 cycle and misses 4 percent of the time. L2 takes 10 cycles and misses half of what reaches it. Memory takes 200."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: L1 and L2"
+      },
+      {
+       "action": "hide",
+       "target": "mp"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "hier"
+      },
+      {
+       "action": "highlight",
+       "target": "hier[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "hier[1]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The trick: L1's miss penalty is itself an AMAT, the AMAT of L2."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "hier"
+      },
+      {
+       "action": "show",
+       "target": "two"
+      },
+      {
+       "action": "highlight",
+       "target": "two[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So: 1 plus 0.04 times, 10 plus 0.5 times 200."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "two[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "two[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "10 plus 100 is 110. 0.04 times 110 is 4.4. AMAT is 5.4 cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "two[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "two[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the trap. That 50 percent is the local miss rate of L2: misses divided by the accesses that reach L2."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "two"
+      },
+      {
+       "action": "show",
+       "target": "lg"
+      },
+      {
+       "action": "highlight",
+       "target": "lg[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Out of 1000 CPU accesses, 40 miss in L1 and reach L2, and 20 of those miss again. Local: 20 over 40, 50 percent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lg[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The global miss rate divides by all 1000 CPU accesses: 2 percent. It says what fraction of all accesses go to memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lg[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "They are linked: global equals the L1 miss rate times the local L2 miss rate. Use the local rate inside the AMAT formula."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lg[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "AMAT uses the LOCAL L2 miss rate · global = MR₁ × local MR₂"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "split",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: most processors have separate instruction and data caches. Each instruction makes 1 fetch, and here 0.3 data accesses."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: split I- and D-caches"
+      },
+      {
+       "action": "hide",
+       "target": "lg"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "split"
+      },
+      {
+       "action": "highlight",
+       "target": "split[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So of every 1.3 accesses, 1 goes to the instruction cache and 0.3 to the data cache: weights of 0.77 and 0.23."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "split[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "split[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The I-cache misses 1 percent, the D-cache 4 percent, with a 100 cycle penalty: AMATs of 2 and 5 cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "split[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "split[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The combined AMAT weights them: 0.77 times 2 plus 0.23 times 5, about 2.69 cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "split[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "split[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case: do not just average 2 and 5. There are more than three instruction fetches for every data access."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "weight each cache by its share of accesses"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cpi",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: from AMAT to CPI. Every miss stalls the processor, and those stall cycles add to the CPI."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: from AMAT to CPI"
+      },
+      {
+       "action": "hide",
+       "target": "split"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "cpi"
+      },
+      {
+       "action": "highlight",
+       "target": "cpi[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stall cycles per instruction are, for each kind of access: accesses per instruction, times miss rate, times penalty."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cpi[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "cpi[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Same machine: 1 times 0.01 times 100 for fetches, plus 0.3 times 0.04 times 100 for data, gives 2.2 stall cycles per instruction."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cpi[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "cpi[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With a base CPI of 1, the real CPI is 3.2. So a perfect cache would make this machine 3.2 times faster."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cpi[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "cpi[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Some questions give misses per thousand instructions instead. 20 misses per 1000, at 200 cycles each, is 4 stall cycles per instruction."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cpi[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "cpi[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "CPI = base + Σ accesses/instr × miss rate × penalty"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "more",
+   "steps": [
+    {
+     "say": {
+      "en": "Two more problem types before the exam question. First, working backwards: what hit rate do we need?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Two more problem types"
+      },
+      {
+       "action": "hide",
+       "target": "cpi"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "more"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 2 nanosecond cache, 50 nanosecond memory, look-through, and we want AMAT of 4. So 2 plus 1 minus h, times 50, equals 4. 1 minus h is 0.04, and the hit rate must be 96 percent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "more[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Second, comparing designs. Cache A is direct-mapped: 1 cycle hits, 5 percent misses, 100 cycle penalty: AMAT 6."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "more[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "more[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cache B is 2-way. It misses less, 4 percent, but its hit takes 1.2 cycles. AMAT: 1.2 plus 4, which is 5.2. B wins, even with the slower hit."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "more[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "more[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case: the winner depends on the penalty. With only a 25 cycle penalty, A is 2.25 and B is 2.2: almost a tie. A slower hit can lose when misses are cheap."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "more[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "more[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "compare AMATs, never hit time or miss rate alone"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question in GATE style."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "more"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "L1 takes 2 nanoseconds with hit ratio 0.8. L2 takes 10 with hit ratio 0.9. Memory takes 100."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find the AMAT for hierarchical access, for simultaneous access, and the global L2 miss rate. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: hierarchical. 80 percent hit in L1 for 2 nanoseconds. 20 percent times 0.9 reach L2 and pay 2 plus 10. The last 2 percent pay 2 plus 10 plus 100."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That is 1.6 plus 2.16 plus 2.24, which is 6 nanoseconds. The short form gives the same: 2 plus 0.2 times, 10 plus 0.1 times 100."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: simultaneous. Each access pays only the level that answers: 1.6 plus 1.8 plus 2, which is 5.4 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: the global miss rate of L2 is 0.2 times 0.1, 2 percent. Its local miss rate is 10 percent."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slips: using the global rate inside AMAT, mixing cycles and nanoseconds, and picking the wrong convention for a miss."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "local rate inside AMAT · one unit · read: hierarchical or simultaneous"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "AMAT is hit time plus miss rate times miss penalty, with the miss paying both levels unless access is simultaneous. Keep one unit, and build the penalty from its parts."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For two levels, nest the formula with the local miss rate. Weight split caches by their accesses, and add stall cycles to the base CPI."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: problems on LRU, FIFO and optimal replacement, and page faults."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: replacement problems and page faults"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
