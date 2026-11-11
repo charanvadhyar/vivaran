@@ -92,6 +92,18 @@ objects = [
         ["tag bits per line", "8", "9", "12"]]},
 ]
 
+objects += [
+    {"id": "q", "type": "table", "region": "left", "columns": ["given", "value"], "rows": [
+        ["cache size", "32 KB = 32768 bytes"], ["associativity", "4-way"], ["block size", "64 bytes"], ["address size", "32 bits"]]},
+    {"id": "qa", "type": "math", "region": "right", "lines": [
+        "\"blocks\" = 32768 / 64 = 512",
+        "\"sets\" = 512 / 4 = 128",
+        "\"offset\" = log_2(64) = 6 \"bits\"",
+        "\"index\" = log_2(128) = 7 \"bits\"",
+        "\"tag\" = 32 - 7 - 6 = 19 \"bits\""]},
+    {"id": "qcheck", "type": "table", "region": "bottom", "columns": ["tag", "index", "offset", "total"], "rows": [["19", "7", "6", "32"]]},
+]
+
 S = []  # scenes
 
 
@@ -242,8 +254,22 @@ scene("tradeoffs", [
     ("That is why real first-level caches are usually 2 to 8 way set-associative: a balance between the two ends.", [take("real L1 caches: 2-way to 8-way set-associative")]),
 ])
 
+scene("exam", [
+    ("Now an exam question, the way it is usually asked.", [head("Exam question"), {"action": "hide", "target": "trade"}, untake(), {"action": "show", "target": "q"}]),
+    ("A 32 kilobyte, 4-way set-associative cache with 64 byte blocks and 32 bit addresses. Find the sets, offset, index and tag.", [{"action": "highlight", "target": "q[0..=3]"}]),
+    ("Pause here and try it, then check each line with me.", []),
+    ("First, 32 kilobytes is 32 times 1024, which is 32768 bytes.", [{"action": "highlight", "target": "q[0]"}]),
+    ("Blocks: 32768 divided by 64 is 512 blocks.", [{"action": "show", "target": "qa"}, {"action": "highlight", "target": "qa[0]"}]),
+    ("Sets: 4-way means 4 blocks per set, so 512 divided by 4 is 128 sets.", [{"action": "reveal", "target": "qa[1]"}, {"action": "highlight", "target": "qa[1]"}, {"action": "highlight", "target": "q[1]", "delay": 0.3}]),
+    ("Offset: the block is 64 bytes, and 2 to the 6 is 64, so 6 bits.", [{"action": "reveal", "target": "qa[2]"}, {"action": "highlight", "target": "qa[2]"}, {"action": "highlight", "target": "q[2]", "delay": 0.3}]),
+    ("Index: 128 sets, and 2 to the 7 is 128, so 7 bits.", [{"action": "reveal", "target": "qa[3]"}, {"action": "highlight", "target": "qa[3]"}]),
+    ("Tag: the rest of the address, 32 minus 7 minus 6, which is 19 bits.", [{"action": "reveal", "target": "qa[4]"}, {"action": "highlight", "target": "qa[4]"}, {"action": "highlight", "target": "q[3]", "delay": 0.3}]),
+    ("Check: 19 plus 7 plus 6 gives back all 32 address bits.", [{"action": "show", "target": "qcheck"}, {"action": "mark", "target": "qcheck[0]"}]),
+    ("The usual mistake is forgetting to divide by the ways: the index counts sets, not blocks, and using 512 gives a wrong 9-bit index.", [{"action": "mark", "target": "qa[1]"}]),
+])
+
 scene("recap", [
-    ("Let us walk the stages once more.", [head("Recap"), {"action": "hide", "target": "trade"}, untake(), {"action": "show", "target": "stages"}]),
+    ("Let us walk the stages once more.", [head("Recap"), {"action": "hide", "target": "q"}, {"action": "hide", "target": "qa"}, {"action": "hide", "target": "qcheck"}, {"action": "show", "target": "stages"}]),
     ("Four questions: placement, identification, replacement and write strategy.", [{"action": "highlight", "target": "stages[0]"}]),
     ("Lines equal cache size over block size; sets equal lines over ways.", [{"action": "highlight", "target": "stages[1..=2]"}]),
     ("Offset bits are log of the block size, index bits are log of the sets, and the tag is what is left.", [{"action": "highlight", "target": "stages[3]"}]),

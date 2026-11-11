@@ -492,6 +492,64 @@
      "12"
     ]
    ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "given",
+    "value"
+   ],
+   "rows": [
+    [
+     "cache size",
+     "32 KB = 32768 bytes"
+    ],
+    [
+     "associativity",
+     "4-way"
+    ],
+    [
+     "block size",
+     "64 bytes"
+    ],
+    [
+     "address size",
+     "32 bits"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "right",
+   "lines": [
+    "\"blocks\" = 32768 / 64 = 512",
+    "\"sets\" = 512 / 4 = 128",
+    "\"offset\" = log_2(64) = 6 \"bits\"",
+    "\"index\" = log_2(128) = 7 \"bits\"",
+    "\"tag\" = 32 - 7 - 6 = 19 \"bits\""
+   ]
+  },
+  {
+   "id": "qcheck",
+   "type": "table",
+   "region": "bottom",
+   "columns": [
+    "tag",
+    "index",
+    "offset",
+    "total"
+   ],
+   "rows": [
+    [
+     "19",
+     "7",
+     "6",
+     "32"
+    ]
+   ]
   }
  ],
  "scenes": [
@@ -1922,6 +1980,178 @@
    ]
   },
   {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question, the way it is usually asked."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "trade"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 32 kilobyte, 4-way set-associative cache with 64 byte blocks and 32 bit addresses. Find the sets, offset, index and tag."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pause here and try it, then check each line with me."
+     }
+    },
+    {
+     "say": {
+      "en": "First, 32 kilobytes is 32 times 1024, which is 32768 bytes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Blocks: 32768 divided by 64 is 512 blocks."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sets: 4-way means 4 blocks per set, so 512 divided by 4 is 128 sets."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Offset: the block is 64 bytes, and 2 to the 6 is 64, so 6 bits."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[2]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Index: 128 sets, and 2 to the 7 is 128, so 7 bits."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Tag: the rest of the address, 32 minus 7 minus 6, which is 19 bits."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[3]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check: 19 plus 7 plus 6 gives back all 32 address bits."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "qcheck"
+      },
+      {
+       "action": "mark",
+       "target": "qcheck[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual mistake is forgetting to divide by the ways: the index counts sets, not blocks, and using 512 gives a wrong 9-bit index."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "qa[1]"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "id": "recap",
    "steps": [
     {
@@ -1936,11 +2166,15 @@
       },
       {
        "action": "hide",
-       "target": "trade"
+       "target": "q"
       },
       {
        "action": "hide",
-       "target": "takeaway"
+       "target": "qa"
+      },
+      {
+       "action": "hide",
+       "target": "qcheck"
       },
       {
        "action": "show",
