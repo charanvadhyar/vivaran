@@ -1,0 +1,2077 @@
+{
+ "version": 1,
+ "title": "Replacement: LRU, FIFO and random, and when FIFO wins",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "When does the cache have to choose a victim?"
+    ],
+    [
+     2,
+     "The LRU rule: least recently used"
+    ],
+    [
+     3,
+     "The FIFO rule: first in, first out"
+    ],
+    [
+     4,
+     "Reference string 1, traced with both"
+    ],
+    [
+     5,
+     "The trap: reference string 2, where FIFO wins"
+    ],
+    [
+     6,
+     "Random, and what each policy costs in hardware"
+    ]
+   ]
+  },
+  {
+   "id": "when",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "mapping",
+    "on a miss, the new block can go",
+    "choice?"
+   ],
+   "rows": [
+    [
+     "direct-mapped",
+     "exactly one line",
+     "none: that line is replaced"
+    ],
+    [
+     "set-associative",
+     "any way of its set",
+     "yes, when every way is full"
+    ],
+    [
+     "fully associative",
+     "any line",
+     "yes, when the cache is full"
+    ]
+   ]
+  },
+  {
+   "id": "rules",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "policy",
+    "evicts",
+    "keeps",
+    "updated on"
+   ],
+   "rows": [
+    [
+     "LRU",
+     "the block unused for the longest time",
+     "an order, least recent first",
+     "every access, hit or miss"
+    ],
+    [
+     "FIFO",
+     "the block that arrived first",
+     "a queue, oldest first",
+     "misses only"
+    ],
+    [
+     "Random",
+     "any block, chosen at random",
+     "nothing per set",
+     "misses only"
+    ]
+   ]
+  },
+  {
+   "id": "t1",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "#",
+    "ref",
+    "LRU ways",
+    "LRU order",
+    "LRU",
+    "FIFO ways",
+    "FIFO queue",
+    "FIFO"
+   ],
+   "rows": [
+    [
+     1,
+     "A",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     2,
+     "B",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     3,
+     "C",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     4,
+     "B",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     5,
+     "A",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     6,
+     "D",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     7,
+     "A",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     8,
+     "B",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     9,
+     "A",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "t2",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "#",
+    "ref",
+    "LRU ways",
+    "LRU order",
+    "LRU",
+    "FIFO ways",
+    "FIFO queue",
+    "FIFO"
+   ],
+   "rows": [
+    [
+     1,
+     "A",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     2,
+     "B",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     3,
+     "A",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     4,
+     "C",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     5,
+     "D",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     6,
+     "B",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     7,
+     "A",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     8,
+     "C",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     9,
+     "D",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "score",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "reference string",
+    "LRU hits",
+    "FIFO hits",
+    "winner"
+   ],
+   "rows": [
+    [
+     "1: A B C B A D A B A",
+     "5 of 9",
+     "3 of 9",
+     "LRU"
+    ],
+    [
+     "2: A B A C D B A C D",
+     "1 of 9",
+     "4 of 9",
+     "FIFO"
+    ]
+   ]
+  },
+  {
+   "id": "cost",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "policy",
+    "state per set",
+    "work on a hit",
+    "miss rate in practice"
+   ],
+   "rows": [
+    [
+     "LRU",
+     "full order of the ways",
+     "update the order",
+     "usually lowest"
+    ],
+    [
+     "pseudo-LRU",
+     "a few bits (a tree)",
+     "flip a few bits",
+     "close to LRU"
+    ],
+    [
+     "FIFO",
+     "one pointer to the oldest way",
+     "nothing",
+     "a little higher"
+    ],
+    [
+     "Random",
+     "nothing (one shared generator)",
+     "nothing",
+     "close to LRU in large caches"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Last video, a miss brought a new block into the cache."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Replacement: which block is thrown out?"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But when the place it must go is already full, something has to leave."
+     }
+    },
+    {
+     "say": {
+      "en": "That is question three: on a miss, which block is replaced?"
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Q3 replacement: on a miss with no free way, which block leaves?"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "We compare three answers: LRU, FIFO and random."
+     }
+    },
+    {
+     "say": {
+      "en": "Here are the six stages, with two reference strings worked by hand."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "First when a choice exists, then the LRU and FIFO rules."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then one string traced with both, and a second string that is a favourite exam trap."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Last, random replacement and the hardware cost of each."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "when",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: when does the cache have to choose?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 6: when is there a choice?"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "when"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In a direct-mapped cache, a block has one possible line, so there is nothing to choose."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "when[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Whatever sits in that line is replaced, every time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "when[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In a set-associative cache, the block may use any way of its set."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "when[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If a way is empty, it goes there; only when every way is full must we pick a victim."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "when[1][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Fully associative is the same, with the whole cache as one set."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "when[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For our examples, take one set with three ways, and blocks named A, B, C and D."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "one set · 3 ways · blocks A, B, C, D · all start empty"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Four blocks and only three ways: someone will have to leave."
+     }
+    }
+   ]
+  },
+  {
+   "id": "rules",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the LRU rule."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stages 2 and 3 of 6: the LRU and FIFO rules"
+      },
+      {
+       "action": "hide",
+       "target": "when"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "rules"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU stands for least recently used: evict the block that has gone unused the longest."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rules[0][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To do that it keeps an order of the blocks, least recently used first."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rules[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every access, a hit as well as a miss, moves that block to the most recent end."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rules[0][3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The idea is temporal locality: a block used recently is likely to be used again soon."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "LRU bets on temporal locality: recently used → used again soon"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stage 3: the FIFO rule, first in, first out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rules[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO evicts the block that arrived first, however often it has been used since."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rules[1][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It keeps a queue by arrival time, oldest at the front."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rules[1][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A hit does not change the queue; only a miss adds a block at the back."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rules[1][3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This one difference, whether a hit updates the order, is where the two policies part ways."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "rules.c3"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "LRU: every access reorders · FIFO: only misses enter the queue"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "string1",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: reference string one is A, B, C, B, A, D, B, A, B."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 6: reference string 1"
+      },
+      {
+       "action": "hide",
+       "target": "rules"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "t1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For each reference we write the ways, the order, and hit or miss, for LRU and then FIFO."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t1.c1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Reference 1, A: the set is empty, so it is a miss, and A goes into way 0."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t1[0]"
+      },
+      {
+       "action": "set",
+       "target": "t1[0][2]",
+       "value": "A – –"
+      },
+      {
+       "action": "set",
+       "target": "t1[0][3]",
+       "value": "A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[0][4]",
+       "value": "miss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO does exactly the same: a miss, and A is first in the queue."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t1[0][5]",
+       "value": "A – –"
+      },
+      {
+       "action": "set",
+       "target": "t1[0][6]",
+       "value": "A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[0][7]",
+       "value": "miss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: B misses, and an empty way takes it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t1[1]"
+      },
+      {
+       "action": "set",
+       "target": "t1[1][2]",
+       "value": "A B –"
+      },
+      {
+       "action": "set",
+       "target": "t1[1][3]",
+       "value": "A B",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[1][4]",
+       "value": "miss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: a miss into an empty way, and B joins the back of the queue."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t1[1][5]",
+       "value": "A B –"
+      },
+      {
+       "action": "set",
+       "target": "t1[1][6]",
+       "value": "A B",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[1][7]",
+       "value": "miss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: C misses, and an empty way takes it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t1[2]"
+      },
+      {
+       "action": "set",
+       "target": "t1[2][2]",
+       "value": "A B C"
+      },
+      {
+       "action": "set",
+       "target": "t1[2][3]",
+       "value": "A B C",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[2][4]",
+       "value": "miss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: the same miss; the queue is now A, B, C, oldest first."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t1[2][5]",
+       "value": "A B C"
+      },
+      {
+       "action": "set",
+       "target": "t1[2][6]",
+       "value": "A B C",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[2][7]",
+       "value": "miss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: B is there, a hit, so B moves to the most recent end: A, C, B."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t1[3]"
+      },
+      {
+       "action": "set",
+       "target": "t1[3][2]",
+       "value": "A B C"
+      },
+      {
+       "action": "set",
+       "target": "t1[3][3]",
+       "value": "A C B",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[3][4]",
+       "value": "hit",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: also a hit, and the queue does not change on a hit."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t1[3][5]",
+       "value": "A B C"
+      },
+      {
+       "action": "set",
+       "target": "t1[3][6]",
+       "value": "A B C",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[3][7]",
+       "value": "hit",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: A hits too, and moves to the end: C, B, A."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t1[4]"
+      },
+      {
+       "action": "set",
+       "target": "t1[4][2]",
+       "value": "A B C"
+      },
+      {
+       "action": "set",
+       "target": "t1[4][3]",
+       "value": "C B A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[4][4]",
+       "value": "hit",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: a hit as well, and the queue is still A, B, C."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t1[4][5]",
+       "value": "A B C"
+      },
+      {
+       "action": "set",
+       "target": "t1[4][6]",
+       "value": "A B C",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[4][7]",
+       "value": "hit",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "D misses, the set is full, and LRU's least recent block is C, so C is evicted."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t1[5]"
+      },
+      {
+       "action": "set",
+       "target": "t1[5][2]",
+       "value": "A B D"
+      },
+      {
+       "action": "set",
+       "target": "t1[5][3]",
+       "value": "B A D",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[5][4]",
+       "value": "miss (C out)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO evicts the oldest arrival, A, even though A was just used."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t1[5][5]",
+       "value": "D B C"
+      },
+      {
+       "action": "set",
+       "target": "t1[5][6]",
+       "value": "B C D",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[5][7]",
+       "value": "miss (A out)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: A is there, a hit, and A moves to the most recent end."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t1[6]"
+      },
+      {
+       "action": "set",
+       "target": "t1[6][2]",
+       "value": "A B D"
+      },
+      {
+       "action": "set",
+       "target": "t1[6][3]",
+       "value": "B D A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[6][4]",
+       "value": "hit",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: A is not there, a miss; the oldest is B, so B is evicted."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t1[6][5]",
+       "value": "D A C"
+      },
+      {
+       "action": "set",
+       "target": "t1[6][6]",
+       "value": "C D A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[6][7]",
+       "value": "miss (B out)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: B is there, a hit, and B moves to the most recent end."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t1[7]"
+      },
+      {
+       "action": "set",
+       "target": "t1[7][2]",
+       "value": "A B D"
+      },
+      {
+       "action": "set",
+       "target": "t1[7][3]",
+       "value": "D A B",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[7][4]",
+       "value": "hit",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: B is not there, a miss; the oldest is C, so C is evicted."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t1[7][5]",
+       "value": "D A B"
+      },
+      {
+       "action": "set",
+       "target": "t1[7][6]",
+       "value": "D A B",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[7][7]",
+       "value": "miss (C out)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: A is there, a hit, and A moves to the most recent end."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t1[8]"
+      },
+      {
+       "action": "set",
+       "target": "t1[8][2]",
+       "value": "A B D"
+      },
+      {
+       "action": "set",
+       "target": "t1[8][3]",
+       "value": "D B A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[8][4]",
+       "value": "hit",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: also a hit, and the queue does not change on a hit."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t1[8][5]",
+       "value": "D A B"
+      },
+      {
+       "action": "set",
+       "target": "t1[8][6]",
+       "value": "D A B",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t1[8][7]",
+       "value": "hit",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Count the hits: LRU has 5 of 9, FIFO has 3 of 9."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "t1.c4"
+      },
+      {
+       "action": "highlight",
+       "target": "t1.c7",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check: hits plus misses must be 9 in each column: 5 plus 4, and 3 plus 6."
+     }
+    },
+    {
+     "say": {
+      "en": "LRU won because A and B were reused, and FIFO threw A out by age, not by use."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "string 1: LRU 5 hits · FIFO 3 hits — reuse rewards LRU"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "string2",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5, the trap: is LRU always better than FIFO?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 6: the trap — FIFO beats LRU"
+      },
+      {
+       "action": "hide",
+       "target": "t1"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "t2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Take reference string two: A, B, A, C, D, B, A, C, D, with the same three ways."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t2.c1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: A misses, and an empty way takes it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t2[0]"
+      },
+      {
+       "action": "set",
+       "target": "t2[0][2]",
+       "value": "A – –"
+      },
+      {
+       "action": "set",
+       "target": "t2[0][3]",
+       "value": "A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[0][4]",
+       "value": "miss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: a miss into an empty way, and A joins the back of the queue."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2[0][5]",
+       "value": "A – –"
+      },
+      {
+       "action": "set",
+       "target": "t2[0][6]",
+       "value": "A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[0][7]",
+       "value": "miss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: B misses, and an empty way takes it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t2[1]"
+      },
+      {
+       "action": "set",
+       "target": "t2[1][2]",
+       "value": "A B –"
+      },
+      {
+       "action": "set",
+       "target": "t2[1][3]",
+       "value": "A B",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[1][4]",
+       "value": "miss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: a miss into an empty way, and B joins the back of the queue."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2[1][5]",
+       "value": "A B –"
+      },
+      {
+       "action": "set",
+       "target": "t2[1][6]",
+       "value": "A B",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[1][7]",
+       "value": "miss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: A hits, and moves to the end: B, A."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t2[2]"
+      },
+      {
+       "action": "set",
+       "target": "t2[2][2]",
+       "value": "A B –"
+      },
+      {
+       "action": "set",
+       "target": "t2[2][3]",
+       "value": "B A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[2][4]",
+       "value": "hit",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: a hit too; the queue stays A, B."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2[2][5]",
+       "value": "A B –"
+      },
+      {
+       "action": "set",
+       "target": "t2[2][6]",
+       "value": "A B",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[2][7]",
+       "value": "hit",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: C misses, and an empty way takes it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t2[3]"
+      },
+      {
+       "action": "set",
+       "target": "t2[3][2]",
+       "value": "A B C"
+      },
+      {
+       "action": "set",
+       "target": "t2[3][3]",
+       "value": "B A C",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[3][4]",
+       "value": "miss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: a miss into an empty way, and C joins the back of the queue."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2[3][5]",
+       "value": "A B C"
+      },
+      {
+       "action": "set",
+       "target": "t2[3][6]",
+       "value": "A B C",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[3][7]",
+       "value": "miss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "D misses; LRU's least recent is B, so B is evicted."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t2[4]"
+      },
+      {
+       "action": "set",
+       "target": "t2[4][2]",
+       "value": "A D C"
+      },
+      {
+       "action": "set",
+       "target": "t2[4][3]",
+       "value": "A C D",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[4][4]",
+       "value": "miss (B out)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO evicts the oldest arrival, which is A."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2[4][5]",
+       "value": "D B C"
+      },
+      {
+       "action": "set",
+       "target": "t2[4][6]",
+       "value": "B C D",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[4][7]",
+       "value": "miss (A out)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now B returns: LRU just threw B out, so a miss, and A goes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t2[5]"
+      },
+      {
+       "action": "set",
+       "target": "t2[5][2]",
+       "value": "B D C"
+      },
+      {
+       "action": "set",
+       "target": "t2[5][3]",
+       "value": "C D B",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[5][4]",
+       "value": "miss (A out)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: B is still there, so a hit, and the queue stays as it is."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2[5][5]",
+       "value": "D B C"
+      },
+      {
+       "action": "set",
+       "target": "t2[5][6]",
+       "value": "B C D",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[5][7]",
+       "value": "hit",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: A misses; the least recent is C, so C is evicted."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t2[6]"
+      },
+      {
+       "action": "set",
+       "target": "t2[6][2]",
+       "value": "B D A"
+      },
+      {
+       "action": "set",
+       "target": "t2[6][3]",
+       "value": "D B A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[6][4]",
+       "value": "miss (C out)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: a miss; the oldest arrival is B, so B is evicted."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2[6][5]",
+       "value": "D A C"
+      },
+      {
+       "action": "set",
+       "target": "t2[6][6]",
+       "value": "C D A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[6][7]",
+       "value": "miss (B out)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: C misses; the least recent is D, so D is evicted."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t2[7]"
+      },
+      {
+       "action": "set",
+       "target": "t2[7][2]",
+       "value": "B C A"
+      },
+      {
+       "action": "set",
+       "target": "t2[7][3]",
+       "value": "B A C",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[7][4]",
+       "value": "miss (D out)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: C is still there, so a hit, and the queue stays as it is."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2[7][5]",
+       "value": "D A C"
+      },
+      {
+       "action": "set",
+       "target": "t2[7][6]",
+       "value": "C D A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[7][7]",
+       "value": "hit",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU: D misses; the least recent is B, so B is evicted."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t2[8]"
+      },
+      {
+       "action": "set",
+       "target": "t2[8][2]",
+       "value": "D C A"
+      },
+      {
+       "action": "set",
+       "target": "t2[8][3]",
+       "value": "A C D",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[8][4]",
+       "value": "miss (B out)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO: D is still there, so a hit, and the queue stays as it is."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2[8][5]",
+       "value": "D A C"
+      },
+      {
+       "action": "set",
+       "target": "t2[8][6]",
+       "value": "C D A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[8][7]",
+       "value": "hit",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Count: LRU has just 1 hit of 9, FIFO has 4 of 9."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "t2.c7"
+      },
+      {
+       "action": "highlight",
+       "target": "t2.c4",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Look at LRU's first four evictions: B, A, C, D, and each is the very block needed next."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t2.c4"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The string cycles through four blocks in three ways, and LRU always throws out the next one in the cycle."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "string 2: LRU 1 hit · FIFO 4 hits — LRU is not always better"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the result depends on the reference string; no policy wins on every string."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "t2"
+      },
+      {
+       "action": "show",
+       "target": "score"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "String one rewarded reuse, so LRU won; string two punished it, so FIFO won."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "score[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "score[1]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In an exam, say LRU usually misses less on real programs, never that it always does."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "score.winner"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "random",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: random replacement picks any way of the set, by chance."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 6: random, and what each policy costs"
+      },
+      {
+       "action": "hide",
+       "target": "score"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "cost"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It keeps no history at all, so it cannot be fooled by a pattern like string two, and cannot exploit string one."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Hardware uses a pseudo-random generator, often a small shift register, shared by every set."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[3][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU is the expensive one: it must track the full order of the ways and update it on every hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For two ways that is one bit per set, but the order grows quickly with more ways."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[0][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So real caches with many ways use pseudo-LRU, a few bits per set that approximate the true order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO needs only a pointer to the oldest way, moved on each miss."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And in large caches, random's miss rate comes close to LRU's, which is why it is still used."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[3][3]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the six stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "cost"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      },
+      {
+       "action": "reset",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A choice exists only in set-associative and fully associative caches, when every way is full."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LRU evicts the least recently used block and reorders on every access."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIFO evicts the oldest arrival, and a hit changes nothing."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "String one: LRU 5 hits, FIFO 3. String two: LRU 1 hit, FIFO 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Random is cheapest, LRU costs the most, and pseudo-LRU sits between."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: question four, writes, and the three kinds of miss."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: write policies and the three C's"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

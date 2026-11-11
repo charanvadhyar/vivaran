@@ -1,0 +1,1905 @@
+{
+ "version": 1,
+ "title": "Write policies and the three C's of cache misses",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Why writes need their own rules"
+    ],
+    [
+     2,
+     "Write hit: write-through or write-back"
+    ],
+    [
+     3,
+     "Write miss: write-allocate or no-write-allocate"
+    ],
+    [
+     4,
+     "One trace, two policy pairs: count the memory traffic"
+    ],
+    [
+     5,
+     "The three C's: compulsory, capacity, conflict"
+    ],
+    [
+     6,
+     "Classify every miss of a reference string"
+    ]
+   ]
+  },
+  {
+   "id": "hitpol",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "on a write hit",
+    "cache",
+    "memory",
+    "extra hardware"
+   ],
+   "rows": [
+    [
+     "write-through",
+     "updated",
+     "updated now, every write",
+     "write buffer"
+    ],
+    [
+     "write-back",
+     "updated",
+     "updated only when the block is evicted",
+     "dirty bit per line"
+    ]
+   ]
+  },
+  {
+   "id": "loop",
+   "type": "math",
+   "region": "bottom",
+   "lines": [
+    "\"10 writes to one block:\" quad \"write-through\" = 10 \"memory writes\" quad \"write-back\" = 1 \"block write, at eviction\""
+   ]
+  },
+  {
+   "id": "misspol",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "on a write miss",
+    "what happens",
+    "usual partner"
+   ],
+   "rows": [
+    [
+     "write-allocate",
+     "fetch the block into the cache, then write it there",
+     "write-back"
+    ],
+    [
+     "no-write-allocate",
+     "write straight to memory; the cache is not changed",
+     "write-through"
+    ]
+   ]
+  },
+  {
+   "id": "traffic",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "#",
+    "access",
+    "write-back + write-allocate",
+    "WB traffic",
+    "write-through + no-write-allocate",
+    "WT traffic"
+   ],
+   "rows": [
+    [
+     1,
+     "write X",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     2,
+     "write X",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     3,
+     "read X",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     4,
+     "write Y",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     5,
+     "read X",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "tsum",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "policy pair",
+    "block reads",
+    "block writes",
+    "single-word writes"
+   ],
+   "rows": [
+    [
+     "write-back + write-allocate",
+     "",
+     "",
+     ""
+    ],
+    [
+     "write-through + no-write-allocate",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "threec",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "miss",
+    "cause",
+    "it would miss even in"
+   ],
+   "rows": [
+    [
+     "compulsory",
+     "the first reference to a block",
+     "an infinite cache"
+    ],
+    [
+     "capacity",
+     "the cache cannot hold every block the program is using",
+     "a fully associative cache of the same size"
+    ],
+    [
+     "conflict",
+     "too many blocks map to one set",
+     "nothing: a fully associative cache would have hit"
+    ]
+   ]
+  },
+  {
+   "id": "test",
+   "type": "diagram",
+   "region": "right",
+   "layout": "layers",
+   "direction": "down",
+   "nodes": [
+    {
+     "id": "m",
+     "label": "a miss"
+    },
+    {
+     "id": "q1",
+     "label": "first use?"
+    },
+    {
+     "id": "comp",
+     "label": "compulsory",
+     "shape": "pill"
+    },
+    {
+     "id": "q2",
+     "label": "FA LRU hit?"
+    },
+    {
+     "id": "conf",
+     "label": "conflict",
+     "shape": "pill"
+    },
+    {
+     "id": "cap",
+     "label": "capacity",
+     "shape": "pill"
+    }
+   ],
+   "edges": [
+    {
+     "from": "m",
+     "to": "q1"
+    },
+    {
+     "from": "q1",
+     "to": "comp",
+     "label": "yes"
+    },
+    {
+     "from": "q1",
+     "to": "q2",
+     "label": "no"
+    },
+    {
+     "from": "q2",
+     "to": "conf",
+     "label": "yes"
+    },
+    {
+     "from": "q2",
+     "to": "cap",
+     "label": "no"
+    }
+   ]
+  },
+  {
+   "id": "cls",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "#",
+    "block",
+    "line",
+    "direct-mapped",
+    "seen?",
+    "FA hits?",
+    "class"
+   ],
+   "rows": [
+    [
+     1,
+     0,
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     2,
+     4,
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     3,
+     0,
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     4,
+     4,
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     5,
+     1,
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     6,
+     1,
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     7,
+     2,
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     8,
+     3,
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     9,
+     5,
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     10,
+     0,
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "fix",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "miss",
+    "reduced by",
+    "but it costs"
+   ],
+   "rows": [
+    [
+     "compulsory",
+     "larger blocks, prefetching",
+     "a longer miss penalty; more conflict misses if blocks get too big"
+    ],
+    [
+     "capacity",
+     "a larger cache",
+     "a longer hit time, more power and area"
+    ],
+    [
+     "conflict",
+     "higher associativity",
+     "a longer hit time"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Two videos ago we placed and found blocks; last video we chose which one to evict."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Writes, and the three C's of misses"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This video answers question four, writes, and then sorts every miss into three kinds."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Q4 write strategy · the three C's: compulsory, capacity, conflict"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the six stages."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why writes are different, then what happens on a write hit, and on a write miss."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then one trace, where we count every trip to memory under two policy pairs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Last, the three C's, with every miss of a reference string classified by hand."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: why do writes need their own rules?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 6: why writes are different"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On a read, the cache can read the data while it checks the tag, and simply ignore it on a miss."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "read: read data and check the tag at the same time"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A write cannot do that: changing the block before the tag matches would destroy someone else's data."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "write: the tag must match before the block is changed"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And a write makes the cache and memory disagree, unless we decide when memory is updated."
+     }
+    },
+    {
+     "say": {
+      "en": "So there are two decisions: what to do on a write hit, and what to do on a write miss."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "two decisions: on a write hit · on a write miss"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "write-hit",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: on a write hit, the block is in the cache. When does memory get the new value?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 6: on a write hit"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "hitpol"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through updates the cache and memory on every write."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hitpol[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Memory is always up to date, which makes the design simple."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hitpol[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But every write now waits for slow memory, so a write buffer holds writes while the processor carries on."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hitpol[0][3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-back updates only the cache, and writes the whole block to memory when it is evicted."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hitpol[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each line gets a dirty bit, set on a write, so only changed blocks are written back."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hitpol[1][3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A clean block, one that was only read, is simply dropped when evicted."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hitpol[1][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Example: a loop writes the same block 10 times before it is evicted."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "loop"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through makes 10 memory writes; write-back makes just 1 block write, at eviction."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "loop[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So write-back saves memory bandwidth when a block is written many times."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "hitpol[1]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "write-miss",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: on a write miss, the block is not in the cache. Do we bring it in?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 6: on a write miss"
+      },
+      {
+       "action": "hide",
+       "target": "hitpol"
+      },
+      {
+       "action": "hide",
+       "target": "loop"
+      },
+      {
+       "action": "show",
+       "target": "misspol"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-allocate fetches the block into the cache first, then writes it there, like a read miss followed by a write hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "misspol[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "No-write-allocate writes straight to memory and leaves the cache unchanged."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "misspol[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Any pairing is possible, but two are usual."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "misspol.c2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-back goes with write-allocate, hoping later writes to the block will hit in the cache."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "misspol[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through goes with no-write-allocate, since every write goes to memory anyway."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "misspol[1][2]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "traffic",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: one trace, both pairs. X and Y are blocks that map to the same line of a direct-mapped cache."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 6: counting memory traffic"
+      },
+      {
+       "action": "hide",
+       "target": "misspol"
+      },
+      {
+       "action": "show",
+       "target": "traffic"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The cache starts empty, and we count every block read, block write and single-word write to memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic.access"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access 1, write X, misses. Write-back with allocate fetches X, writes it in the cache, and sets dirty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic[0]"
+      },
+      {
+       "action": "set",
+       "target": "traffic[0][2]",
+       "value": "miss: fetch X, write, dirty"
+      },
+      {
+       "action": "set",
+       "target": "traffic[0][3]",
+       "value": "1 block read",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through with no allocate sends the word to memory and leaves the cache empty."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "traffic[0][4]",
+       "value": "miss: write word to memory"
+      },
+      {
+       "action": "set",
+       "target": "traffic[0][5]",
+       "value": "1 word write",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access 2, write X again. Write-back: now a hit, the cache changes, memory does not."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic[1]"
+      },
+      {
+       "action": "set",
+       "target": "traffic[1][2]",
+       "value": "hit: write in cache"
+      },
+      {
+       "action": "set",
+       "target": "traffic[1][3]",
+       "value": "none",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through: X was never brought in, so a miss again, and another word to memory."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "traffic[1][4]",
+       "value": "miss: write word to memory"
+      },
+      {
+       "action": "set",
+       "target": "traffic[1][5]",
+       "value": "1 word write",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access 3, read X. Write-back: a hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic[2]"
+      },
+      {
+       "action": "set",
+       "target": "traffic[2][2]",
+       "value": "hit"
+      },
+      {
+       "action": "set",
+       "target": "traffic[2][3]",
+       "value": "none",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through: a read miss, so now X is fetched into the cache."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "traffic[2][4]",
+       "value": "miss: fetch X"
+      },
+      {
+       "action": "set",
+       "target": "traffic[2][5]",
+       "value": "1 block read",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access 4, write Y, same line. Write-back: a miss; dirty X must be written back, then Y fetched."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic[3]"
+      },
+      {
+       "action": "set",
+       "target": "traffic[3][2]",
+       "value": "miss: write back X, fetch Y, dirty"
+      },
+      {
+       "action": "set",
+       "target": "traffic[3][3]",
+       "value": "1 block write + 1 block read",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through: a miss, the word goes to memory, and X stays in the cache."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "traffic[3][4]",
+       "value": "miss: write word to memory"
+      },
+      {
+       "action": "set",
+       "target": "traffic[3][5]",
+       "value": "1 word write",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access 5, read X. Write-back: X was evicted, so a miss; dirty Y goes back, then X is fetched."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic[4]"
+      },
+      {
+       "action": "set",
+       "target": "traffic[4][2]",
+       "value": "miss: write back Y, fetch X"
+      },
+      {
+       "action": "set",
+       "target": "traffic[4][3]",
+       "value": "1 block write + 1 block read",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through: X is still there, a hit."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "traffic[4][4]",
+       "value": "hit"
+      },
+      {
+       "action": "set",
+       "target": "traffic[4][5]",
+       "value": "none",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now add up each column."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "tsum"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-back: block reads at accesses 1, 4 and 5 make 3; block writes at 4 and 5 make 2; no single-word writes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic.c3"
+      },
+      {
+       "action": "set",
+       "target": "tsum[0][1]",
+       "value": "3"
+      },
+      {
+       "action": "set",
+       "target": "tsum[0][2]",
+       "value": "2",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tsum[0][3]",
+       "value": "0",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through: one block read, at access 3, and single-word writes at 1, 2 and 4, so 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic.c5"
+      },
+      {
+       "action": "set",
+       "target": "tsum[1][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "tsum[1][2]",
+       "value": "0",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tsum[1][3]",
+       "value": "3",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check with hits: write-back hit at accesses 2 and 3; write-through hit only at access 5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic.c2"
+      },
+      {
+       "action": "highlight",
+       "target": "traffic.c4",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Neither always wins: write-back moves whole blocks, write-through moves many small words."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "tsum"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Remember this for AMAT: with no-write-allocate, a write miss costs a memory write, not a block fetch."
+     }
+    }
+   ]
+  },
+  {
+   "id": "three-cs",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: every miss has a cause, and there are three kinds, the three C's."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 6: the three C's"
+      },
+      {
+       "action": "hide",
+       "target": "traffic"
+      },
+      {
+       "action": "hide",
+       "target": "tsum"
+      },
+      {
+       "action": "show",
+       "target": "threec"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Compulsory misses happen on the very first reference to a block; it has never been in the cache."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "threec[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Even an infinite cache would take these misses."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "threec[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Capacity misses happen when the program uses more blocks than the cache can hold."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "threec[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The test: even a fully associative cache of the same size would miss."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "threec[1][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Conflict misses happen when too many blocks map to one set, although other lines are free."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "threec[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A fully associative cache of the same size would have hit, so the mapping is to blame."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "threec[2][2]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "classify",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: classify every miss of a real trace. The procedure has two questions."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 6: classifying misses"
+      },
+      {
+       "action": "hide",
+       "target": "threec"
+      },
+      {
+       "action": "show",
+       "target": "test"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "First: is this the first time the block is used? If yes, it is compulsory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "test.q1"
+      },
+      {
+       "action": "highlight",
+       "target": "test.comp",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If not: would a fully associative LRU cache of the same size have hit?"
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "test.q2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If it would, the miss is conflict; if it would not, the miss is capacity."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "test.conf"
+      },
+      {
+       "action": "highlight",
+       "target": "test.cap",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Our cache: direct-mapped, 4 lines, so block b goes to line b mod 4."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "cls"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "direct-mapped, 4 lines · line = block mod 4 · shadow: fully associative LRU, 4 lines"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Beside it we keep a shadow: a fully associative LRU cache, also 4 lines."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cls.c5"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The blocks referenced are 0, 4, 0, 4, 1, 1, 2, 3, 5, 0."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cls.block"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 0 goes to line 0; never seen before, so a compulsory miss."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cls[0]"
+      },
+      {
+       "action": "set",
+       "target": "cls[0][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "cls[0][3]",
+       "value": "miss",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "cls[0][4]",
+       "value": "no",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "cls[0][5]",
+       "value": "–",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "cls[0][6]",
+       "value": "compulsory",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 4: 4 mod 4 is 0, line 0 again, and it is new: compulsory, and block 0 is thrown out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cls[1]"
+      },
+      {
+       "action": "set",
+       "target": "cls[1][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "cls[1][3]",
+       "value": "miss",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "cls[1][4]",
+       "value": "no",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "cls[1][5]",
+       "value": "–",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "cls[1][6]",
+       "value": "compulsory",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 0 again: line 0 holds 4, a miss. But we have seen 0, and the shadow still holds 0 and 4, so it would hit: conflict."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cls[2]"
+      },
+      {
+       "action": "set",
+       "target": "cls[2][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "cls[2][3]",
+       "value": "miss",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "cls[2][4]",
+       "value": "yes",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "cls[2][5]",
+       "value": "yes",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "cls[2][6]",
+       "value": "conflict",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 4: line 0 now holds 0, a miss; the shadow would hit again, so conflict."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cls[3]"
+      },
+      {
+       "action": "set",
+       "target": "cls[3][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "cls[3][3]",
+       "value": "miss",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "cls[3][4]",
+       "value": "yes",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "cls[3][5]",
+       "value": "yes",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "cls[3][6]",
+       "value": "conflict",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 1 goes to line 1, first use: compulsory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cls[4]"
+      },
+      {
+       "action": "set",
+       "target": "cls[4][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "cls[4][3]",
+       "value": "miss",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "cls[4][4]",
+       "value": "no",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "cls[4][5]",
+       "value": "–",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "cls[4][6]",
+       "value": "compulsory",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 1 again: line 1 holds 1, a hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cls[5]"
+      },
+      {
+       "action": "set",
+       "target": "cls[5][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "cls[5][3]",
+       "value": "hit",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "cls[5][4]",
+       "value": "yes",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "cls[5][5]",
+       "value": "–",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "cls[5][6]",
+       "value": "hit",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 2 goes to line 2, first use: compulsory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cls[6]"
+      },
+      {
+       "action": "set",
+       "target": "cls[6][2]",
+       "value": "2"
+      },
+      {
+       "action": "set",
+       "target": "cls[6][3]",
+       "value": "miss",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "cls[6][4]",
+       "value": "no",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "cls[6][5]",
+       "value": "–",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "cls[6][6]",
+       "value": "compulsory",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 3 goes to line 3, first use: compulsory. The shadow is now full: 4, 1, 2, 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cls[7]"
+      },
+      {
+       "action": "set",
+       "target": "cls[7][2]",
+       "value": "3"
+      },
+      {
+       "action": "set",
+       "target": "cls[7][3]",
+       "value": "miss",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "cls[7][4]",
+       "value": "no",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "cls[7][5]",
+       "value": "–",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "cls[7][6]",
+       "value": "compulsory",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 5: 5 mod 4 is 1, so line 1, first use: compulsory, and block 1 is thrown out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cls[8]"
+      },
+      {
+       "action": "set",
+       "target": "cls[8][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "cls[8][3]",
+       "value": "miss",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "cls[8][4]",
+       "value": "no",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "cls[8][5]",
+       "value": "–",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "cls[8][6]",
+       "value": "compulsory",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 0: line 0 holds 4, a miss. We have seen 0, but the shadow evicted it to make room, so capacity."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cls[9]"
+      },
+      {
+       "action": "set",
+       "target": "cls[9][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "cls[9][3]",
+       "value": "miss",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "cls[9][4]",
+       "value": "yes",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "cls[9][5]",
+       "value": "no",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "cls[9][6]",
+       "value": "capacity",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Count: 6 compulsory, 2 conflict, 1 capacity, and 1 hit."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "cls.class"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "6 compulsory · 2 conflict · 1 capacity · 1 hit"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check: 6 plus 2 plus 1 misses, plus 1 hit, gives all 10 references."
+     }
+    },
+    {
+     "say": {
+      "en": "Each kind of miss has its own cure, and its own cost."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "cls"
+      },
+      {
+       "action": "hide",
+       "target": "test"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "fix"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Larger blocks and prefetching cut compulsory misses, but each miss takes longer."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fix[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A larger cache cuts capacity misses, but slows the hit and costs power."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fix[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Higher associativity cuts conflict misses, but also slows the hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fix[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "These three ideas start the list of basic cache optimizations, two videos from now."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "fix"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the six stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "fix"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A write must check the tag before it changes the block."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On a hit: write-through updates memory every time; write-back waits for eviction and uses a dirty bit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On a miss: write-allocate fetches the block; no-write-allocate writes around the cache."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Our trace: write-back moved 3 blocks in and 2 out; write-through, 1 block in and 3 words out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Compulsory: first use. Capacity: a fully associative cache would miss too. Conflict: it would hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: putting numbers on all this, with average memory access time."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: AMAT and CPU time"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

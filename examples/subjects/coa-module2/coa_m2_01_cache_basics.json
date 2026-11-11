@@ -1,0 +1,2029 @@
+{
+ "version": 1,
+ "title": "Cache basics: placement, mapping and finding a block",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": "Cache basics: where a block goes, and how it is found"
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "question it answers"
+   ],
+   "rows": [
+    [
+     1,
+     "The four questions every cache must answer"
+    ],
+    [
+     2,
+     "Our example cache, in numbers"
+    ],
+    [
+     3,
+     "Q1 placement: direct, set-associative, fully associative"
+    ],
+    [
+     4,
+     "Splitting an address into tag, index, offset"
+    ],
+    [
+     5,
+     "Q2 identification: valid bit and tag compare"
+    ],
+    [
+     6,
+     "The same address in 2-way and fully associative"
+    ],
+    [
+     7,
+     "A conflict: why associativity helps"
+    ]
+   ]
+  },
+  {
+   "id": "four",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "question",
+    "what it asks",
+    "this video?"
+   ],
+   "rows": [
+    [
+     "Q1 placement",
+     "Where can a block be placed in the cache?",
+     "yes"
+    ],
+    [
+     "Q2 identification",
+     "How is a block found if it is in the cache?",
+     "yes"
+    ],
+    [
+     "Q3 replacement",
+     "Which block is thrown out on a miss?",
+     "video 2"
+    ],
+    [
+     "Q4 write strategy",
+     "What happens on a write?",
+     "video 3"
+    ]
+   ]
+  },
+  {
+   "id": "spec",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "given",
+    "value"
+   ],
+   "rows": [
+    [
+     "address size",
+     "16 bits"
+    ],
+    [
+     "byte addressable",
+     "yes"
+    ],
+    [
+     "cache size",
+     "256 bytes"
+    ],
+    [
+     "block size",
+     "16 bytes"
+    ]
+   ]
+  },
+  {
+   "id": "calc",
+   "type": "math",
+   "region": "right",
+   "lines": [
+    "\"blocks in cache\" = \"cache size\" / \"block size\"",
+    "= 256 / 16 = 16 \"lines\"",
+    "\"block number\" = floor(\"address\" / \"block size\")",
+    "\"offset\" = \"address\" mod \"block size\""
+   ]
+  },
+  {
+   "id": "place",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "mapping",
+    "a block can go",
+    "rule"
+   ],
+   "rows": [
+    [
+     "direct-mapped",
+     "exactly one line",
+     "block mod 16"
+    ],
+    [
+     "2-way set-assoc.",
+     "either way of one set",
+     "block mod 8"
+    ],
+    [
+     "fully associative",
+     "any of the 16 lines",
+     "no rule"
+    ]
+   ]
+  },
+  {
+   "id": "placemath",
+   "type": "math",
+   "region": "right",
+   "lines": [
+    "\"sets\" = \"blocks\" / \"ways\"",
+    "\"direct-mapped\": 16 / 1 = 16 \"sets\"",
+    "\"2-way\": 16 / 2 = 8 \"sets\"",
+    "\"fully associative\": 16 / 16 = 1 \"set\""
+   ]
+  },
+  {
+   "id": "split",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"offset bits\" = log_2(\"block size\") = log_2(16) = 4",
+    "\"index bits\" = log_2(\"sets\") = log_2(16) = 4",
+    "\"tag bits\" = 16 - 4 - 4 = 8",
+    "\"check\": 8 + 4 + 4 = 16 \"address bits\""
+   ]
+  },
+  {
+   "id": "hex",
+   "type": "math",
+   "region": "title",
+   "lines": [
+    "\"0x1A7C\" = 0001 thin 1010 thin 0111 thin 1100"
+   ]
+  },
+  {
+   "id": "bits",
+   "type": "array",
+   "region": "center",
+   "values": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "p_tag",
+   "type": "pointer",
+   "label": "tag (8)",
+   "target": "bits[3]"
+  },
+  {
+   "id": "p_idx",
+   "type": "pointer",
+   "label": "index (4)",
+   "target": "bits[9]"
+  },
+  {
+   "id": "p_off",
+   "type": "pointer",
+   "label": "offset (4)",
+   "target": "bits[13]"
+  },
+  {
+   "id": "fields",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "field",
+    "bits",
+    "binary",
+    "value"
+   ],
+   "rows": [
+    [
+     "tag",
+     "15 to 8",
+     "0001 1010",
+     ""
+    ],
+    [
+     "index",
+     "7 to 4",
+     "0111",
+     ""
+    ],
+    [
+     "offset",
+     "3 to 0",
+     "1100",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "lines",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "line",
+    "valid",
+    "tag",
+    "data (16 bytes)"
+   ],
+   "rows": [
+    [
+     5,
+     0,
+     "",
+     ""
+    ],
+    [
+     6,
+     0,
+     "",
+     ""
+    ],
+    [
+     7,
+     0,
+     "",
+     ""
+    ],
+    [
+     8,
+     0,
+     "",
+     ""
+    ],
+    [
+     9,
+     0,
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "lookup",
+   "type": "diagram",
+   "region": "right",
+   "layout": "layers",
+   "direction": "down",
+   "nodes": [
+    {
+     "id": "addr",
+     "label": "0x1A7C"
+    },
+    {
+     "id": "idx",
+     "label": "line 7"
+    },
+    {
+     "id": "cmp",
+     "label": "valid and tag = 26?"
+    },
+    {
+     "id": "hit",
+     "label": "hit: byte 12",
+     "shape": "pill"
+    },
+    {
+     "id": "miss",
+     "label": "miss: fetch 423",
+     "shape": "pill"
+    }
+   ],
+   "edges": [
+    {
+     "from": "addr",
+     "to": "idx"
+    },
+    {
+     "from": "idx",
+     "to": "cmp"
+    },
+    {
+     "from": "cmp",
+     "to": "hit",
+     "label": "yes"
+    },
+    {
+     "from": "cmp",
+     "to": "miss",
+     "label": "no"
+    }
+   ]
+  },
+  {
+   "id": "cmp3",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "mapping",
+    "sets",
+    "index bits",
+    "tag bits",
+    "offset bits",
+    "0x1A7C goes to",
+    "tag stored"
+   ],
+   "rows": [
+    [
+     "direct-mapped",
+     16,
+     4,
+     8,
+     4,
+     "line 7",
+     26
+    ],
+    [
+     "2-way",
+     8,
+     "",
+     "",
+     4,
+     "",
+     ""
+    ],
+    [
+     "fully assoc.",
+     1,
+     "",
+     "",
+     4,
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "math2",
+   "type": "math",
+   "region": "bottom",
+   "lines": [
+    "\"2-way index\" = log_2(8) = 3 quad \"tag\" = 16 - 3 - 4 = 9",
+    "\"fully associative index\" = log_2(1) = 0 quad \"tag\" = 16 - 0 - 4 = 12"
+   ]
+  },
+  {
+   "id": "trace",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "access",
+    "address",
+    "block",
+    "direct: line",
+    "direct",
+    "2-way: set",
+    "2-way"
+   ],
+   "rows": [
+    [
+     1,
+     "0x1A7C",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     2,
+     "0x2A70",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     3,
+     "0x1A7C",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     4,
+     "0x2A70",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "trade",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "direct-mapped",
+    "2-way",
+    "fully associative"
+   ],
+   "rows": [
+    [
+     "tag comparators per lookup",
+     "1",
+     "2",
+     "16 (all lines)"
+    ],
+    [
+     "conflict misses",
+     "most",
+     "fewer",
+     "none"
+    ],
+    [
+     "hit time",
+     "fastest",
+     "a little slower",
+     "slowest"
+    ],
+    [
+     "tag bits per line",
+     "8",
+     "9",
+     "12"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Every time the processor reads memory, the cache answers first."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To do that, every cache must answer four questions."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "four"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Question one, placement: where can a block be placed in the cache?"
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "four[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Question two, identification: how do we find a block if it is there?"
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "four[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Question three, replacement: on a miss, which block do we throw out?"
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "four[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Question four, write strategy: what happens when the processor writes?"
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "four[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This video answers the first two; replacement and writes get their own videos next."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "four[0..=1]"
+      },
+      {
+       "action": "dim",
+       "target": "four[2..=3]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here is the plan, in seven stages, with one worked example all the way through."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "four"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "We start with the four questions, then fix one small cache in numbers."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then placement, splitting an address, and finding a block by its tag."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[2..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Finally the same address in other mappings, and a conflict that shows why associativity helps."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "numbers",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: our example cache."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: our example cache"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "spec"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Addresses are 16 bits long, and every byte has its own address."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "spec[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The cache holds 256 bytes, moved in blocks of 16 bytes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "spec[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A block is the unit the cache copies from memory, never a single byte."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "spec[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "First question: how many blocks fit in the cache?"
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "calc"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Divide the cache size by the block size."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "calc[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "256 divided by 16 is 16, so the cache has 16 lines, each holding one block."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "calc[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "calc[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Memory is split into blocks the same way: the block number is the address divided by 16, rounded down."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "calc[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "calc[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the remainder, the offset, says which byte inside the block we want."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "calc[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "calc[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Keep these numbers: 16 lines, 16 bytes per block, 16 bit addresses."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "16 lines · 16-byte blocks · 16-bit addresses"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "placement",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3, question one: where can a block be placed?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: Q1 placement"
+      },
+      {
+       "action": "hide",
+       "target": "spec"
+      },
+      {
+       "action": "hide",
+       "target": "calc"
+      },
+      {
+       "action": "show",
+       "target": "place"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In a direct-mapped cache, each block has exactly one line it may use."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "place[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That line is the block number mod 16, the number of lines."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "place[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In a set-associative cache, lines are grouped into sets, and a block may use any line of one set."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "place[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With two lines per set, we call it two-way set-associative."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "place[1][0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In a fully associative cache, a block may go in any line at all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "place[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "All three are the same idea: the number of sets is the number of blocks divided by the number of ways."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "placemath"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Direct-mapped is one way: 16 divided by 1 gives 16 sets of one line."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "placemath[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "placemath[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two-way: 16 divided by 2 gives 8 sets, so the rule is block mod 8."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "placemath[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "placemath[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "place[1][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Fully associative: 16 ways, so there is just one set, and no rule to follow."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "placemath[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "placemath[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So direct-mapped and fully associative are just the two ends of set-associative."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "direct-mapped = 1-way · fully associative = one set with every line"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "split",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the cache finds the set from the address bits themselves, so we split the address."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: splitting an address (direct-mapped)"
+      },
+      {
+       "action": "hide",
+       "target": "place"
+      },
+      {
+       "action": "hide",
+       "target": "placemath"
+      },
+      {
+       "action": "show",
+       "target": "split"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The lowest bits are the offset: they pick a byte inside the block."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "split[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A block has 16 bytes, and log base 2 of 16 is 4, so the offset is 4 bits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "split[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The next bits are the index: they pick the set."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "split[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "split[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Direct-mapped has 16 sets, and log base 2 of 16 is 4, so the index is 4 bits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "split[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Whatever is left over is the tag: 16 minus 4 minus 4 leaves 8 bits."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "split[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "split[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check: 8 plus 4 plus 4 must give back all 16 address bits."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "split[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "split[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now take one address, hex 1A7C, and write it in binary, four bits per hex digit."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "split"
+      },
+      {
+       "action": "hide",
+       "target": "head"
+      },
+      {
+       "action": "show",
+       "target": "hex"
+      },
+      {
+       "action": "show",
+       "target": "bits",
+       "delay": 0.4
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "tag 8 · index 4 · offset 4"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1 is 0001, A is 1010, 7 is 0111, and C is 1100."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bits[0..=15]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The top 8 bits are the tag."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bits[0..=7]"
+      },
+      {
+       "action": "show",
+       "target": "p_tag"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The next 4 bits are the index."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bits[8..=11]"
+      },
+      {
+       "action": "show",
+       "target": "p_idx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the lowest 4 bits are the offset."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bits[12..=15]"
+      },
+      {
+       "action": "show",
+       "target": "p_off"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now read each field as a number."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "fields"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The offset 1100 is 8 plus 4, which is 12: byte 12 of the block."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fields[2]"
+      },
+      {
+       "action": "set",
+       "target": "fields[2][3]",
+       "value": "12"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The index 0111 is 4 plus 2 plus 1, which is 7: line 7."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fields[1]"
+      },
+      {
+       "action": "set",
+       "target": "fields[1][3]",
+       "value": "7"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The tag 0001 1010 is 16 plus 8 plus 2, which is 26."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fields[0]"
+      },
+      {
+       "action": "set",
+       "target": "fields[0][3]",
+       "value": "26"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check with arithmetic: the block number is 6780 divided by 16, which is 423, and 423 mod 16 is 7."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "fields[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the index really is the block number mod 16, read straight from the bits."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "fields[0..=2]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "identify",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5, question two: how does the cache know the block in line 7 is ours?"
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "hex"
+      },
+      {
+       "action": "hide",
+       "target": "bits"
+      },
+      {
+       "action": "hide",
+       "target": "fields"
+      },
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: Q2 identification"
+      },
+      {
+       "action": "show",
+       "target": "lines"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Many blocks share line 7: every block whose number mod 16 is 7."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lines[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So each line stores a tag, the part of the address the index did not use."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lines.tag"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It also stores a valid bit, which says whether the line holds anything real at all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lines.valid"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At power on, every valid bit is 0, so every lookup misses."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lines.valid"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here is the lookup for 0x1A7C."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "lookup"
+      },
+      {
+       "action": "highlight",
+       "target": "lookup.addr"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The index, 7, takes us straight to line 7, with no searching."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lookup.idx"
+      },
+      {
+       "action": "highlight",
+       "target": "lines[2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then one comparison: is the valid bit 1, and is the stored tag equal to 26?"
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lookup.cmp"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Line 7 is not valid yet, so this is a miss."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lookup.miss"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The cache fetches block 423 from memory, sets valid to 1, and stores tag 26."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "lines[2][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "lines[2][2]",
+       "value": "26",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "lines[2][3]",
+       "value": "block 423",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The next read of 0x1A7C finds valid 1 and tag 26, so it is a hit, and byte 12 is returned."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lookup.hit"
+      },
+      {
+       "action": "mark",
+       "target": "lines[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Notice the offset is never compared: it only picks the byte after a hit."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "index finds the line · tag + valid bit confirm it · offset picks the byte"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "other-mappings",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: the same address in a two-way and a fully associative cache."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: the same address, other mappings"
+      },
+      {
+       "action": "hide",
+       "target": "lines"
+      },
+      {
+       "action": "hide",
+       "target": "lookup"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "cmp3"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Direct-mapped, from before: 16 sets, index 4 bits, tag 8 bits, line 7, tag 26."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp3[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two-way has 8 sets, so the index is log base 2 of 8, which is 3 bits."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "math2"
+      },
+      {
+       "action": "set",
+       "target": "cmp3[1][2]",
+       "value": "3"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The tag grows by one bit: 16 minus 3 minus 4 is 9."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "cmp3[1][3]",
+       "value": "9"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The set is block 423 mod 8: 8 times 52 is 416, leaving 7, so set 7."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "cmp3[1][5]",
+       "value": "set 7, either way"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The tag is the top 9 bits, which is 423 divided by 8, rounded down: 52."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "cmp3[1][6]",
+       "value": "52"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Fully associative has one set, so the index is log base 2 of 1, which is zero bits."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "math2[1]"
+      },
+      {
+       "action": "set",
+       "target": "cmp3[2][2]",
+       "value": "0"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Everything above the offset is tag: 16 minus 4 gives 12 bits."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "cmp3[2][3]",
+       "value": "12"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The block may go in any line, and the stored tag is the whole block number, 423."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "cmp3[2][5]",
+       "value": "any line"
+      },
+      {
+       "action": "set",
+       "target": "cmp3[2][6]",
+       "value": "423"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check the pattern: each time the ways double, the index loses a bit and the tag gains one."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp3.c2"
+      },
+      {
+       "action": "highlight",
+       "target": "cmp3.c3",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The offset never changes, because the block size did not change."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp3.c4"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "conflict",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: why pay for associativity? Watch two addresses fight over one line."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 7: a conflict"
+      },
+      {
+       "action": "hide",
+       "target": "cmp3"
+      },
+      {
+       "action": "hide",
+       "target": "math2"
+      },
+      {
+       "action": "show",
+       "target": "trace"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The processor reads 0x1A7C, then 0x2A70, then each again."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trace.address"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "0x1A7C is block 423, as we found."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "trace[0][2]",
+       "value": "423"
+      },
+      {
+       "action": "set",
+       "target": "trace[2][2]",
+       "value": "423"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "0x2A70 is 10864, and 10864 divided by 16 is block 679."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "trace[1][2]",
+       "value": "679"
+      },
+      {
+       "action": "set",
+       "target": "trace[3][2]",
+       "value": "679"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Direct-mapped: 423 mod 16 is 7, and 679 mod 16 is also 7."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "trace[0][3]",
+       "value": "7"
+      },
+      {
+       "action": "set",
+       "target": "trace[1][3]",
+       "value": "7"
+      },
+      {
+       "action": "set",
+       "target": "trace[2][3]",
+       "value": "7"
+      },
+      {
+       "action": "set",
+       "target": "trace[3][3]",
+       "value": "7"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access one misses, and line 7 gets block 423."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trace[0]"
+      },
+      {
+       "action": "set",
+       "target": "trace[0][4]",
+       "value": "miss"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access two also needs line 7, so it misses and throws block 423 out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trace[1]"
+      },
+      {
+       "action": "set",
+       "target": "trace[1][4]",
+       "value": "miss"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access three wants 423 back: miss again, and 679 is thrown out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trace[2]"
+      },
+      {
+       "action": "set",
+       "target": "trace[2][4]",
+       "value": "miss"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access four misses too: four accesses, four misses, while the other 15 lines sit empty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trace[3]"
+      },
+      {
+       "action": "set",
+       "target": "trace[3][4]",
+       "value": "miss"
+      },
+      {
+       "action": "mark",
+       "target": "trace.c4",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "These are conflict misses: the cache had room, but the mapping forced both blocks into one line."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "conflict miss: room in the cache, but two blocks map to the same line"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now two-way: 423 mod 8 is 7, and 679 mod 8 is also 7, the same set."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "trace[0][5]",
+       "value": "7"
+      },
+      {
+       "action": "set",
+       "target": "trace[1][5]",
+       "value": "7"
+      },
+      {
+       "action": "set",
+       "target": "trace[2][5]",
+       "value": "7"
+      },
+      {
+       "action": "set",
+       "target": "trace[3][5]",
+       "value": "7"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But set 7 has two ways, so access one misses into way 0, and access two misses into way 1."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "trace[0][6]",
+       "value": "miss"
+      },
+      {
+       "action": "set",
+       "target": "trace[1][6]",
+       "value": "miss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Both blocks now live side by side, so accesses three and four hit."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "trace[2][6]",
+       "value": "hit"
+      },
+      {
+       "action": "set",
+       "target": "trace[3][6]",
+       "value": "hit",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "trace.c6",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check: direct-mapped scored 0 hits out of 4, two-way scored 2 out of 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trace.c4"
+      },
+      {
+       "action": "highlight",
+       "target": "trace.c6",
+       "delay": 0.5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tradeoffs",
+   "steps": [
+    {
+     "say": {
+      "en": "So why not always use fully associative? Because every way costs hardware and time."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "The trade-off"
+      },
+      {
+       "action": "hide",
+       "target": "trace"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "trade"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Direct-mapped compares one tag per lookup; two-way compares two at once; fully associative compares all 16."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trade[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "More ways means fewer conflict misses."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trade[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But more comparators and a final choice between ways make the hit time longer."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trade[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And every line stores a longer tag: 8, 9, then 12 bits in our cache."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trade[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That is why real first-level caches are usually 2 to 8 way set-associative: a balance between the two ends."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "real L1 caches: 2-way to 8-way set-associative"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages once more."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "trade"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Four questions: placement, identification, replacement and write strategy."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Lines equal cache size over block size; sets equal lines over ways."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Offset bits are log of the block size, index bits are log of the sets, and the tag is what is left."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The index finds the set, the valid bit and tag confirm the block, and the offset picks the byte."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "More ways: fewer index bits, longer tags, fewer conflict misses, but a slower hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: question three, which block to throw out, with LRU, FIFO and random."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: Q3 replacement — LRU, FIFO, random"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
