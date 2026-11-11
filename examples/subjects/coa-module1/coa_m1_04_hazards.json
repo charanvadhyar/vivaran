@@ -1,0 +1,1814 @@
+{
+ "version": 1,
+ "title": "Pipeline hazards: finding them",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "What a hazard is, and the three kinds"
+    ],
+    [
+     2,
+     "Structural hazards: two instructions, one piece of hardware"
+    ],
+    [
+     3,
+     "Data dependences: RAW, WAR and WAW"
+    ],
+    [
+     4,
+     "Which dependences are hazards in our pipeline"
+    ],
+    [
+     5,
+     "Control hazards: branches"
+    ],
+    [
+     6,
+     "One code sequence, every hazard found"
+    ]
+   ]
+  },
+  {
+   "id": "three",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "hazard",
+    "cause"
+   ],
+   "rows": [
+    [
+     "structural",
+     "two instructions need the same hardware in the same cycle"
+    ],
+    [
+     "data",
+     "an instruction needs a result that is not ready yet"
+    ],
+    [
+     "control",
+     "the next instruction to fetch depends on a branch not yet decided"
+    ]
+   ]
+  },
+  {
+   "id": "struct",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "I1: LW",
+    "I2",
+    "I3",
+    "I4"
+   ],
+   "end": 8,
+   "unit": "clock cycle",
+   "now": 0,
+   "blocks": [
+    {
+     "id": "b00",
+     "lane": "I1: LW",
+     "start": 0,
+     "end": 1,
+     "label": "IF"
+    },
+    {
+     "id": "b01",
+     "lane": "I1: LW",
+     "start": 1,
+     "end": 2,
+     "label": "ID"
+    },
+    {
+     "id": "b02",
+     "lane": "I1: LW",
+     "start": 2,
+     "end": 3,
+     "label": "EX"
+    },
+    {
+     "id": "b03",
+     "lane": "I1: LW",
+     "start": 3,
+     "end": 4,
+     "label": "MEM"
+    },
+    {
+     "id": "b04",
+     "lane": "I1: LW",
+     "start": 4,
+     "end": 5,
+     "label": "WB"
+    },
+    {
+     "id": "b10",
+     "lane": "I2",
+     "start": 1,
+     "end": 2,
+     "label": "IF"
+    },
+    {
+     "id": "b11",
+     "lane": "I2",
+     "start": 2,
+     "end": 3,
+     "label": "ID"
+    },
+    {
+     "id": "b12",
+     "lane": "I2",
+     "start": 3,
+     "end": 4,
+     "label": "EX"
+    },
+    {
+     "id": "b13",
+     "lane": "I2",
+     "start": 4,
+     "end": 5,
+     "label": "MEM"
+    },
+    {
+     "id": "b14",
+     "lane": "I2",
+     "start": 5,
+     "end": 6,
+     "label": "WB"
+    },
+    {
+     "id": "b20",
+     "lane": "I3",
+     "start": 2,
+     "end": 3,
+     "label": "IF"
+    },
+    {
+     "id": "b21",
+     "lane": "I3",
+     "start": 3,
+     "end": 4,
+     "label": "ID"
+    },
+    {
+     "id": "b22",
+     "lane": "I3",
+     "start": 4,
+     "end": 5,
+     "label": "EX"
+    },
+    {
+     "id": "b23",
+     "lane": "I3",
+     "start": 5,
+     "end": 6,
+     "label": "MEM"
+    },
+    {
+     "id": "b24",
+     "lane": "I3",
+     "start": 6,
+     "end": 7,
+     "label": "WB"
+    },
+    {
+     "id": "b30",
+     "lane": "I4",
+     "start": 3,
+     "end": 4,
+     "label": "IF"
+    },
+    {
+     "id": "b31",
+     "lane": "I4",
+     "start": 4,
+     "end": 5,
+     "label": "ID"
+    },
+    {
+     "id": "b32",
+     "lane": "I4",
+     "start": 5,
+     "end": 6,
+     "label": "EX"
+    },
+    {
+     "id": "b33",
+     "lane": "I4",
+     "start": 6,
+     "end": 7,
+     "label": "MEM"
+    },
+    {
+     "id": "b34",
+     "lane": "I4",
+     "start": 7,
+     "end": 8,
+     "label": "WB"
+    }
+   ]
+  },
+  {
+   "id": "kinds",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "type",
+    "also called",
+    "instruction j, after i, ...",
+    "example"
+   ],
+   "rows": [
+    [
+     "RAW: read after write",
+     "true dependence",
+     "reads a register that i writes",
+     "i: ADD R1, …   j: SUB …, R1, …"
+    ],
+    [
+     "WAR: write after read",
+     "anti-dependence",
+     "writes a register that i reads",
+     "i: ADD …, R4, …   j: SUB R4, …"
+    ],
+    [
+     "WAW: write after write",
+     "output dependence",
+     "writes a register that i also writes",
+     "i: ADD R3, …   j: MUL R3, …"
+    ]
+   ]
+  },
+  {
+   "id": "raw",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "I1: ADD R1",
+    "I2: SUB uses R1",
+    "I3: AND uses R1",
+    "I4: OR uses R1"
+   ],
+   "end": 9,
+   "unit": "clock cycle",
+   "now": 0,
+   "blocks": [
+    {
+     "id": "r00",
+     "lane": "I1: ADD R1",
+     "start": 0,
+     "end": 1,
+     "label": "IF"
+    },
+    {
+     "id": "r01",
+     "lane": "I1: ADD R1",
+     "start": 1,
+     "end": 2,
+     "label": "ID"
+    },
+    {
+     "id": "r02",
+     "lane": "I1: ADD R1",
+     "start": 2,
+     "end": 3,
+     "label": "EX"
+    },
+    {
+     "id": "r03",
+     "lane": "I1: ADD R1",
+     "start": 3,
+     "end": 4,
+     "label": "MEM"
+    },
+    {
+     "id": "r04",
+     "lane": "I1: ADD R1",
+     "start": 4,
+     "end": 5,
+     "label": "WB"
+    },
+    {
+     "id": "r10",
+     "lane": "I2: SUB uses R1",
+     "start": 1,
+     "end": 2,
+     "label": "IF"
+    },
+    {
+     "id": "r11",
+     "lane": "I2: SUB uses R1",
+     "start": 2,
+     "end": 3,
+     "label": "ID"
+    },
+    {
+     "id": "r12",
+     "lane": "I2: SUB uses R1",
+     "start": 3,
+     "end": 4,
+     "label": "EX"
+    },
+    {
+     "id": "r13",
+     "lane": "I2: SUB uses R1",
+     "start": 4,
+     "end": 5,
+     "label": "MEM"
+    },
+    {
+     "id": "r14",
+     "lane": "I2: SUB uses R1",
+     "start": 5,
+     "end": 6,
+     "label": "WB"
+    },
+    {
+     "id": "r20",
+     "lane": "I3: AND uses R1",
+     "start": 2,
+     "end": 3,
+     "label": "IF"
+    },
+    {
+     "id": "r21",
+     "lane": "I3: AND uses R1",
+     "start": 3,
+     "end": 4,
+     "label": "ID"
+    },
+    {
+     "id": "r22",
+     "lane": "I3: AND uses R1",
+     "start": 4,
+     "end": 5,
+     "label": "EX"
+    },
+    {
+     "id": "r23",
+     "lane": "I3: AND uses R1",
+     "start": 5,
+     "end": 6,
+     "label": "MEM"
+    },
+    {
+     "id": "r24",
+     "lane": "I3: AND uses R1",
+     "start": 6,
+     "end": 7,
+     "label": "WB"
+    },
+    {
+     "id": "r30",
+     "lane": "I4: OR uses R1",
+     "start": 3,
+     "end": 4,
+     "label": "IF"
+    },
+    {
+     "id": "r31",
+     "lane": "I4: OR uses R1",
+     "start": 4,
+     "end": 5,
+     "label": "ID"
+    },
+    {
+     "id": "r32",
+     "lane": "I4: OR uses R1",
+     "start": 5,
+     "end": 6,
+     "label": "EX"
+    },
+    {
+     "id": "r33",
+     "lane": "I4: OR uses R1",
+     "start": 6,
+     "end": 7,
+     "label": "MEM"
+    },
+    {
+     "id": "r34",
+     "lane": "I4: OR uses R1",
+     "start": 7,
+     "end": 8,
+     "label": "WB"
+    }
+   ]
+  },
+  {
+   "id": "when",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "dependence",
+    "a hazard in the 5-stage in-order pipeline?",
+    "why"
+   ],
+   "rows": [
+    [
+     "RAW, 1 or 2 instructions apart",
+     "yes",
+     "the value is read in ID before it is written in WB"
+    ],
+    [
+     "RAW, 3 or more apart",
+     "no",
+     "WB writes in the first half of a cycle, ID reads in the second"
+    ],
+    [
+     "WAR",
+     "no",
+     "every read in ID happens before any later instruction's WB"
+    ],
+    [
+     "WAW",
+     "no",
+     "writes happen in WB, in program order"
+    ]
+   ]
+  },
+  {
+   "id": "ctrl",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "BEQ",
+    "next",
+    "next + 1"
+   ],
+   "end": 7,
+   "unit": "clock cycle",
+   "now": 0,
+   "blocks": [
+    {
+     "id": "c00",
+     "lane": "BEQ",
+     "start": 0,
+     "end": 1,
+     "label": "IF"
+    },
+    {
+     "id": "c01",
+     "lane": "BEQ",
+     "start": 1,
+     "end": 2,
+     "label": "ID"
+    },
+    {
+     "id": "c02",
+     "lane": "BEQ",
+     "start": 2,
+     "end": 3,
+     "label": "EX"
+    },
+    {
+     "id": "c03",
+     "lane": "BEQ",
+     "start": 3,
+     "end": 4,
+     "label": "MEM"
+    },
+    {
+     "id": "c04",
+     "lane": "BEQ",
+     "start": 4,
+     "end": 5,
+     "label": "WB"
+    },
+    {
+     "id": "c10",
+     "lane": "next",
+     "start": 1,
+     "end": 2,
+     "label": "IF"
+    },
+    {
+     "id": "c11",
+     "lane": "next",
+     "start": 2,
+     "end": 3,
+     "label": "ID"
+    },
+    {
+     "id": "c12",
+     "lane": "next",
+     "start": 3,
+     "end": 4,
+     "label": "EX"
+    },
+    {
+     "id": "c13",
+     "lane": "next",
+     "start": 4,
+     "end": 5,
+     "label": "MEM"
+    },
+    {
+     "id": "c14",
+     "lane": "next",
+     "start": 5,
+     "end": 6,
+     "label": "WB"
+    },
+    {
+     "id": "c20",
+     "lane": "next + 1",
+     "start": 2,
+     "end": 3,
+     "label": "IF"
+    },
+    {
+     "id": "c21",
+     "lane": "next + 1",
+     "start": 3,
+     "end": 4,
+     "label": "ID"
+    },
+    {
+     "id": "c22",
+     "lane": "next + 1",
+     "start": 4,
+     "end": 5,
+     "label": "EX"
+    },
+    {
+     "id": "c23",
+     "lane": "next + 1",
+     "start": 5,
+     "end": 6,
+     "label": "MEM"
+    },
+    {
+     "id": "c24",
+     "lane": "next + 1",
+     "start": 6,
+     "end": 7,
+     "label": "WB"
+    }
+   ]
+  },
+  {
+   "id": "code",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "LW  R1, 0(R2)",
+    "ADD R3, R1, R4",
+    "SUB R4, R5, R6",
+    "MUL R3, R4, R7",
+    "BEQ R3, R0, L",
+    "OR  R8, R1, R9"
+   ]
+  },
+  {
+   "id": "deps",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "pair",
+    "register",
+    "type",
+    "apart",
+    "hazard?"
+   ],
+   "rows": [
+    [
+     "I1 → I2",
+     "R1",
+     "RAW",
+     "1",
+     ""
+    ],
+    [
+     "I1 → I6",
+     "R1",
+     "RAW",
+     "5",
+     ""
+    ],
+    [
+     "I2 → I3",
+     "R4",
+     "WAR",
+     "1",
+     ""
+    ],
+    [
+     "I2 → I4",
+     "R3",
+     "WAW",
+     "2",
+     ""
+    ],
+    [
+     "I3 → I4",
+     "R4",
+     "RAW",
+     "1",
+     ""
+    ],
+    [
+     "I4 → I5",
+     "R3",
+     "RAW",
+     "1",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "qcode",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "ADD R1, R2, R3",
+    "SUB R4, R1, R5",
+    "AND R6, R1, R7",
+    "OR  R8, R1, R9",
+    "XOR R4, R10, R11"
+   ]
+  },
+  {
+   "id": "qdeps",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "pair",
+    "register",
+    "type",
+    "hazard?"
+   ],
+   "rows": [
+    [
+     "I1 → I2",
+     "R1",
+     "RAW",
+     ""
+    ],
+    [
+     "I1 → I3",
+     "R1",
+     "RAW",
+     ""
+    ],
+    [
+     "I1 → I4",
+     "R1",
+     "RAW",
+     ""
+    ],
+    [
+     "I2 → I5",
+     "R4",
+     "WAW",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "ooo",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "order in program",
+    "instruction",
+    "takes",
+    "finishes"
+   ],
+   "rows": [
+    [
+     "1st",
+     "DIV.D F0, F2, F4",
+     "long: about 20 cycles in EX",
+     "last"
+    ],
+    [
+     "2nd",
+     "ADD.D F0, F6, F8",
+     "short: 2 cycles in EX",
+     "first"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Last video, the pipeline finished one instruction every cycle. That was the ideal."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Pipeline hazards: finding them"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A hazard is anything that stops the next instruction from running in its planned cycle."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "hazard: the next instruction cannot run in its planned cycle"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This video is about finding hazards; the next one is about fixing them."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The three kinds, then structural hazards and the three data dependences."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then which dependences really cause trouble, control hazards, and one code sequence with every hazard marked."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=5]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "three",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: there are three kinds of hazard."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 6: three kinds"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "three"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Structural: two instructions need the same piece of hardware in the same cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "three[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Data: an instruction needs a value that an earlier instruction has not produced yet."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "three[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Control: the pipeline must fetch the next instruction before it knows which way a branch goes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "three[2]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "structural",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2, structural hazards. Suppose instructions and data share a single memory."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 6: structural hazards"
+      },
+      {
+       "action": "hide",
+       "target": "three"
+      },
+      {
+       "action": "show",
+       "target": "struct"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I1 is a load. In cycle 4 it is in MEM, reading data memory."
+     },
+     "do": [
+      {
+       "action": "advance",
+       "target": "struct",
+       "to": 4
+      },
+      {
+       "action": "highlight",
+       "target": "struct.b03"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In that same cycle 4, I4 is in IF, fetching its instruction from memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "struct.b30"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One memory cannot serve both in one cycle: that is a structural hazard."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "struct.b03"
+      },
+      {
+       "action": "mark",
+       "target": "struct.b30"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The standard cure is separate instruction and data caches, so IF and MEM never compete."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "structural hazard: shared hardware · cure: duplicate it, e.g. split I- and D-caches"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The register file is shared too: ID reads it while WB writes it. Writing in the first half of the cycle and reading in the second avoids that clash."
+     }
+    }
+   ]
+  },
+  {
+   "id": "dependences",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: data hazards come from dependences between instructions. There are three kinds."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 6: RAW, WAR and WAW"
+      },
+      {
+       "action": "hide",
+       "target": "struct"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "kinds"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Name them by what the later instruction, j, does after the earlier one, i."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds.c2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "RAW, read after write: j reads a register that i writes. j truly needs i's result, so it is called a true dependence."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "WAR, write after read: j writes a register that i still has to read. No value passes between them; only the name is shared. It is an anti-dependence."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "WAW, write after write: both write the same register, and the final value must be j's. It is an output dependence."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "WAR and WAW are called name dependences: renaming a register removes them. RAW cannot be renamed away."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "RAW = true dependence · WAR, WAW = name dependences, removable by renaming"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "which",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: a dependence is not always a hazard. It depends on the pipeline. Watch R1 here."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 6: which dependences are hazards"
+      },
+      {
+       "action": "hide",
+       "target": "kinds"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "raw"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I1 writes R1 in WB, in cycle 5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "raw.r04"
+      },
+      {
+       "action": "advance",
+       "target": "raw",
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I2 reads R1 in its ID stage, in cycle 3, two cycles too early."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "raw.r11"
+      },
+      {
+       "action": "mark",
+       "target": "raw.r11",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I3 reads R1 in cycle 4, still too early."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "raw.r21"
+      },
+      {
+       "action": "mark",
+       "target": "raw.r21",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I4 reads R1 in cycle 5, the same cycle I1 writes it. Writing in the first half and reading in the second makes this safe."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "raw.r31"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So in our pipeline, a RAW dependence is a hazard when the instructions are one or two apart."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "raw"
+      },
+      {
+       "action": "show",
+       "target": "when"
+      },
+      {
+       "action": "highlight",
+       "target": "when[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "WAR is never a hazard here: every instruction reads its registers in ID, before any later instruction reaches WB."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "when[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "WAW is not a hazard either: all writes happen in WB, in program order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "when[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "WAR and WAW become hazards in pipelines that run instructions out of order, issue several at once, or have stages of different lengths."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "in-order 5-stage pipeline: only RAW causes data hazards"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ooo",
+   "steps": [
+    {
+     "say": {
+      "en": "When do WAR and WAW become real hazards? When instructions can finish out of order."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "When WAR and WAW do matter"
+      },
+      {
+       "action": "hide",
+       "target": "when"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "ooo"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A floating-point divide takes about 20 cycles in EX; an add takes 2. Both write F0."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ooo.c2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The divide starts first, but the add finishes first and writes F0."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ooo[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the divide finishes and overwrites F0 with the older result. The final value is wrong: a WAW hazard."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ooo[0]"
+      },
+      {
+       "action": "mark",
+       "target": "ooo.finishes",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A WAR hazard appears the same way: if a later write is allowed to run before an earlier read of the same register, the read gets the new value."
+     }
+    },
+    {
+     "say": {
+      "en": "Out-of-order processors avoid both by register renaming: each write gets a fresh physical register."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "WAR and WAW: hazards only when instructions can finish out of order · cure: register renaming"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "control",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: control hazards."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 6: control hazards"
+      },
+      {
+       "action": "hide",
+       "target": "ooo"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "ctrl"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A branch compares its registers and finds its target in EX, in cycle 3."
+     },
+     "do": [
+      {
+       "action": "advance",
+       "target": "ctrl",
+       "to": 3
+      },
+      {
+       "action": "highlight",
+       "target": "ctrl.c02"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But by then, the next two instructions have already been fetched."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ctrl.c10"
+      },
+      {
+       "action": "highlight",
+       "target": "ctrl.c20",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If the branch is taken, those two were the wrong instructions, and their work must be thrown away."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "ctrl.c10"
+      },
+      {
+       "action": "mark",
+       "target": "ctrl.c20"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That is a control hazard: fetching before knowing where the program goes."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "control hazard: instructions fetched before a branch is decided"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "worked",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: find every hazard in this sequence of six instructions."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 6: one sequence, every hazard"
+      },
+      {
+       "action": "hide",
+       "target": "ctrl"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "code"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The method: for each instruction, look at the registers it reads and writes, and compare with every earlier instruction."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "deps"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I2 reads R1, which I1, a load, writes just before it. RAW, one apart: a hazard."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "code",
+       "line": 2
+      },
+      {
+       "action": "highlight",
+       "target": "deps[0]"
+      },
+      {
+       "action": "set",
+       "target": "deps[0][4]",
+       "value": "yes",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I6 also reads R1 from I1, but five instructions later. R1 is long written: no hazard."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "code",
+       "line": 6
+      },
+      {
+       "action": "highlight",
+       "target": "deps[1]"
+      },
+      {
+       "action": "set",
+       "target": "deps[1][4]",
+       "value": "no",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I3 writes R4, which I2 reads. WAR, one apart, but I2 reads in ID before I3 writes: no hazard here."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "code",
+       "line": 3
+      },
+      {
+       "action": "highlight",
+       "target": "deps[2]"
+      },
+      {
+       "action": "set",
+       "target": "deps[2][4]",
+       "value": "no (in-order)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I4 writes R3, which I2 also writes. WAW, but writes happen in order: no hazard here."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "code",
+       "line": 4
+      },
+      {
+       "action": "highlight",
+       "target": "deps[3]"
+      },
+      {
+       "action": "set",
+       "target": "deps[3][4]",
+       "value": "no (in-order)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I4 reads R4, written by I3 just before. RAW, one apart: a hazard."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "code",
+       "line": 4
+      },
+      {
+       "action": "highlight",
+       "target": "deps[4]"
+      },
+      {
+       "action": "set",
+       "target": "deps[4][4]",
+       "value": "yes",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I5, the branch, reads R3. Its value comes from I4, the most recent writer, not I2. RAW, one apart: a hazard."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "code",
+       "line": 5
+      },
+      {
+       "action": "highlight",
+       "target": "deps[5]"
+      },
+      {
+       "action": "set",
+       "target": "deps[5][4]",
+       "value": "yes",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And I5 is a branch, so I6 and the instruction after it are fetched before it is decided: a control hazard as well."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "code",
+       "line": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Count: six dependences, three RAW hazards, one control hazard, and the WAR and WAW are harmless in this pipeline."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "3 RAW hazards (I1→I2, I3→I4, I4→I5) + 1 control hazard (I5)"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Watch for the trap at I5: a register can be written twice. Always take the most recent writer."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "deps[5]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: list every dependence in this sequence, and say which are hazards in the 5-stage pipeline."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "code"
+      },
+      {
+       "action": "hide",
+       "target": "deps"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "qcode"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pause and try it, then check with me."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "qdeps"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I2 reads R1, one instruction after I1 writes it: RAW, a hazard."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "qcode",
+       "line": 2
+      },
+      {
+       "action": "highlight",
+       "target": "qdeps[0]"
+      },
+      {
+       "action": "set",
+       "target": "qdeps[0][3]",
+       "value": "yes",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I3 reads R1, two after: RAW, still a hazard."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "qcode",
+       "line": 3
+      },
+      {
+       "action": "highlight",
+       "target": "qdeps[1]"
+      },
+      {
+       "action": "set",
+       "target": "qdeps[1][3]",
+       "value": "yes",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I4 reads R1, three after: RAW, but no hazard, because the write and read share a cycle safely."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "qcode",
+       "line": 4
+      },
+      {
+       "action": "highlight",
+       "target": "qdeps[2]"
+      },
+      {
+       "action": "set",
+       "target": "qdeps[2][3]",
+       "value": "no",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I5 writes R4, which I2 also writes: WAW, harmless in an in-order pipeline."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "qcode",
+       "line": 5
+      },
+      {
+       "action": "highlight",
+       "target": "qdeps[3]"
+      },
+      {
+       "action": "set",
+       "target": "qdeps[3][3]",
+       "value": "no (in-order)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Answer: four dependences, two hazards, I1 to I2 and I1 to I3."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "hazards: I1→I2 and I1→I3 (RAW) · I1→I4 is safe · I2→I5 WAW is harmless"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip is counting I1 to I4 as a hazard. Three apart is safe because the register file is written before it is read in the same cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qdeps[2]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "qcode"
+      },
+      {
+       "action": "hide",
+       "target": "qdeps"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three kinds: structural, data and control."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "RAW is a true dependence; WAR and WAW are name dependences."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In the in-order 5-stage pipeline, only RAW one or two apart is a data hazard; branches cause control hazards."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: how the pipeline deals with them, with stalls, forwarding and branch handling."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: handling hazards — stalls, forwarding, branches"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

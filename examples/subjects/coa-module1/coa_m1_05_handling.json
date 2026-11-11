@@ -1,0 +1,1859 @@
+{
+ "version": 1,
+ "title": "Handling hazards: stalls, forwarding and branches",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Stalls: wait, and insert bubbles"
+    ],
+    [
+     2,
+     "Count the cycles with stalls only"
+    ],
+    [
+     3,
+     "Forwarding: pass results straight to the ALU"
+    ],
+    [
+     4,
+     "The load-use case: one stall forwarding cannot remove"
+    ],
+    [
+     5,
+     "Branches: flush, predict, decide early, or delay"
+    ],
+    [
+     6,
+     "The branch penalty as a CPI"
+    ]
+   ]
+  },
+  {
+   "id": "code",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "ADD R1, R2, R3",
+    "SUB R4, R1, R5",
+    "LW  R6, 0(R4)",
+    "AND R7, R6, R8",
+    "OR  R9, R7, R1"
+   ]
+  },
+  {
+   "id": "depl",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "needs",
+    "from",
+    "register"
+   ],
+   "rows": [
+    [
+     "I2",
+     "I1 (ADD)",
+     "R1"
+    ],
+    [
+     "I3",
+     "I2 (SUB)",
+     "R4"
+    ],
+    [
+     "I4",
+     "I3 (LW)",
+     "R6"
+    ],
+    [
+     "I5",
+     "I4 (AND)",
+     "R7"
+    ]
+   ]
+  },
+  {
+   "id": "nof",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "I1: ADD R1, R2, R3",
+    "I2: SUB R4, R1, R5",
+    "I3: LW  R6, 0(R4)",
+    "I4: AND R7, R6, R8",
+    "I5: OR  R9, R7, R1"
+   ],
+   "end": 17,
+   "unit": "clock cycle",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "fwd",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "I1: ADD R1, R2, R3",
+    "I2: SUB R4, R1, R5",
+    "I3: LW  R6, 0(R4)",
+    "I4: AND R7, R6, R8",
+    "I5: OR  R9, R7, R1"
+   ],
+   "end": 17,
+   "unit": "clock cycle",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "fwdx",
+   "type": "diagram",
+   "region": "center",
+   "layout": "layers",
+   "direction": "right",
+   "nodes": [
+    {
+     "id": "ex1",
+     "label": "ADD in EX: R1 computed"
+    },
+    {
+     "id": "reg",
+     "label": "EX/MEM register holds R1"
+    },
+    {
+     "id": "ex2",
+     "label": "SUB in EX next cycle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "ex1",
+     "to": "reg"
+    },
+    {
+     "from": "reg",
+     "to": "ex2",
+     "label": "forward"
+    }
+   ]
+  },
+  {
+   "id": "cmp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "stalls",
+    "total cycles"
+   ],
+   "rows": [
+    [
+     "ideal: 5 + 5 − 1",
+     "0",
+     "9"
+    ],
+    [
+     "stalls only",
+     "",
+     ""
+    ],
+    [
+     "with forwarding",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "br",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "method",
+    "what happens",
+    "penalty"
+   ],
+   "rows": [
+    [
+     "stall",
+     "freeze fetch until the branch is decided",
+     "2 cycles on every branch"
+    ],
+    [
+     "predict not taken",
+     "keep fetching in order; flush if the branch is taken",
+     "2 cycles, only when taken"
+    ],
+    [
+     "decide in ID",
+     "add a comparator in ID, so the branch is known one stage earlier",
+     "1 cycle"
+    ],
+    [
+     "delayed branch",
+     "the compiler puts a useful instruction in the slot after the branch",
+     "0 when the slot is filled"
+    ],
+    [
+     "dynamic prediction",
+     "a branch history table guesses from past behaviour",
+     "only on a wrong guess"
+    ]
+   ]
+  },
+  {
+   "id": "bcpi",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"CPI\" = 1 + f_\"branch\" times f_\"penalised\" times \"penalty\"",
+    "\"stall\": 1 + 0.2 times 1 times 2 = 1.4",
+    "\"predict not taken\": 1 + 0.2 times 0.6 times 2 = 1.24",
+    "\"decide in ID, predict not taken\": 1 + 0.2 times 0.6 times 1 = 1.12"
+   ]
+  },
+  {
+   "id": "qcode",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "LW  R1, 0(R2)",
+    "ADD R3, R1, R1",
+    "SUB R4, R3, R5",
+    "SW  R4, 8(R2)"
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "",
+    "stalls",
+    "cycles"
+   ],
+   "rows": [
+    [
+     "ideal: 5 + 4 − 1",
+     "0",
+     "8"
+    ],
+    [
+     "stalls only",
+     "",
+     ""
+    ],
+    [
+     "forwarding",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "qb",
+   "type": "math",
+   "region": "bottom",
+   "lines": [
+    "\"CPI\" = 1 + 0.25 times 0.4 times 3 = 1.3"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Last video we found hazards. Now we handle them, and count what each fix costs in cycles."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Handling hazards"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the six stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stalls, and how many cycles they cost on one code sequence."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then forwarding, and the one case it cannot fix: a load followed by its use."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then branches: four ways to handle them, and the branch penalty turned into CPI."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code",
+   "steps": [
+    {
+     "say": {
+      "en": "Here is the code we will run, five instructions long."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "The code"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "code"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each instruction from I2 on reads the result of the one just before it."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "depl"
+      },
+      {
+       "action": "highlight",
+       "target": "depl[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I2 needs R1 from the add, I3 needs R4 from the subtract, I4 needs R6 from the load, and I5 needs R7 from the AND."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Four RAW hazards, each only one instruction apart: the worst case."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "4 RAW hazards, each 1 apart"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stalls",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: the simplest fix is to wait. The instruction stays in ID until its value is in the register file."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 and 2 of 6: stalls"
+      },
+      {
+       "action": "hide",
+       "target": "code"
+      },
+      {
+       "action": "hide",
+       "target": "depl"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "nof"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I1 runs normally and writes R1 in cycle 5."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof0_1",
+       "lane": "I1: ADD R1, R2, R3",
+       "start": 0,
+       "end": 1,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof0_2",
+       "lane": "I1: ADD R1, R2, R3",
+       "start": 1,
+       "end": 2,
+       "label": "ID",
+       "delay": 0.08
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof0_3",
+       "lane": "I1: ADD R1, R2, R3",
+       "start": 2,
+       "end": 3,
+       "label": "EX",
+       "delay": 0.16
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof0_4",
+       "lane": "I1: ADD R1, R2, R3",
+       "start": 3,
+       "end": 4,
+       "label": "MEM",
+       "delay": 0.24
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof0_5",
+       "lane": "I1: ADD R1, R2, R3",
+       "start": 4,
+       "end": 5,
+       "label": "WB",
+       "delay": 0.32
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I2 reaches ID in cycle 3, but must wait until cycle 5 to read R1. Cycles 4 and 5 are stalls, shown as dashes."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof1_2",
+       "lane": "I2: SUB R4, R1, R5",
+       "start": 1,
+       "end": 2,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof1_3",
+       "lane": "I2: SUB R4, R1, R5",
+       "start": 2,
+       "end": 3,
+       "label": "ID",
+       "delay": 0.08
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof1_4",
+       "lane": "I2: SUB R4, R1, R5",
+       "start": 3,
+       "end": 4,
+       "label": "—",
+       "delay": 0.16
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof1_5",
+       "lane": "I2: SUB R4, R1, R5",
+       "start": 4,
+       "end": 5,
+       "label": "—",
+       "delay": 0.24
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof1_6",
+       "lane": "I2: SUB R4, R1, R5",
+       "start": 5,
+       "end": 6,
+       "label": "EX",
+       "delay": 0.32
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof1_7",
+       "lane": "I2: SUB R4, R1, R5",
+       "start": 6,
+       "end": 7,
+       "label": "MEM",
+       "delay": 0.4
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof1_8",
+       "lane": "I2: SUB R4, R1, R5",
+       "start": 7,
+       "end": 8,
+       "label": "WB",
+       "delay": 0.48
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A stall is also called a bubble: an empty slot that moves down the pipeline doing nothing."
+     }
+    },
+    {
+     "say": {
+      "en": "I3 is stuck behind I2 in IF, then waits again for R4, written in cycle 8."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof2_3",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 2,
+       "end": 3,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof2_4",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 3,
+       "end": 4,
+       "label": "—",
+       "delay": 0.08
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof2_5",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 4,
+       "end": 5,
+       "label": "—",
+       "delay": 0.16
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof2_6",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 5,
+       "end": 6,
+       "label": "ID",
+       "delay": 0.24
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof2_7",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 6,
+       "end": 7,
+       "label": "—",
+       "delay": 0.32
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof2_8",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 7,
+       "end": 8,
+       "label": "—",
+       "delay": 0.4
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof2_9",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 8,
+       "end": 9,
+       "label": "EX",
+       "delay": 0.48
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof2_10",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 9,
+       "end": 10,
+       "label": "MEM",
+       "delay": 0.56
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof2_11",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 10,
+       "end": 11,
+       "label": "WB",
+       "delay": 0.64
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I4 waits for R6 from the load, written in cycle 11."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof3_6",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 5,
+       "end": 6,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof3_7",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 6,
+       "end": 7,
+       "label": "—",
+       "delay": 0.08
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof3_8",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 7,
+       "end": 8,
+       "label": "—",
+       "delay": 0.16
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof3_9",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 8,
+       "end": 9,
+       "label": "ID",
+       "delay": 0.24
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof3_10",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 9,
+       "end": 10,
+       "label": "—",
+       "delay": 0.32
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof3_11",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 10,
+       "end": 11,
+       "label": "—",
+       "delay": 0.4
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof3_12",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 11,
+       "end": 12,
+       "label": "EX",
+       "delay": 0.48
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof3_13",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 12,
+       "end": 13,
+       "label": "MEM",
+       "delay": 0.56
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof3_14",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 13,
+       "end": 14,
+       "label": "WB",
+       "delay": 0.64
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And I5 waits for R7, written in cycle 14. It finishes in cycle 17."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof4_9",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 8,
+       "end": 9,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof4_10",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 9,
+       "end": 10,
+       "label": "—",
+       "delay": 0.08
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof4_11",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 10,
+       "end": 11,
+       "label": "—",
+       "delay": 0.16
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof4_12",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 11,
+       "end": 12,
+       "label": "ID",
+       "delay": 0.24
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof4_13",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 12,
+       "end": 13,
+       "label": "—",
+       "delay": 0.32
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof4_14",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 13,
+       "end": 14,
+       "label": "—",
+       "delay": 0.4
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof4_15",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 14,
+       "end": 15,
+       "label": "EX",
+       "delay": 0.48
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof4_16",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 15,
+       "end": 16,
+       "label": "MEM",
+       "delay": 0.56
+      },
+      {
+       "action": "add_block",
+       "target": "nof",
+       "id": "nof4_17",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 16,
+       "end": 17,
+       "label": "WB",
+       "delay": 0.64
+      },
+      {
+       "action": "advance",
+       "target": "nof",
+       "to": 17
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stage 2: count. The ideal is 5 plus 5 minus 1, which is 9 cycles. We took 17."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "nof"
+      },
+      {
+       "action": "show",
+       "target": "cmp"
+      },
+      {
+       "action": "highlight",
+       "target": "cmp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That is 8 stall cycles: 2 for each of the 4 hazards."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "cmp[1][1]",
+       "value": "8"
+      },
+      {
+       "action": "set",
+       "target": "cmp[1][2]",
+       "value": "17",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "cmp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Rule: without forwarding, a RAW hazard one apart costs 2 stalls, and two apart costs 1."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "no forwarding: 1 apart → 2 stalls · 2 apart → 1 stall · 3 apart → 0"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "forwarding",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: forwarding. Notice the add's result exists at the end of its EX stage, long before WB."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 6: forwarding"
+      },
+      {
+       "action": "hide",
+       "target": "cmp"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "fwdx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It sits in the pipeline register after EX."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fwdx.reg"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Forwarding, also called bypassing, wires that register straight back to the ALU input."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fwdx.reg->ex2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the next instruction can use the value in its own EX stage, the very next cycle, with no stall."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fwdx.ex2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A second path forwards from the register after MEM, for an instruction two behind."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "forwarding paths: EX/MEM → ALU and MEM/WB → ALU"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "load-use",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: run the same code with forwarding."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 6: forwarding, and the load-use stall"
+      },
+      {
+       "action": "hide",
+       "target": "fwdx"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "fwd"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I1 runs as before."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd0_1",
+       "lane": "I1: ADD R1, R2, R3",
+       "start": 0,
+       "end": 1,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd0_2",
+       "lane": "I1: ADD R1, R2, R3",
+       "start": 1,
+       "end": 2,
+       "label": "ID",
+       "delay": 0.08
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd0_3",
+       "lane": "I1: ADD R1, R2, R3",
+       "start": 2,
+       "end": 3,
+       "label": "EX",
+       "delay": 0.16
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd0_4",
+       "lane": "I1: ADD R1, R2, R3",
+       "start": 3,
+       "end": 4,
+       "label": "MEM",
+       "delay": 0.24
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd0_5",
+       "lane": "I1: ADD R1, R2, R3",
+       "start": 4,
+       "end": 5,
+       "label": "WB",
+       "delay": 0.32
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I2 gets R1 forwarded from I1's EX: no stall."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd1_2",
+       "lane": "I2: SUB R4, R1, R5",
+       "start": 1,
+       "end": 2,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd1_3",
+       "lane": "I2: SUB R4, R1, R5",
+       "start": 2,
+       "end": 3,
+       "label": "ID",
+       "delay": 0.08
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd1_4",
+       "lane": "I2: SUB R4, R1, R5",
+       "start": 3,
+       "end": 4,
+       "label": "EX",
+       "delay": 0.16
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd1_5",
+       "lane": "I2: SUB R4, R1, R5",
+       "start": 4,
+       "end": 5,
+       "label": "MEM",
+       "delay": 0.24
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd1_6",
+       "lane": "I2: SUB R4, R1, R5",
+       "start": 5,
+       "end": 6,
+       "label": "WB",
+       "delay": 0.32
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I3, the load, gets R4 forwarded from I2: no stall."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd2_3",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 2,
+       "end": 3,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd2_4",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 3,
+       "end": 4,
+       "label": "ID",
+       "delay": 0.08
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd2_5",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 4,
+       "end": 5,
+       "label": "EX",
+       "delay": 0.16
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd2_6",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 5,
+       "end": 6,
+       "label": "MEM",
+       "delay": 0.24
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd2_7",
+       "lane": "I3: LW  R6, 0(R4)",
+       "start": 6,
+       "end": 7,
+       "label": "WB",
+       "delay": 0.32
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But I4 needs R6, and a load only has its data at the end of MEM, not EX."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fwd.fwd2_6"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I4's EX would be in cycle 6, the same cycle the load is reading memory. Too early, even with forwarding."
+     }
+    },
+    {
+     "say": {
+      "en": "So I4 stalls for one cycle, and gets R6 forwarded from after MEM in cycle 7."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd3_4",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 3,
+       "end": 4,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd3_5",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 4,
+       "end": 5,
+       "label": "ID",
+       "delay": 0.08
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd3_6",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 5,
+       "end": 6,
+       "label": "—",
+       "delay": 0.16
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd3_7",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 6,
+       "end": 7,
+       "label": "EX",
+       "delay": 0.24
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd3_8",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 7,
+       "end": 8,
+       "label": "MEM",
+       "delay": 0.32
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd3_9",
+       "lane": "I4: AND R7, R6, R8",
+       "start": 8,
+       "end": 9,
+       "label": "WB",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I5 gets R7 forwarded from I4, and the whole sequence ends in cycle 10."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd4_5",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 4,
+       "end": 5,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd4_6",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 5,
+       "end": 6,
+       "label": "—",
+       "delay": 0.08
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd4_7",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 6,
+       "end": 7,
+       "label": "ID",
+       "delay": 0.16
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd4_8",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 7,
+       "end": 8,
+       "label": "EX",
+       "delay": 0.24
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd4_9",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 8,
+       "end": 9,
+       "label": "MEM",
+       "delay": 0.32
+      },
+      {
+       "action": "add_block",
+       "target": "fwd",
+       "id": "fwd4_10",
+       "lane": "I5: OR  R9, R7, R1",
+       "start": 9,
+       "end": 10,
+       "label": "WB",
+       "delay": 0.4
+      },
+      {
+       "action": "advance",
+       "target": "fwd",
+       "to": 10
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Compare: 17 cycles with stalls only, 10 with forwarding, against the ideal of 9."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "fwd"
+      },
+      {
+       "action": "show",
+       "target": "cmp"
+      },
+      {
+       "action": "set",
+       "target": "cmp[2][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "cmp[2][2]",
+       "value": "10",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "cmp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This is the load-use hazard: a load followed straight away by its use always costs one stall in this pipeline."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "load-use: 1 stall even with forwarding"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If even one independent instruction sits between the load and its use, the value is forwarded from after MEM just in time: no stall."
+     }
+    },
+    {
+     "say": {
+      "en": "So compilers hide the stall by moving an independent instruction into that gap. This is called instruction scheduling."
+     }
+    },
+    {
+     "say": {
+      "en": "Edge case: a store that only needs the loaded value as its data, not its address, can take it even later, in MEM."
+     }
+    }
+   ]
+  },
+  {
+   "id": "branches",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: branches. In our pipeline, a branch is decided in EX, two cycles after it is fetched."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 6: handling branches"
+      },
+      {
+       "action": "hide",
+       "target": "cmp"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "br"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Simplest: stall. Stop fetching until the branch is decided. Every branch costs 2 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "br[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Better: predict not taken. Keep fetching the next instructions; if the branch is not taken, nothing is lost."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "br[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If it is taken, flush the two wrong instructions, turning them into bubbles. The penalty is paid only on taken branches."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "br[1][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Decide earlier: add a comparator and an adder to ID, so the branch is known after one cycle. The penalty drops to 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "br[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Delayed branch: the instruction right after a branch always runs, and the compiler fills that slot with useful work."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "br[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And dynamic prediction: hardware remembers how each branch went last time, and guesses. Only wrong guesses cost cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "br[4]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "branch-cpi",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: turn the penalty into CPI, cycles per instruction."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 6: the branch penalty as CPI"
+      },
+      {
+       "action": "hide",
+       "target": "br"
+      },
+      {
+       "action": "show",
+       "target": "bcpi"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Ideal CPI is 1. Add the fraction of instructions that are branches, times the fraction of those that pay, times the penalty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bcpi[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Say 20 percent of instructions are branches, and 60 percent of branches are taken."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "branches: 20% of instructions · taken: 60% of branches"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stalling: every branch pays 2 cycles, so 1 plus 0.2 times 1 times 2 is 1.4."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bcpi[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "bcpi[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Predict not taken: only taken branches pay, so 1 plus 0.2 times 0.6 times 2 is 1.24."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bcpi[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "bcpi[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Decide in ID as well: the penalty is 1, so 1 plus 0.2 times 0.6 times 1 is 1.12."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bcpi[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "bcpi[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check: each improvement must lower the CPI, and none can go below the ideal of 1."
+     }
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question, in two parts."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "bcpi"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "qcode"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part a: how many cycles does this code take with stalls only, and with forwarding? Pause and try it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa.c1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The ideal is 5 plus 4 minus 1, which is 8 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "There are three RAW hazards, each one apart: the add needs R1, the subtract needs R3, and the store needs R4."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "qcode",
+       "from": 2,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stalls only: 2 each, so 6 stalls and 14 cycles."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "qa[1][1]",
+       "value": "6"
+      },
+      {
+       "action": "set",
+       "target": "qa[1][2]",
+       "value": "14",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With forwarding: only the load followed by its use stalls, once. So 1 stall and 9 cycles."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "qa[2][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qa[2][2]",
+       "value": "9",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part b: 25 percent of instructions are branches, 40 percent are taken, the penalty is 3, and we predict not taken."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "qb"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "CPI is 1 plus 0.25 times 0.4 times 3, which is 1.3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip in part b is multiplying by the taken fraction when the method is stalling: then every branch pays."
+     }
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "qcode"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "hide",
+       "target": "qb"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stalls work but are slow: 17 cycles instead of 9."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Forwarding passes results straight to the ALU, leaving only the load-use stall: 10 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Branches are handled by stalling, predicting, deciding earlier or delaying, and their cost is 1 plus branch fraction times penalised fraction times penalty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: performance metrics, CPU time, CPI and MIPS, with every trap examiners use."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: performance metrics"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

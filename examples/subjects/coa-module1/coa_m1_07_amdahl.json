@@ -1,0 +1,1277 @@
+{
+ "version": 1,
+ "title": "Amdahl's law: how much one improvement can buy",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The law, from the time it saves"
+    ],
+    [
+     2,
+     "The limit: speeding up a part forever"
+    ],
+    [
+     3,
+     "Amdahl for N processors"
+    ],
+    [
+     4,
+     "Edge case: the fraction must be of the old time"
+    ],
+    [
+     5,
+     "Choosing between improvements, and combining them"
+    ],
+    [
+     6,
+     "Working backwards: what speedup do I need?"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "bar",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "old run",
+    "new run"
+   ],
+   "end": 10,
+   "unit": "seconds",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "law",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "T_\"new\" = T_\"old\" times ((1 - f) + f / s)",
+    "\"speedup\" = T_\"old\" / T_\"new\" = 1 / ((1 - f) + f / s)",
+    "f = 0.4, s = 10: quad 1 / (0.6 + 0.04) = 1 / 0.64 approx 1.56"
+   ]
+  },
+  {
+   "id": "lim",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "fraction improved f",
+    "best possible speedup 1 ÷ (1 − f)"
+   ],
+   "rows": [
+    [
+     "0.4",
+     "1.67"
+    ],
+    [
+     "0.5",
+     "2"
+    ],
+    [
+     "0.9",
+     "10"
+    ],
+    [
+     "0.95",
+     "20"
+    ],
+    [
+     "0.99",
+     "100"
+    ]
+   ]
+  },
+  {
+   "id": "limf",
+   "type": "math",
+   "region": "left",
+   "lines": [
+    "s -> infinity: quad f / s -> 0",
+    "\"speedup\" -> 1 / (1 - f)",
+    "f = 0.4: quad 1 / 0.6 approx 1.67"
+   ]
+  },
+  {
+   "id": "procf",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"speedup\"(N) = 1 / ((1 - p) + p / N)",
+    "\"efficiency\" = \"speedup\" / N"
+   ]
+  },
+  {
+   "id": "proc",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "processors N",
+    "speedup, p = 0.95",
+    "efficiency"
+   ],
+   "rows": [
+    [
+     "8",
+     "",
+     ""
+    ],
+    [
+     "100",
+     "",
+     ""
+    ],
+    [
+     "infinitely many",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "gus",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "Amdahl",
+    "Gustafson"
+   ],
+   "rows": [
+    [
+     "problem size",
+     "fixed",
+     "grows with N"
+    ],
+    [
+     "speedup",
+     "1 ÷ ((1 − p) + p ÷ N)",
+     "(1 − p) + p × N"
+    ],
+    [
+     "p = 0.95, N = 100",
+     "16.8",
+     "95.05"
+    ]
+   ]
+  },
+  {
+   "id": "after",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "new run",
+    "old run"
+   ],
+   "end": 6,
+   "unit": "seconds",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "afterm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"old time\" = 0.5 + 0.5 times 10 = 5.5 quad => quad \"speedup\" = 5.5 / 1 = 5.5",
+    "f = 5 / 5.5 approx 0.909 quad \"(not 0.5)\""
+   ]
+  },
+  {
+   "id": "pick",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "option",
+    "f",
+    "s",
+    "overall speedup"
+   ],
+   "rows": [
+    [
+     "square root unit",
+     "0.2",
+     "10",
+     ""
+    ],
+    [
+     "whole FP unit",
+     "0.5",
+     "1.6",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "multi",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"speedup\" = 1 / ((1 - f_1 - f_2) + f_1 / s_1 + f_2 / s_2)",
+    "f_1 = 0.3, s_1 = 3, quad f_2 = 0.2, s_2 = 4",
+    "1 / (0.5 + 0.1 + 0.05) = 1 / 0.65 approx 1.54"
+   ]
+  },
+  {
+   "id": "inv",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "f = 0.8, \"want overall\" 4: quad 1 / 4 = 0.2 + 0.8 / s",
+    "0.8 / s = 0.05 quad => quad s = 16",
+    "\"want overall\" 5: quad 1 / 5 = 0.2 + 0.8 / s quad => quad 0.8 / s = 0",
+    "\"impossible: the limit is\" 1 / (1 - 0.8) = 5"
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "A program spends 40% of its time on memory and 20% on floating point. Find:"
+   ],
+   "rows": [
+    [
+     "a) speedup if memory becomes 2 times faster"
+    ],
+    [
+     "b) speedup if floating point becomes 5 times faster"
+    ],
+    [
+     "c) speedup with both"
+    ],
+    [
+     "d) 90% of it runs in parallel on 16 cores: speedup, and the limit?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad 1 / (0.6 + 0.4 / 2) = 1 / 0.8 = 1.25",
+    "\"b)\" quad 1 / (0.8 + 0.2 / 5) = 1 / 0.84 approx 1.19",
+    "\"c)\" quad 1 / (0.4 + 0.2 + 0.04) = 1 / 0.64 approx 1.56",
+    "\"d)\" quad 1 / (0.1 + 0.9 / 16) approx 6.4, quad \"limit\" 1 / 0.1 = 10"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "You make one part of a program ten times faster. Does the program get ten times faster? Almost never. Amdahl's law tells you by how much."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Amdahl's law"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The law itself, its limit, and its version for many processors."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the edge case that costs the most marks: which time the fraction is measured on."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then choosing and combining improvements, working backwards, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "law",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a program takes 10 seconds. 40 percent of that time, 4 seconds, is spent in a part we can speed up."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the law"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "bar"
+      },
+      {
+       "action": "add_block",
+       "target": "bar",
+       "id": "o1",
+       "lane": "old run",
+       "start": 0,
+       "end": 6,
+       "label": "6 s: not improved"
+      },
+      {
+       "action": "add_block",
+       "target": "bar",
+       "id": "o2",
+       "lane": "old run",
+       "start": 6,
+       "end": 10,
+       "label": "4 s: f = 0.4",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Make that part 10 times faster. Its 4 seconds shrink to 0.4 seconds."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "bar",
+       "id": "n2",
+       "lane": "new run",
+       "start": 6,
+       "end": 6.4,
+       "label": "0.4 s",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But the other 6 seconds are untouched. The new run takes 6.4 seconds."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "bar",
+       "id": "n1",
+       "lane": "new run",
+       "start": 0,
+       "end": 6,
+       "label": "6 s: unchanged"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The part you did not improve now dominates: 6 of the 6.4 seconds."
+     }
+    },
+    {
+     "say": {
+      "en": "In general, the new time is the old time times one minus f, plus f over s. f is the fraction of the time that is improved, and s is how much faster that part gets."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "bar"
+      },
+      {
+       "action": "show",
+       "target": "law"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Speedup is old time over new time, so the old time cancels: one over one minus f, plus f over s."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "law[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "law[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here: one over 0.6 plus 0.04, which is 1 over 0.64, about 1.56. Ten times faster in one part bought only 1.56 overall."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "law[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "law[2]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "limit",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: what if we made that part infinitely fast?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: the limit"
+      },
+      {
+       "action": "hide",
+       "target": "law"
+      },
+      {
+       "action": "show",
+       "target": "limf"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "As s goes to infinity, f over s goes to zero, and the speedup approaches one over one minus f."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "limf[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "limf[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With f equal to 0.4, the best possible speedup is 1 over 0.6, about 1.67. However fast that part becomes, you never beat 1.67."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "limf[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "limf[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The table shows how harsh this is. Improve half the time, and the best you can ever get is 2."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "lim"
+      },
+      {
+       "action": "highlight",
+       "target": "lim[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Even with 95 percent improved, the ceiling is 20. The last 5 percent decides it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lim[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the rule is: make the common case fast. The bigger f is, the more an improvement can buy."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "limit: speedup < 1 ÷ (1 − f) · make the common case fast"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "proc",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: the same law for parallel processors. Let p be the fraction of the time that can run in parallel, spread over N processors."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: N processors"
+      },
+      {
+       "action": "hide",
+       "target": "limf"
+      },
+      {
+       "action": "hide",
+       "target": "lim"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "procf"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then s is just N: speedup equals one over one minus p, plus p over N. And efficiency is speedup divided by N, how well each processor is used."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "procf[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "procf[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Take p equal to 0.95. With 8 processors: one over 0.05 plus 0.11875, about 5.93. Efficiency 74 percent."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "procf"
+      },
+      {
+       "action": "show",
+       "target": "proc"
+      },
+      {
+       "action": "highlight",
+       "target": "proc[0]"
+      },
+      {
+       "action": "set",
+       "target": "proc[0][1]",
+       "value": "5.93",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "proc[0][2]",
+       "value": "74%",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 100 processors: one over 0.05 plus 0.0095, about 16.8. Efficiency falls to under 17 percent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "proc[1]"
+      },
+      {
+       "action": "set",
+       "target": "proc[1][1]",
+       "value": "16.8",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "proc[1][2]",
+       "value": "17%",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And with infinitely many, the limit is one over 0.05: 20, no matter how many processors you buy."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "proc[2]"
+      },
+      {
+       "action": "set",
+       "target": "proc[2][1]",
+       "value": "20",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "proc[2][2]",
+       "value": "→ 0",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Amdahl assumes the problem size stays fixed. Gustafson's law assumes it grows with the machine, so the parallel part grows too."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "proc"
+      },
+      {
+       "action": "show",
+       "target": "gus"
+      },
+      {
+       "action": "highlight",
+       "target": "gus[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "His scaled speedup is one minus p, plus p times N. With p 0.95 and 100 processors, that is 95, against Amdahl's 16.8. Use Amdahl unless the question says the problem is scaled up."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gus[1..=2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "fixed size: Amdahl · scaled size: Gustafson"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "old",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4, the edge case. A question says: after the enhancement, the enhanced mode is used 50 percent of the time, and it is 10 times faster. What is the speedup?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: which time is f measured on?"
+      },
+      {
+       "action": "hide",
+       "target": "gus"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "after"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The tempting answer puts f equal to 0.5 in the formula. That is wrong: f must be a fraction of the old time, before the enhancement."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "after",
+       "id": "a1",
+       "lane": "new run",
+       "start": 0,
+       "end": 0.5,
+       "label": "0.5 normal"
+      },
+      {
+       "action": "add_block",
+       "target": "after",
+       "id": "a2",
+       "lane": "new run",
+       "start": 0.5,
+       "end": 1,
+       "label": "0.5 enhanced",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Work from the new run. Say it takes 1 unit: 0.5 normal, and 0.5 in enhanced mode."
+     }
+    },
+    {
+     "say": {
+      "en": "Without the enhancement, that enhanced half would have taken 10 times longer: 5 units. So the old run took 0.5 plus 5, which is 5.5."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "after",
+       "id": "b1",
+       "lane": "old run",
+       "start": 0,
+       "end": 0.5,
+       "label": "0.5"
+      },
+      {
+       "action": "add_block",
+       "target": "after",
+       "id": "b2",
+       "lane": "old run",
+       "start": 0.5,
+       "end": 5.5,
+       "label": "0.5 × 10 = 5",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The speedup is 5.5 over 1, which is 5.5. In terms of the old time, f was 5 over 5.5, about 0.909, not 0.5."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "after"
+      },
+      {
+       "action": "show",
+       "target": "afterm"
+      },
+      {
+       "action": "reveal",
+       "target": "afterm[1]",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "afterm[1]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check: one over 0.091 plus 0.0909 gives 5.5. Same answer, once f is measured on the old time."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "f is always a fraction of the OLD time"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "choose",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: you can afford one improvement. Square root takes 20 percent of the time, and a new unit makes it 10 times faster. All floating point takes 50 percent, and a new unit makes it 1.6 times faster."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: choose and combine"
+      },
+      {
+       "action": "hide",
+       "target": "afterm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "pick"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Square root: one over 0.8 plus 0.02, about 1.22."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pick[0]"
+      },
+      {
+       "action": "set",
+       "target": "pick[0][3]",
+       "value": "1 ÷ 0.82 ≈ 1.22",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "All floating point: one over 0.5 plus 0.3125, about 1.23."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pick[1]"
+      },
+      {
+       "action": "set",
+       "target": "pick[1][3]",
+       "value": "1 ÷ 0.8125 ≈ 1.23",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The modest improvement to the common case wins, even though 1.6 sounds much smaller than 10."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "pick[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To combine two improvements on separate parts of the program, keep the unimproved part, and divide each improved part by its own speedup."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "pick"
+      },
+      {
+       "action": "show",
+       "target": "multi"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "30 percent made 3 times faster, and 20 percent made 4 times faster."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "multi[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "multi[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One over 0.5 plus 0.1 plus 0.05, which is 1 over 0.65, about 1.54. Edge case: this only works when the two parts do not overlap. Never multiply the two separate speedups together."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "multi[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "multi[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "separate parts: one formula, never multiply the speedups"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "inverse",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: working backwards. 80 percent of the time can be improved, and we want the whole program 4 times faster. How fast must that part become?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: working backwards"
+      },
+      {
+       "action": "hide",
+       "target": "multi"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "inv"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Set the formula equal to 4: one quarter equals 0.2 plus 0.8 over s."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "inv[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So 0.8 over s is 0.05, and s is 16. That part must become 16 times faster."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "inv[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "inv[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now ask for 5 times overall. One fifth is 0.2, so 0.8 over s must be zero."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "inv[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "inv[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That needs an infinitely fast part. 5 is exactly the limit, one over 0.2, so it can never be reached. Anything above 5 is impossible too."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "inv[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "inv[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a target ≥ 1 ÷ (1 − f) is impossible"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "inv"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A program spends 40 percent of its time on memory and 20 percent on floating point. Find the speedup from a 2 times faster memory, from 5 times faster floating point, and from both."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then, separately: 90 percent of it runs in parallel on 16 cores. Find the speedup and its limit. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: one over 0.6 plus 0.2, which is 1 over 0.8: 1.25."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: one over 0.8 plus 0.04, which is 1 over 0.84: about 1.19. The bigger part gave the bigger win, even with the smaller speedup."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: the parts do not overlap, so one formula: one over 0.4 plus 0.2 plus 0.04, which is 1 over 0.64, about 1.56. Not 1.25 times 1.19."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: one over 0.1 plus 0.9 over 16, about 6.4. And however many cores, the limit is one over 0.1: 10."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Speedup is one over one minus f, plus f over s, and it can never reach one over one minus f."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Measure f on the old time, put separate improvements into one formula, and check a target against the limit before solving for it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: pipeline speedup for real, with unequal stage delays and latch overhead."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: pipeline speedup with stage delays and latches"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

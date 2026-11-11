@@ -1,0 +1,1384 @@
+{
+ "version": 1,
+ "title": "Arithmetic pipelines: floating point add, subtract, multiply, divide",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Floating point numbers, and why their arithmetic is pipelined"
+    ],
+    [
+     2,
+     "Add: four stages, worked through"
+    ],
+    [
+     3,
+     "Subtract, and the normalizing edge cases"
+    ],
+    [
+     4,
+     "Timing the adder pipeline"
+    ],
+    [
+     5,
+     "Multiply: exponents add, mantissas multiply"
+    ],
+    [
+     6,
+     "Divide: why it is not fully pipelined"
+    ],
+    [
+     7,
+     "Stages and repeat rates side by side, and an exam question"
+    ]
+   ]
+  },
+  {
+   "id": "fmt",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "x = plus.minus M times 10^E quad \"decimal, for working by hand\"",
+    "x = (-1)^S times 1.F times 2^(e - 127) quad \"IEEE 754 single precision\"",
+    "\"normalized decimal\": 0.d_1 d_2 d_3 d_4, quad d_1 != 0"
+   ]
+  },
+  {
+   "id": "why",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "why pipeline floating point?"
+   ],
+   "rows": [
+    [
+     "one operation is several dependent steps"
+    ],
+    [
+     "scientific loops do thousands of the same operation"
+    ],
+    [
+     "a pipeline finishes one per cycle once full"
+    ]
+   ]
+  },
+  {
+   "id": "add",
+   "type": "diagram",
+   "region": "left",
+   "layout": "layers",
+   "direction": "down",
+   "nodes": [
+    {
+     "id": "s1",
+     "label": "1 compare"
+    },
+    {
+     "id": "s2",
+     "label": "2 align"
+    },
+    {
+     "id": "s3",
+     "label": "3 add"
+    },
+    {
+     "id": "s4",
+     "label": "4 normalize"
+    }
+   ],
+   "edges": [
+    {
+     "from": "s1",
+     "to": "s2"
+    },
+    {
+     "from": "s2",
+     "to": "s3"
+    },
+    {
+     "from": "s3",
+     "to": "s4"
+    }
+   ]
+  },
+  {
+   "id": "addx",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "stage",
+    "X = 0.9504 × 10³ , Y = 0.8200 × 10²"
+   ],
+   "rows": [
+    [
+     "1",
+     ""
+    ],
+    [
+     "2",
+     ""
+    ],
+    [
+     "3",
+     ""
+    ],
+    [
+     "4",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "sub",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "case",
+    "after stage 3",
+    "stage 4 does"
+   ],
+   "rows": [
+    [
+     "0.9504 × 10³ − 0.8200 × 10²",
+     "0.8684 × 10³",
+     "nothing: already normalized"
+    ],
+    [
+     "0.9504 × 10³ + 0.8200 × 10²",
+     "1.0324 × 10³",
+     "shift right 1, exponent + 1"
+    ],
+    [
+     "0.5000 × 10² − 0.4990 × 10²",
+     "0.0010 × 10²",
+     "shift left 2, exponent − 2"
+    ],
+    [
+     "X + (−Y)",
+     "same hardware",
+     "flip Y's sign, then add"
+    ]
+   ]
+  },
+  {
+   "id": "tm",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "compare",
+    "align",
+    "add",
+    "normalize",
+    "latch"
+   ],
+   "rows": [
+    [
+     "delay (ns)",
+     "60",
+     "70",
+     "100",
+     "80",
+     "10"
+    ]
+   ]
+  },
+  {
+   "id": "tmm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "T_\"clock\" = 100 + 10 = 110 \"ns\" quad \"no pipeline\": 60 + 70 + 100 + 80 = 310 \"ns\"",
+    "\"speedup limit\" = 310 / 110 approx 2.82"
+   ]
+  },
+  {
+   "id": "mul",
+   "type": "diagram",
+   "region": "left",
+   "layout": "layers",
+   "direction": "down",
+   "nodes": [
+    {
+     "id": "m1",
+     "label": "1 add exponents"
+    },
+    {
+     "id": "m2",
+     "label": "2 multiply"
+    },
+    {
+     "id": "m3",
+     "label": "3 normalize"
+    },
+    {
+     "id": "m4",
+     "label": "4 round"
+    }
+   ],
+   "edges": [
+    {
+     "from": "m1",
+     "to": "m2"
+    },
+    {
+     "from": "m2",
+     "to": "m3"
+    },
+    {
+     "from": "m3",
+     "to": "m4"
+    }
+   ]
+  },
+  {
+   "id": "mulx",
+   "type": "math",
+   "region": "right",
+   "lines": [
+    "(0.25 times 10^3) times (0.20 times 10^2)",
+    "E = 3 + 2 = 5, quad M = 0.25 times 0.20 = 0.05",
+    "0.05 times 10^5 = 0.5 times 10^4",
+    "\"biased:\" quad e = 130 + 129 - 127 = 132",
+    "2^3 times 2^2 = 2^5 quad (132 - 127 = 5)"
+   ]
+  },
+  {
+   "id": "div",
+   "type": "diagram",
+   "region": "left",
+   "layout": "layers",
+   "direction": "down",
+   "nodes": [
+    {
+     "id": "d1",
+     "label": "1 sub exponents"
+    },
+    {
+     "id": "d2",
+     "label": "2 divide (loop)"
+    },
+    {
+     "id": "d3",
+     "label": "3 normalize"
+    },
+    {
+     "id": "d4",
+     "label": "4 round"
+    }
+   ],
+   "edges": [
+    {
+     "from": "d1",
+     "to": "d2"
+    },
+    {
+     "from": "d2",
+     "to": "d3"
+    },
+    {
+     "from": "d3",
+     "to": "d4"
+    }
+   ]
+  },
+  {
+   "id": "divx",
+   "type": "math",
+   "region": "right",
+   "lines": [
+    "(0.80 times 10^5) / (0.20 times 10^2)",
+    "E = 5 - 2 = 3, quad M = 0.80 / 0.20 = 4.0",
+    "4.0 times 10^3 = 0.40 times 10^4",
+    "\"biased:\" quad e = 133 - 129 + 127 = 131",
+    "\"divide by zero\" -> infinity \"or an exception\""
+   ]
+  },
+  {
+   "id": "dalg",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "how the mantissas are divided",
+    "how it works",
+    "pipelined?"
+   ],
+   "rows": [
+    [
+     "restoring / non-restoring",
+     "subtract and shift, one quotient bit per step",
+     "no: reuses one adder"
+    ],
+    [
+     "SRT",
+     "a table picks 2 or more quotient bits per step",
+     "no: still iterative"
+    ],
+    [
+     "Newton–Raphson, Goldschmidt",
+     "repeated multiplies converge on 1 ÷ divisor",
+     "uses the multiplier, so blocks it"
+    ]
+   ]
+  },
+  {
+   "id": "lat",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "unit",
+    "cycles to finish one",
+    "a new one can start every"
+   ],
+   "rows": [
+    [
+     "integer ALU",
+     "1",
+     "1 cycle"
+    ],
+    [
+     "FP add / subtract",
+     "4 stages",
+     "1 cycle"
+    ],
+    [
+     "FP multiply",
+     "7 stages",
+     "1 cycle"
+    ],
+    [
+     "FP divide",
+     "about 25",
+     "25 cycles: not pipelined"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "Use the adder above (60, 70, 100, 80 ns, latch 10 ns) and the table of units. Find:"
+   ],
+   "rows": [
+    [
+     "a) 0.3000 × 10² + 0.9900 × 10³, stage by stage"
+    ],
+    [
+     "b) time for 100 additions, with and without the pipeline"
+    ],
+    [
+     "c) cycles for 10 independent multiplies, and for 10 divides"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad 3 - 2 = 1; quad 0.0300 times 10^3; quad 1.0200 times 10^3; quad 0.1020 times 10^4",
+    "\"b)\" quad (4 + 99) times 110 = 11330 \"ns\", quad 100 times 310 = 31000 \"ns\", quad approx 2.74",
+    "\"c) multiply:\" quad 7 + 9 = 16 \"cycles\"",
+    "\"c) divide:\" quad 10 times 25 = 250 \"cycles\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Instruction pipelines overlap instructions. Arithmetic pipelines overlap the steps inside one operation, like a floating point add."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Arithmetic pipelines"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The number format, then the adder: its four stages, subtraction and its edge cases, and its timing."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then multiply and divide, how many stages each takes, and why division is the odd one out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "format",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a floating point number has a sign, a mantissa and an exponent."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the format"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "fmt"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "By hand, we work in decimal: a mantissa times 10 to an exponent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fmt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The hardware does the same in binary. In IEEE single precision the stored exponent has a bias of 127, which matters for multiply and divide."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "fmt[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "fmt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Normalized means the first mantissa digit is not zero. In our decimal form, 0.9504, not 0.0950."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "fmt[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "fmt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why pipeline this? Each operation is a chain of dependent steps, and scientific loops repeat the same operation thousands of times."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "fmt"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      },
+      {
+       "action": "highlight",
+       "target": "why[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So with one stage per step, a new operation enters every cycle, and one result leaves every cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[2]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "add",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the floating point adder has four stages. Add X equals 0.9504 times 10 cubed, and Y equals 0.8200 times 10 squared."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: the adder"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "add"
+      },
+      {
+       "action": "show",
+       "target": "addx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stage 1, compare exponents: subtract them. 3 minus 2 is 1, so Y's exponent is smaller by 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "add.s1"
+      },
+      {
+       "action": "set",
+       "target": "addx[0][1]",
+       "value": "3 − 2 = 1",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stage 2, align: shift the smaller number's mantissa right by that difference. Y becomes 0.0820 times 10 cubed. Now both have the same exponent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "add.s2"
+      },
+      {
+       "action": "set",
+       "target": "addx[1][1]",
+       "value": "Y = 0.0820 × 10³",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stage 3, add the mantissas: 0.9504 plus 0.0820 is 1.0324, times 10 cubed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "add.s3"
+      },
+      {
+       "action": "set",
+       "target": "addx[2][1]",
+       "value": "0.9504 + 0.0820 = 1.0324 × 10³",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stage 4, normalize: 1.0324 has overflowed past the point. Shift it right once and add 1 to the exponent: 0.10324 times 10 to the 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "add.s4"
+      },
+      {
+       "action": "set",
+       "target": "addx[3][1]",
+       "value": "0.10324 × 10⁴",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case: always shift the smaller number, right. Shifting the larger one left would lose its leading digits."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "compare → align (shift smaller right) → add → normalize"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sub",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: subtraction uses the same four stages. To compute X minus Y, flip Y's sign, and add."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: subtract and normalize"
+      },
+      {
+       "action": "hide",
+       "target": "add"
+      },
+      {
+       "action": "hide",
+       "target": "addx"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "sub"
+      },
+      {
+       "action": "highlight",
+       "target": "sub[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The same X and Y: after aligning, 0.9504 minus 0.0820 is 0.8684 times 10 cubed. It is already normalized, so stage 4 does nothing."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sub[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The sum we just did overflowed instead, so stage 4 shifted right by one."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sub[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The hard case: subtracting nearly equal numbers. 0.5000 minus 0.4990 is 0.0010. Two leading zeros."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sub[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stage 4 must shift left by two and subtract 2 from the exponent: 0.1000 times 10 to the 0. So the normalizer must shift both ways, and count leading zeros for the left shift."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "sub[2][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case: whether the mantissas are really added or subtracted depends on the signs as well as the operation. Adding a negative number is a subtraction."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "normalize: overflow → shift right · leading zeros → shift left"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "timing",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: time the adder. Its stages take 60, 70, 100 and 80 nanoseconds, and each latch takes 10."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: timing the adder"
+      },
+      {
+       "action": "hide",
+       "target": "sub"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "tm"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "As in video 8: the clock is the slowest stage plus the latch, 100 plus 10, which is 110 nanoseconds. Without the pipeline, one add takes the sum: 310."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tm[0][3]"
+      },
+      {
+       "action": "hide",
+       "target": "tm",
+       "delay": 0.6
+      },
+      {
+       "action": "show",
+       "target": "tmm",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the speedup can approach 310 over 110, about 2.82, not 4, because the add stage is the slow one."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "tmm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "tmm[1]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mul",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: multiplication is simpler in one way: no aligning. Exponents add and mantissas multiply."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: multiply"
+      },
+      {
+       "action": "hide",
+       "target": "tmm"
+      },
+      {
+       "action": "show",
+       "target": "mul"
+      },
+      {
+       "action": "show",
+       "target": "mulx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stage 1: add the exponents, and XOR the signs. Here 3 plus 2 is 5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mul.m1"
+      },
+      {
+       "action": "reveal",
+       "target": "mulx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stage 2: multiply the mantissas: 0.25 times 0.20 is 0.05."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mul.m2"
+      },
+      {
+       "action": "highlight",
+       "target": "mulx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stage 3: normalize. 0.05 has a leading zero, so shift left and subtract 1: 0.5 times 10 to the 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mul.m3"
+      },
+      {
+       "action": "reveal",
+       "target": "mulx[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "mulx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stage 4: round to the available digits. Rounding can carry all the way up, so it may need one more normalizing shift."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mul.m4"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case with the bias: each stored exponent already has 127 added. So add them, and subtract 127 once. 130 plus 129 minus 127 is 132, meaning 2 to the 5."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "mulx[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "mulx[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "mulx[4]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The mantissa multiply is the slow step, so it is split up itself: a tree of carry-save adders sums the partial products over several stages. Real FP multipliers have around 4 to 7 stages."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "mul.m2"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "multiply: add exponents (− bias once), multiply mantissas, normalize, round"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "div",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: division. Subtract the exponents, divide the mantissas, normalize, and round."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: divide"
+      },
+      {
+       "action": "hide",
+       "target": "mul"
+      },
+      {
+       "action": "hide",
+       "target": "mulx"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "div"
+      },
+      {
+       "action": "show",
+       "target": "divx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Exponents: 5 minus 2 is 3. Mantissas: 0.80 over 0.20 is 4.0."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "div.d1"
+      },
+      {
+       "action": "highlight",
+       "target": "div.d2",
+       "delay": 0.4
+      },
+      {
+       "action": "reveal",
+       "target": "divx[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "divx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4.0 is too big, so normalize by shifting right: 0.40 times 10 to the 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "div.d3"
+      },
+      {
+       "action": "reveal",
+       "target": "divx[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "divx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With the bias, subtracting removes it, so add 127 back once: 133 minus 129 plus 127 is 131. And dividing by zero must give infinity or raise an exception."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "divx[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "divx[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "divx[4]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the important part: the mantissa division is iterative. It produces the quotient a few bits at a time, reusing the same hardware."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "div"
+      },
+      {
+       "action": "hide",
+       "target": "divx"
+      },
+      {
+       "action": "show",
+       "target": "dalg"
+      },
+      {
+       "action": "highlight",
+       "target": "dalg[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Restoring and non-restoring division subtract and shift, one bit per step. SRT uses a table to pick two or more bits per step, but it is still a loop."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dalg[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Newton–Raphson and Goldschmidt find one over the divisor by repeated multiplication, which doubles the correct bits each time. But they occupy the multiplier."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dalg[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Either way, the same hardware is busy until the quotient is done. So a new divide cannot start every cycle: division is not fully pipelined."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "divide: iterative · a new divide waits for the last one"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "compare",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: here are typical numbers, from the textbook MIPS floating point pipeline."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 7: side by side"
+      },
+      {
+       "action": "hide",
+       "target": "dalg"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "lat"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The integer ALU takes 1 cycle. The FP adder has 4 stages, and a new add can start every cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lat[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The multiplier has 7 stages, and is also fully pipelined: one new multiply every cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lat[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The divider takes about 25 cycles, and the next divide must wait all 25. Its repeat rate equals its latency."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lat[3]"
+      },
+      {
+       "action": "mark",
+       "target": "lat[3][2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Keep two numbers apart: cycles to finish one operation, and how often a new one can start. Only a pipelined unit makes the second number 1."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "latency ≠ repeat rate · only pipelined units start one per cycle"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question, using that adder and that table."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "lat"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add 0.3000 times 10 squared and 0.9900 times 10 cubed, stage by stage. Time 100 additions with and without the pipeline. And count the cycles for 10 independent multiplies, and for 10 divides. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: the exponents differ by 1. Align: 0.0300 times 10 cubed. Add: 1.0200. Normalize: shift right, 0.1020 times 10 to the 4."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: with the pipeline, 4 plus 99 cycles of 110 nanoseconds, 11330. Without it, 100 times 310, 31000. A speedup of about 2.74."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: the multiplier is pipelined, so 10 multiplies take 7 plus 9: 16 cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But the divider is not, so 10 divides take 10 times 25: 250 cycles. About 15 times longer, which is why compilers replace divides with multiplies when they can."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add and subtract: compare exponents, align the smaller, add, normalize either way. The slowest stage plus the latch sets the clock."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Multiply: add exponents, subtract the bias once, multiply mantissas over several stages. Divide: iterative, and not fully pipelined."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That completes Module 1, the fundamentals of computer architecture. Next: Module 2, the memory hierarchy."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Module 1 complete · Next: memory hierarchy"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

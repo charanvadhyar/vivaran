@@ -1,0 +1,1670 @@
+{
+ "version": 1,
+ "title": "Flynn's taxonomy: SISD, SIMD, MISD, MIMD",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The idea: count instruction streams and data streams"
+    ],
+    [
+     2,
+     "SISD: one instruction stream, one data stream"
+    ],
+    [
+     3,
+     "SIMD: one instruction stream, many data streams"
+    ],
+    [
+     4,
+     "MISD: many instruction streams, one data stream"
+    ],
+    [
+     5,
+     "MIMD, and how it is programmed: SPMD"
+    ],
+    [
+     6,
+     "The trap: superscalar is still SISD"
+    ],
+    [
+     7,
+     "Classify real machines"
+    ]
+   ]
+  },
+  {
+   "id": "grid",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "single data stream",
+    "multiple data streams"
+   ],
+   "rows": [
+    [
+     "single instruction stream",
+     "SISD",
+     "SIMD"
+    ],
+    [
+     "multiple instruction streams",
+     "MISD",
+     "MIMD"
+    ]
+   ]
+  },
+  {
+   "id": "defs",
+   "type": "table",
+   "region": "bottom",
+   "columns": [
+    "term",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "instruction stream",
+     "a sequence of instructions from one program counter"
+    ],
+    [
+     "data stream",
+     "the sequence of data those instructions work on"
+    ]
+   ]
+  },
+  {
+   "id": "sisd",
+   "type": "diagram",
+   "region": "left",
+   "layout": "layers",
+   "direction": "right",
+   "nodes": [
+    {
+     "id": "cu",
+     "label": "control unit"
+    },
+    {
+     "id": "pe",
+     "label": "processing unit"
+    },
+    {
+     "id": "m",
+     "label": "memory"
+    }
+   ],
+   "edges": [
+    {
+     "from": "cu",
+     "to": "pe",
+     "label": "instructions"
+    },
+    {
+     "from": "m",
+     "to": "pe",
+     "label": "data"
+    }
+   ]
+  },
+  {
+   "id": "sisdx",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "SISD"
+   ],
+   "rows": [
+    [
+     "one program counter"
+    ],
+    [
+     "one instruction at a time, in program order"
+    ],
+    [
+     "e.g. an old single-core PC"
+    ]
+   ]
+  },
+  {
+   "id": "simd",
+   "type": "diagram",
+   "region": "left",
+   "layout": "layers",
+   "direction": "right",
+   "nodes": [
+    {
+     "id": "cu",
+     "label": "control unit"
+    },
+    {
+     "id": "p0",
+     "label": "PE 0"
+    },
+    {
+     "id": "p1",
+     "label": "PE 1"
+    },
+    {
+     "id": "p2",
+     "label": "PE 2"
+    },
+    {
+     "id": "p3",
+     "label": "PE 3"
+    },
+    {
+     "id": "d0",
+     "label": "data 0"
+    },
+    {
+     "id": "d1",
+     "label": "data 1"
+    },
+    {
+     "id": "d2",
+     "label": "data 2"
+    },
+    {
+     "id": "d3",
+     "label": "data 3"
+    }
+   ],
+   "edges": [
+    {
+     "from": "cu",
+     "to": "p0"
+    },
+    {
+     "from": "cu",
+     "to": "p1"
+    },
+    {
+     "from": "cu",
+     "to": "p2"
+    },
+    {
+     "from": "cu",
+     "to": "p3"
+    },
+    {
+     "from": "p0",
+     "to": "d0"
+    },
+    {
+     "from": "p1",
+     "to": "d1"
+    },
+    {
+     "from": "p2",
+     "to": "d2"
+    },
+    {
+     "from": "p3",
+     "to": "d3"
+    }
+   ]
+  },
+  {
+   "id": "simdx",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "SIMD"
+   ],
+   "rows": [
+    [
+     "one control unit broadcasts"
+    ],
+    [
+     "each PE: same instruction, own data"
+    ],
+    [
+     "all in lockstep"
+    ],
+    [
+     "e.g. vector units, GPUs, SSE, AVX"
+    ]
+   ]
+  },
+  {
+   "id": "pix",
+   "type": "array",
+   "region": "bottom",
+   "values": [
+    40,
+    52,
+    33,
+    61,
+    47,
+    58,
+    39,
+    44
+   ]
+  },
+  {
+   "id": "misd",
+   "type": "diagram",
+   "region": "left",
+   "layout": "layers",
+   "direction": "right",
+   "nodes": [
+    {
+     "id": "d",
+     "label": "one data item"
+    },
+    {
+     "id": "f1",
+     "label": "unit 1: op A"
+    },
+    {
+     "id": "f2",
+     "label": "unit 2: op B"
+    },
+    {
+     "id": "f3",
+     "label": "unit 3: op C"
+    }
+   ],
+   "edges": [
+    {
+     "from": "d",
+     "to": "f1"
+    },
+    {
+     "from": "d",
+     "to": "f2"
+    },
+    {
+     "from": "d",
+     "to": "f3"
+    }
+   ]
+  },
+  {
+   "id": "misdx",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "MISD: the rare one"
+   ],
+   "rows": [
+    [
+     "different instructions, same data"
+    ],
+    [
+     "e.g. redundant flight computers that vote"
+    ],
+    [
+     "e.g. systolic arrays (often cited)"
+    ],
+    [
+     "no mainstream computer is MISD"
+    ]
+   ]
+  },
+  {
+   "id": "mimd",
+   "type": "diagram",
+   "region": "left",
+   "layout": "layers",
+   "direction": "right",
+   "nodes": [
+    {
+     "id": "c0",
+     "label": "core 0: own PC"
+    },
+    {
+     "id": "c1",
+     "label": "core 1: own PC"
+    },
+    {
+     "id": "c2",
+     "label": "core 2: own PC"
+    },
+    {
+     "id": "c3",
+     "label": "core 3: own PC"
+    },
+    {
+     "id": "mem",
+     "label": "memory"
+    }
+   ],
+   "edges": [
+    {
+     "from": "c0",
+     "to": "mem"
+    },
+    {
+     "from": "c1",
+     "to": "mem"
+    },
+    {
+     "from": "c2",
+     "to": "mem"
+    },
+    {
+     "from": "c3",
+     "to": "mem"
+    }
+   ]
+  },
+  {
+   "id": "mimdx",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "MIMD"
+   ],
+   "rows": [
+    [
+     "own instructions, own data"
+    ],
+    [
+     "shared memory: multicore chips"
+    ],
+    [
+     "distributed memory: clusters"
+    ]
+   ]
+  },
+  {
+   "id": "spmd",
+   "type": "code",
+   "region": "left",
+   "language": "c",
+   "lines": [
+    "id = my_core();           // 0, 1, 2 or 3",
+    "lo = id * 2000;",
+    "hi = lo + 2000;",
+    "for (i = lo; i < hi; i++)",
+    "    part += a[i];",
+    "if (id == 0) total = combine();"
+   ]
+  },
+  {
+   "id": "spmdx",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "",
+    "SIMD",
+    "SPMD"
+   ],
+   "rows": [
+    [
+     "PCs",
+     "one, shared",
+     "one per processor"
+    ],
+    [
+     "runs",
+     "same instruction, lockstep",
+     "same program, own pace"
+    ],
+    [
+     "branches",
+     "all take one path",
+     "each can differ"
+    ]
+   ]
+  },
+  {
+   "id": "trap",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "machine",
+    "instructions per cycle",
+    "instruction streams",
+    "data streams",
+    "Flynn class"
+   ],
+   "rows": [
+    [
+     "simple single-core CPU",
+     "1",
+     "1",
+     "1",
+     "SISD"
+    ],
+    [
+     "pipelined single core",
+     "up to 1, overlapped",
+     "1",
+     "1",
+     "SISD"
+    ],
+    [
+     "4-wide superscalar core",
+     "up to 4",
+     "1",
+     "1",
+     "SISD"
+    ],
+    [
+     "4-core chip, 4 threads",
+     "4 cores × 1 or more",
+     "4",
+     "4",
+     "MIMD"
+    ]
+   ]
+  },
+  {
+   "id": "qx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "#",
+    "machine",
+    "class"
+   ],
+   "rows": [
+    [
+     "a",
+     "one superscalar core running one program",
+     ""
+    ],
+    [
+     "b",
+     "an 8-core laptop running 8 threads of a program",
+     ""
+    ],
+    [
+     "c",
+     "an AVX instruction adding 16 pairs of floats",
+     ""
+    ],
+    [
+     "d",
+     "a GPU applying one kernel to a million pixels",
+     ""
+    ],
+    [
+     "e",
+     "three flight computers computing on the same sensor data and voting",
+     ""
+    ],
+    [
+     "f",
+     "a 100-node cluster running one MPI program on different parts of the data",
+     ""
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "In 1966, Michael Flynn sorted computers by a simple question: how many streams of instructions, and how many streams of data?"
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Flynn's taxonomy"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two answers each, single or multiple, give four classes."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Flynn: count instruction streams × data streams"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The idea, then each of the four classes, with how multiple-instruction machines are actually programmed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the exam trap about superscalar processors, and a set of real machines to classify."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "idea",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: what is a stream?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: streams"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "defs"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An instruction stream is the sequence of instructions coming from one program counter."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "defs[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A data stream is the sequence of data those instructions operate on."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "defs[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Put single and multiple on each axis, and you get a two by two grid."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "grid"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Single instruction, single data: SISD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "grid[0][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Single instruction, multiple data: SIMD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "grid[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Multiple instruction, single data: MISD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "grid[1][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And multiple instruction, multiple data: MIMD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "grid[1][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Keep the rule in mind: Flynn counts streams, not how fast or how many instructions finish per cycle."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "defs"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Flynn counts streams — not speed, not issue width"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sisd",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: SISD, single instruction stream, single data stream."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: SISD"
+      },
+      {
+       "action": "hide",
+       "target": "grid"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "sisd"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One control unit fetches instructions from one program counter."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sisd.cu"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One processing unit carries them out on data from memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sisd.pe"
+      },
+      {
+       "action": "highlight",
+       "target": "sisd.m",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This is the classic uniprocessor, the von Neumann machine."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "sisdx"
+      },
+      {
+       "action": "highlight",
+       "target": "sisdx[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Adding 10 to eight numbers takes eight separate add instructions, one data item each."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sisdx[2]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "simd",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: SIMD, single instruction stream, multiple data streams."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: SIMD"
+      },
+      {
+       "action": "hide",
+       "target": "sisd"
+      },
+      {
+       "action": "hide",
+       "target": "sisdx"
+      },
+      {
+       "action": "show",
+       "target": "simd"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One control unit fetches and decodes each instruction once."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "simd.cu"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It broadcasts that instruction to many processing elements, called PEs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "simd.p0"
+      },
+      {
+       "action": "highlight",
+       "target": "simd.p3",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each PE applies it to its own piece of data, all in the same cycle, in lockstep."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "simd.d0"
+      },
+      {
+       "action": "mark",
+       "target": "simd.d1",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "simd.d2",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "simd.d3",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Example: brighten eight pixels by adding 10 to each, with one instruction."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "pix"
+      },
+      {
+       "action": "highlight",
+       "target": "pix[0..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "40 becomes 50, 52 becomes 62, and so on: eight results from one instruction."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "pix[0]",
+       "value": 50
+      },
+      {
+       "action": "set",
+       "target": "pix[1]",
+       "value": 62
+      },
+      {
+       "action": "set",
+       "target": "pix[2]",
+       "value": 43
+      },
+      {
+       "action": "set",
+       "target": "pix[3]",
+       "value": 71
+      },
+      {
+       "action": "set",
+       "target": "pix[4]",
+       "value": 57
+      },
+      {
+       "action": "set",
+       "target": "pix[5]",
+       "value": 68
+      },
+      {
+       "action": "set",
+       "target": "pix[6]",
+       "value": 49
+      },
+      {
+       "action": "set",
+       "target": "pix[7]",
+       "value": 54
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Vector processors, GPUs and instruction sets like SSE and AVX are all SIMD."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "pix"
+      },
+      {
+       "action": "show",
+       "target": "simdx"
+      },
+      {
+       "action": "highlight",
+       "target": "simdx[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If the code branches, some elements must sit idle while others run, because every PE follows the one instruction stream."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "simdx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So SIMD is fastest when every element does exactly the same work."
+     }
+    },
+    {
+     "say": {
+      "en": "SIMD fits data-level parallelism: the same operation on many items."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "SIMD exploits data-level parallelism"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "misd",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: MISD, multiple instruction streams, single data stream."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: MISD"
+      },
+      {
+       "action": "hide",
+       "target": "simd"
+      },
+      {
+       "action": "hide",
+       "target": "simdx"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "misd"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Several units each run their own instructions, all on the same stream of data."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "misd.d"
+      },
+      {
+       "action": "mark",
+       "target": "misd.f1",
+       "delay": 0.3
+      },
+      {
+       "action": "mark",
+       "target": "misd.f2",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "misd.f3",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It is the rare class: no mainstream general-purpose computer is built this way."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "misdx"
+      },
+      {
+       "action": "highlight",
+       "target": "misdx[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual example is fault tolerance: redundant flight computers process the same sensor data and vote on the answer."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "misdx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Systolic arrays are also cited: data pulses through a chain of units, each doing a different step to it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "misdx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Textbooks disagree on whether these are truly MISD, so in an exam, give the example and say that MISD is rare."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "MISD: rare · examples: redundant voting computers, systolic arrays"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mimd",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: MIMD, multiple instruction streams, multiple data streams."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: MIMD and SPMD"
+      },
+      {
+       "action": "hide",
+       "target": "misd"
+      },
+      {
+       "action": "hide",
+       "target": "misdx"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "mimd"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every processor has its own program counter, fetches its own instructions, and works on its own data."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "mimd.c0"
+      },
+      {
+       "action": "mark",
+       "target": "mimd.c1",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "mimd.c2",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "mimd.c3",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Multicore chips are MIMD with shared memory: all cores read and write one memory."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "mimdx"
+      },
+      {
+       "action": "highlight",
+       "target": "mimdx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Clusters are MIMD with distributed memory: each node has its own memory, and nodes exchange messages over a network."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mimdx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "MIMD is the most flexible class, and it exploits thread-level and request-level parallelism."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "MIMD exploits thread-level and request-level parallelism"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But how do you program a thousand processors? Usually with one program: SPMD, single program, multiple data."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "mimd"
+      },
+      {
+       "action": "hide",
+       "target": "mimdx"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "spmd"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every core runs this same code, but first asks which core it is."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "spmd",
+       "line": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Core 2, for example, gets lo equal to 4000 and hi equal to 6000, and sums only that part."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "spmd",
+       "from": 2,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And only core 0 takes this branch to combine the results."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "spmd",
+       "line": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So how is SPMD different from SIMD? Compare them."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "spmdx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "SIMD has one shared program counter; in SPMD, each processor has its own."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "spmdx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "SIMD elements run the same instruction in lockstep; SPMD processors run the same program, each at its own pace."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "spmdx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And SPMD processors can take different branches, like core 0 here. That is why SPMD runs on MIMD hardware."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "spmdx[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "SPMD = one program on MIMD hardware, each processor on its own data"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trap",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6, the trap: a superscalar core issues four instructions per cycle. Is it MIMD?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: the trap"
+      },
+      {
+       "action": "hide",
+       "target": "spmd"
+      },
+      {
+       "action": "hide",
+       "target": "spmdx"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "trap"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A simple single core runs one instruction at a time: one instruction stream, one data stream, SISD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trap[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pipelining overlaps several instructions, but they still come from one program counter: still SISD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trap[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 4-wide superscalar core issues up to four instructions per cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trap[2][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But all four come from the same program, one instruction stream, working on one data stream. So it is still SISD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trap[2]"
+      },
+      {
+       "action": "mark",
+       "target": "trap[2][4]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Only when there are several independent instruction streams, like four cores running four threads, does it become MIMD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "trap[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Flynn counts streams, not issue width. Pipelining and superscalar are instruction-level parallelism inside SISD."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "superscalar and pipelined cores are still SISD: one instruction stream"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: classify each machine."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "trap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "qx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pause and classify all six, then check with me."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx.machine"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: one program, one instruction stream, however wide the core: SISD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[0]"
+      },
+      {
+       "action": "set",
+       "target": "qx[0][2]",
+       "value": "SISD",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: eight threads with eight program counters, each on its own data: MIMD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[1]"
+      },
+      {
+       "action": "set",
+       "target": "qx[1][2]",
+       "value": "MIMD",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: one instruction, sixteen pairs of data: SIMD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[2]"
+      },
+      {
+       "action": "set",
+       "target": "qx[2][2]",
+       "value": "SIMD",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: one kernel applied to many pixels: SIMD. GPUs are SIMD machines, built from many threads."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[3]"
+      },
+      {
+       "action": "set",
+       "target": "qx[3][2]",
+       "value": "SIMD",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "e: different computers, the same data, voting: the usual MISD example."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[4]"
+      },
+      {
+       "action": "set",
+       "target": "qx[4][2]",
+       "value": "MISD",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "f: one program on many nodes, each with its own data and program counter: MIMD, programmed as SPMD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[5]"
+      },
+      {
+       "action": "set",
+       "target": "qx[5][2]",
+       "value": "MIMD (SPMD)",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Count the marks you lose most often: a, where width tempts you to say MIMD, and f, where one program tempts you to say SIMD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "qx[5]",
+       "delay": 0.4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "qx"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Flynn's grid counts instruction streams and data streams."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "SISD is the uniprocessor; SIMD broadcasts one instruction to many data."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "MISD is rare; MIMD gives each processor its own instructions and data, and is usually programmed as SPMD."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Superscalar is still SISD. Next video: the instruction pipeline, stage by stage."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: the instruction pipeline — IF, ID, EX, MEM, WB"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1714 @@
+{
+ "version": 1,
+ "title": "Performance metrics: CPU time, CPI, MIPS and means",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Response time, throughput, and \"n times faster\""
+    ],
+    [
+     2,
+     "The CPU time equation"
+    ],
+    [
+     3,
+     "CPI of an instruction mix"
+    ],
+    [
+     4,
+     "Trap 1: a faster clock can lose"
+    ],
+    [
+     5,
+     "Trap 2: fewer instructions can lose, and MIPS can lie"
+    ],
+    [
+     6,
+     "Averaging over several programs"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "defs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "metric",
+    "meaning",
+    "includes"
+   ],
+   "rows": [
+    [
+     "response time (elapsed)",
+     "start to finish of one task",
+     "CPU, memory, disk, I/O, other programs"
+    ],
+    [
+     "CPU time",
+     "time the CPU spends on this task",
+     "user time + system time, no waiting"
+    ],
+    [
+     "throughput",
+     "tasks finished per unit time",
+     "how much work per hour"
+    ]
+   ]
+  },
+  {
+   "id": "upg",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "change",
+    "response time",
+    "throughput"
+   ],
+   "rows": [
+    [
+     "a faster processor",
+     "better",
+     "better"
+    ],
+    [
+     "more processors, one task each",
+     "same",
+     "better"
+    ]
+   ]
+  },
+  {
+   "id": "fast",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"performance\" = 1 / \"execution time\"",
+    "X \"is\" n \"times faster than\" Y: quad n = \"time\"_Y / \"time\"_X",
+    "A: 10 \"s\", quad B: 15 \"s\" quad => quad n = 15 / 10 = 1.5",
+    "\"A is 50% faster,\" quad \"but takes\" (15 - 10) / 15 approx 33% \"less time\""
+   ]
+  },
+  {
+   "id": "eq",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"CPU time\" = \"IC\" times \"CPI\" times T_\"clock\" = (\"IC\" times \"CPI\") / f",
+    "\"seconds\"/\"program\" = \"instructions\"/\"program\" times \"cycles\"/\"instruction\" times \"seconds\"/\"cycle\"",
+    "f = 2 \"GHz\" quad => quad T_\"clock\" = 1 / (2 times 10^9) = 0.5 \"ns\"",
+    "2 times 10^9 times 1.5 times 0.5 \"ns\" = 1.5 \"s\""
+   ]
+  },
+  {
+   "id": "who",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "what changes",
+    "IC",
+    "CPI",
+    "clock"
+   ],
+   "rows": [
+    [
+     "algorithm",
+     "yes",
+     "yes",
+     ""
+    ],
+    [
+     "language and compiler",
+     "yes",
+     "yes",
+     ""
+    ],
+    [
+     "instruction set",
+     "yes",
+     "yes",
+     "yes"
+    ],
+    [
+     "hardware organization",
+     "",
+     "yes",
+     "yes"
+    ],
+    [
+     "chip technology",
+     "",
+     "",
+     "yes"
+    ]
+   ]
+  },
+  {
+   "id": "mix",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "class",
+    "frequency",
+    "CPI",
+    "frequency × CPI"
+   ],
+   "rows": [
+    [
+     "ALU",
+     "45%",
+     "1",
+     ""
+    ],
+    [
+     "load",
+     "25%",
+     "2",
+     ""
+    ],
+    [
+     "store",
+     "10%",
+     "2",
+     ""
+    ],
+    [
+     "branch",
+     "20%",
+     "3",
+     ""
+    ],
+    [
+     "total",
+     "100%",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "clk",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "machine",
+    "clock",
+    "CPI",
+    "time per instruction"
+   ],
+   "rows": [
+    [
+     "A",
+     "2 GHz",
+     "2.0",
+     ""
+    ],
+    [
+     "B",
+     "3 GHz",
+     "3.2",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "need",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"now\": 10 \"s\" \"at\" 2 \"GHz\" quad => quad \"cycles\" = 10 times 2 times 10^9 = 20 times 10^9",
+    "\"new design\": 1.2 times 20 times 10^9 = 24 times 10^9 \"cycles\"",
+    "\"target\" 6 \"s\": quad f = (24 times 10^9) / 6 = 4 \"GHz\""
+   ]
+  },
+  {
+   "id": "seq",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "code",
+    "A (CPI 1)",
+    "B (CPI 2)",
+    "C (CPI 3)",
+    "instructions",
+    "cycles",
+    "CPI"
+   ],
+   "rows": [
+    [
+     "sequence 1",
+     "2",
+     "1",
+     "2",
+     "",
+     "",
+     ""
+    ],
+    [
+     "sequence 2",
+     "4",
+     "1",
+     "1",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "mips",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "compiler",
+    "A, B, C (millions)",
+    "IC",
+    "cycles",
+    "time at 1 GHz",
+    "MIPS"
+   ],
+   "rows": [
+    [
+     "compiler 1",
+     "5, 1, 1",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "compiler 2",
+     "10, 1, 1",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "mipsf",
+   "type": "math",
+   "region": "bottom",
+   "lines": [
+    "\"MIPS\" = \"IC\" / (\"time\" times 10^6) = f / (\"CPI\" times 10^6)"
+   ]
+  },
+  {
+   "id": "mipsx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "why MIPS misleads"
+   ],
+   "rows": [
+    [
+     "it ignores how many instructions the program needs"
+    ],
+    [
+     "it cannot compare different instruction sets"
+    ],
+    [
+     "it changes from program to program on the same machine"
+    ]
+   ]
+  },
+  {
+   "id": "avg",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "time on A",
+    "time on B",
+    "B ÷ A",
+    "A ÷ B"
+   ],
+   "rows": [
+    [
+     "program 1",
+     "1 s",
+     "10 s",
+     "10",
+     "0.1"
+    ],
+    [
+     "program 2",
+     "1000 s",
+     "100 s",
+     "0.1",
+     "10"
+    ],
+    [
+     "total",
+     "1001 s",
+     "110 s",
+     "",
+     ""
+    ],
+    [
+     "arithmetic mean of ratios",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "geometric mean of ratios",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "class",
+    "share",
+    "CPI"
+   ],
+   "rows": [
+    [
+     "ALU",
+     "50%",
+     "1"
+    ],
+    [
+     "load",
+     "20%",
+     "3"
+    ],
+    [
+     "store",
+     "10%",
+     "2"
+    ],
+    [
+     "branch",
+     "20%",
+     "2"
+    ]
+   ]
+  },
+  {
+   "id": "qtext",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "2.5 GHz, 10⁹ instructions. Find:"
+   ],
+   "rows": [
+    [
+     "a) CPI"
+    ],
+    [
+     "b) CPU time"
+    ],
+    [
+     "c) MIPS"
+    ],
+    [
+     "d) loads drop to CPI 2: speedup?"
+    ],
+    [
+     "e) % faster, and % less time?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad 0.5 times 1 + 0.2 times 3 + 0.1 times 2 + 0.2 times 2 = 1.7",
+    "\"b)\" quad (10^9 times 1.7) / (2.5 times 10^9) = 0.68 \"s\"",
+    "\"c)\" quad (2.5 times 10^9) / (1.7 times 10^6) approx 1471",
+    "\"d)\" quad \"CPI\" = 1.7 - 0.2 times 1 = 1.5, quad 0.6 \"s\", quad 0.68 / 0.6 approx 1.13",
+    "\"e)\" quad 13% \"faster,\" quad (0.68 - 0.6) / 0.68 approx 11.8% \"less time\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Which computer is faster? The answer depends on what you measure, and exams love the cases where the obvious answer is wrong."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Performance metrics"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What time means, the CPU time equation, and the CPI of a mix of instructions."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the two classic traps: a faster clock that loses, and fewer instructions or more MIPS that lose."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then how to average over several programs, and one exam question that uses everything."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "time",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: there are two different things people mean by time."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: what we measure"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "defs"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Response time, or elapsed time, is the wall-clock time from start to finish. It includes disk, input and output, and time spent waiting for other programs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "defs[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "CPU time counts only the time the processor spends on this task: user time plus system time, with no waiting."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "defs[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Throughput is how many tasks finish per unit time, for example jobs per hour on a server."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "defs[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The two can move separately. A faster processor improves both response time and throughput."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "defs"
+      },
+      {
+       "action": "show",
+       "target": "upg"
+      },
+      {
+       "action": "highlight",
+       "target": "upg[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But adding processors, with one task each, leaves every task just as slow, while more tasks finish per hour: better throughput, same response time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "upg[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now, how do we say one machine is faster? Performance is one over execution time."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "upg"
+      },
+      {
+       "action": "show",
+       "target": "fast"
+      },
+      {
+       "action": "highlight",
+       "target": "fast[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "X is n times faster than Y when n equals Y's time divided by X's time. The slower machine's time goes on top."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "fast[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "fast[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If A takes 10 seconds and B takes 15, A is 15 over 10, that is 1.5 times faster."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "fast[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "fast[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case: A is 50 percent faster, but it takes only 33 percent less time. Those are different numbers, so read which one the question asks for."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "fast[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "fast[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "n = time of slower ÷ time of faster · \"% faster\" ≠ \"% less time\""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "equation",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the one equation behind every numerical question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: the CPU time equation"
+      },
+      {
+       "action": "hide",
+       "target": "fast"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "eq"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "CPU time equals instruction count, times cycles per instruction, times the clock cycle time. Or, divide by the clock rate instead of multiplying by the cycle time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "eq[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check the units: instructions per program, times cycles per instruction, times seconds per cycle, gives seconds per program."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "eq[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "eq[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case: questions give the clock rate in gigahertz. A 2 gigahertz clock has a cycle time of one over 2 times 10 to the 9, which is 0.5 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "eq[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "eq[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So 2 billion instructions at CPI 1.5 on that clock take 1.5 seconds."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "eq[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "eq[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Which design choices change which factor? The algorithm and the compiler change both the instruction count and the CPI."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "eq"
+      },
+      {
+       "action": "show",
+       "target": "who"
+      },
+      {
+       "action": "highlight",
+       "target": "who[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The instruction set can change all three. The hardware organization changes CPI and the clock, and chip technology changes only the clock."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "who[2..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "No single factor tells you the speed. Only the product of all three does."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "CPU time = IC × CPI × cycle time = IC × CPI ÷ f"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mix",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: real programs mix instructions with different CPIs, so the CPI we use is a weighted average."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: CPI of a mix"
+      },
+      {
+       "action": "hide",
+       "target": "who"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "mix"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Multiply each class's share by its CPI. ALU: 0.45 times 1 is 0.45."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mix[0]"
+      },
+      {
+       "action": "set",
+       "target": "mix[0][3]",
+       "value": "0.45",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Loads: 0.25 times 2 is 0.5. Stores: 0.1 times 2 is 0.2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mix[1..=2]"
+      },
+      {
+       "action": "set",
+       "target": "mix[1][3]",
+       "value": "0.50",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "mix[2][3]",
+       "value": "0.20",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Branches: 0.2 times 3 is 0.6."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mix[3]"
+      },
+      {
+       "action": "set",
+       "target": "mix[3][3]",
+       "value": "0.60",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add them: the average CPI is 1.75."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mix[4]"
+      },
+      {
+       "action": "set",
+       "target": "mix[4][3]",
+       "value": "CPI = 1.75",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case: if the question gives instruction counts instead of percentages, add up the cycles and divide by the total number of instructions. Never just average the CPI column."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mix.CPI"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case two: a machine that issues several instructions per cycle can have a CPI below 1. Then we often quote IPC, instructions per cycle, which is one over CPI."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "CPI = Σ (share × CPI of class) · IPC = 1 ÷ CPI"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "clock",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4, the first trap: same program, same instruction set. A runs at 2 gigahertz with CPI 2. B runs at 3 gigahertz with CPI 3.2. Which is faster?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: a faster clock can lose"
+      },
+      {
+       "action": "hide",
+       "target": "mix"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "clk"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The instruction count is the same, so compare time per instruction: CPI times cycle time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "clk[0][3]"
+      },
+      {
+       "action": "highlight",
+       "target": "clk[1][3]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A: 2 cycles of 0.5 nanoseconds is 1 nanosecond per instruction."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "clk[0]"
+      },
+      {
+       "action": "set",
+       "target": "clk[0][3]",
+       "value": "2 × 0.5 ns = 1.0 ns",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "B: 3.2 cycles of a third of a nanosecond is about 1.067 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "clk[1]"
+      },
+      {
+       "action": "set",
+       "target": "clk[1][3]",
+       "value": "3.2 ÷ 3 ns ≈ 1.067 ns",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So A, with the slower clock, is about 1.067 times faster. A higher clock rate alone proves nothing."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "clk[0]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "compare IC × CPI ÷ f, never the clock alone"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The same equation answers design questions. A program takes 10 seconds on a 2 gigahertz machine, so it needs 20 billion cycles."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "clk"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "need"
+      },
+      {
+       "action": "highlight",
+       "target": "need[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A designer wants 6 seconds, but the faster clock makes the program need 1.2 times as many cycles: 24 billion."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "need[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "need[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To finish 24 billion cycles in 6 seconds, the clock must be 4 gigahertz. Twice the clock, for only a 1.67 times speedup."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "need[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "need[2]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "count",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5, the second trap: fewer instructions does not mean faster. Classes A, B and C take 1, 2 and 3 cycles."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: fewer instructions, more MIPS"
+      },
+      {
+       "action": "hide",
+       "target": "need"
+      },
+      {
+       "action": "show",
+       "target": "seq"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sequence 1 uses 5 instructions: 2 times 1, plus 1 times 2, plus 2 times 3, is 10 cycles. CPI 2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "seq[0]"
+      },
+      {
+       "action": "set",
+       "target": "seq[0][4]",
+       "value": "5",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "seq[0][5]",
+       "value": "10",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "seq[0][6]",
+       "value": "2.0",
+       "delay": 0.9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sequence 2 uses 6 instructions: 4, plus 2, plus 3, is 9 cycles. CPI 1.5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "seq[1]"
+      },
+      {
+       "action": "set",
+       "target": "seq[1][4]",
+       "value": "6",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "seq[1][5]",
+       "value": "9",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "seq[1][6]",
+       "value": "1.5",
+       "delay": 0.9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sequence 2 has more instructions but fewer cycles, so it is faster. Count cycles, not instructions."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "seq[1][5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now MIPS: millions of instructions per second. It is the instruction count over time times a million, or the clock rate over CPI times a million."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "seq"
+      },
+      {
+       "action": "show",
+       "target": "mips"
+      },
+      {
+       "action": "show",
+       "target": "mipsf"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two compilers, a 1 gigahertz machine. Compiler 1 emits 7 million instructions taking 10 million cycles: 10 milliseconds, and 700 MIPS."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mips[0]"
+      },
+      {
+       "action": "set",
+       "target": "mips[0][2]",
+       "value": "7 M",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "mips[0][3]",
+       "value": "10 M",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "mips[0][4]",
+       "value": "10 ms",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "mips[0][5]",
+       "value": "700",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Compiler 2 emits 12 million instructions taking 15 million cycles: 15 milliseconds, and 800 MIPS."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mips[1]"
+      },
+      {
+       "action": "set",
+       "target": "mips[1][2]",
+       "value": "12 M",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "mips[1][3]",
+       "value": "15 M",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "mips[1][4]",
+       "value": "15 ms",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "mips[1][5]",
+       "value": "800",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Compiler 2 has the higher MIPS rating, yet its code is slower. It padded the program with many cheap instructions."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "mips[1][5]"
+      },
+      {
+       "action": "mark",
+       "target": "mips[0][4]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So MIPS misleads in three ways. It ignores instruction count, it cannot compare different instruction sets, and it changes from program to program."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "mips"
+      },
+      {
+       "action": "hide",
+       "target": "mipsf"
+      },
+      {
+       "action": "show",
+       "target": "mipsx"
+      },
+      {
+       "action": "highlight",
+       "target": "mipsx[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The only honest measure is execution time."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "fewer instructions or higher MIPS can still be slower: compare time"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avg",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a benchmark suite has many programs. How do we combine their results into one number?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: averaging"
+      },
+      {
+       "action": "hide",
+       "target": "mipsx"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "avg"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Program 1 takes 1 second on A and 10 on B. Program 2 takes 1000 seconds on A and 100 on B."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "avg[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If you run both once, total time decides: A needs 1001 seconds, B needs 110. B is about 9.1 times faster."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "avg[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the trap. Normalize B to A, giving ratios 10 and 0.1. Their arithmetic mean is 5.05: B looks 5 times slower."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "avg[0][3]"
+      },
+      {
+       "action": "highlight",
+       "target": "avg[1][3]",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "avg[3][3]",
+       "value": "5.05",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Normalize A to B instead, and A gets the same mean of 5.05. Now A looks 5 times slower. The arithmetic mean of ratios depends on which machine you pick as the reference."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "avg[0][4]"
+      },
+      {
+       "action": "highlight",
+       "target": "avg[1][4]",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "avg[3][4]",
+       "value": "5.05",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The geometric mean, the square root of 10 times 0.1, is 1 both ways. It gives the same verdict whichever machine is the reference."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "avg[4]"
+      },
+      {
+       "action": "set",
+       "target": "avg[4][3]",
+       "value": "1",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "avg[4][4]",
+       "value": "1",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That is why SPEC reports the geometric mean of its ratios. But it does not track total time: when the workload is known, use total time, or a weighted arithmetic mean of times."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "ratios → geometric mean (SPEC) · known workload → total or weighted time"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question that uses everything."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "avg"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qtext"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 2.5 gigahertz processor runs a billion instructions with this mix. Find the CPI, the CPU time, and the MIPS rating."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qtext[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the loads are improved from CPI 3 to CPI 2. Find the speedup, and say it as a percent faster and as a percent less time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qtext[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pause, work it out, then check with me."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q.CPI"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: 0.5 times 1, plus 0.2 times 3, plus 0.1 times 2, plus 0.2 times 2, gives a CPI of 1.7."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "hide",
+       "target": "qtext"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "reveal",
+       "target": "qa[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: a billion times 1.7, over 2.5 times 10 to the 9, is 0.68 seconds."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: MIPS is the clock rate over CPI times a million: 2500 over 1.7, about 1471."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: loads are 20 percent of instructions and each saves one cycle, so CPI drops by 0.2, to 1.5. The time becomes 0.6 seconds, a speedup of about 1.13."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "e: that is 13 percent faster, but only 11.8 percent less time. Two different answers to two different questions."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The marks are usually lost on units in part b and on the percentages in part e."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[4]",
+       "delay": 0.4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Time is the measure. n times faster is the slower time over the faster time, and CPU time is instruction count times CPI over clock rate."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Neither the clock, nor the instruction count, nor MIPS alone decides speed. And average ratios with the geometric mean."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: Amdahl's law, which tells you how much any one improvement can ever buy."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: Amdahl's law"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

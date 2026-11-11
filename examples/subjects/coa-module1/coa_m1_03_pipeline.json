@@ -1,0 +1,1815 @@
+{
+ "version": 1,
+ "title": "The instruction pipeline: IF, ID, EX, MEM, WB",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The five steps every instruction goes through"
+    ],
+    [
+     2,
+     "What each kind of instruction does in each step"
+    ],
+    [
+     3,
+     "Without a pipeline: one instruction at a time"
+    ],
+    [
+     4,
+     "With a pipeline: the space-time diagram, cycle by cycle"
+    ],
+    [
+     5,
+     "Counting cycles: k plus n minus 1"
+    ],
+    [
+     6,
+     "Latency versus throughput"
+    ]
+   ]
+  },
+  {
+   "id": "five",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "name",
+    "what happens"
+   ],
+   "rows": [
+    [
+     "IF",
+     "instruction fetch",
+     "read the instruction at the PC from memory; PC = PC + 4"
+    ],
+    [
+     "ID",
+     "instruction decode",
+     "work out the operation; read the source registers"
+    ],
+    [
+     "EX",
+     "execute",
+     "the ALU computes: a result, an address, or a branch condition"
+    ],
+    [
+     "MEM",
+     "memory access",
+     "loads read memory, stores write it"
+    ],
+    [
+     "WB",
+     "write back",
+     "write the result into the destination register"
+    ]
+   ]
+  },
+  {
+   "id": "kinds",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "instruction",
+    "IF",
+    "ID",
+    "EX",
+    "MEM",
+    "WB"
+   ],
+   "rows": [
+    [
+     "LW R1, 8(R2)",
+     "fetch",
+     "read R2",
+     "8 + R2",
+     "read memory",
+     "write R1"
+    ],
+    [
+     "ADD R3, R4, R5",
+     "fetch",
+     "read R4, R5",
+     "R4 + R5",
+     "nothing",
+     "write R3"
+    ],
+    [
+     "SW R6, 4(R7)",
+     "fetch",
+     "read R6, R7",
+     "4 + R7",
+     "write memory",
+     "nothing"
+    ],
+    [
+     "BEQ R1, R2, L",
+     "fetch",
+     "read R1, R2",
+     "compare, target",
+     "nothing",
+     "nothing"
+    ]
+   ]
+  },
+  {
+   "id": "seq",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "I1",
+    "I2",
+    "I3",
+    "I4",
+    "I5"
+   ],
+   "end": 25,
+   "unit": "clock cycle",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "pipe",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "I1",
+    "I2",
+    "I3",
+    "I4",
+    "I5"
+   ],
+   "end": 9,
+   "unit": "clock cycle",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "count",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"without a pipeline\": k times n = 5 times 5 = 25 \"cycles\"",
+    "\"with a pipeline\": k + (n - 1) = 5 + 4 = 9 \"cycles\"",
+    "n = 100: quad 5 times 100 = 500 quad \"vs\" quad 5 + 99 = 104",
+    "\"speedup\" = 500 / 104 approx 4.81 quad -> 5 = k \"as\" n -> infinity"
+   ]
+  },
+  {
+   "id": "lat",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "without pipeline",
+    "with pipeline"
+   ],
+   "rows": [
+    [
+     "latency: cycles for one instruction",
+     "5",
+     "5"
+    ],
+    [
+     "throughput: instructions finished per cycle",
+     "1 every 5 cycles",
+     "1 every cycle, once full"
+    ],
+    [
+     "cycles for 100 instructions",
+     "500",
+     "104"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "k = 6 \"stages\", quad n = 20 \"instructions\"",
+    "\"without\": 6 times 20 = 120 \"cycles\"",
+    "\"with\": 6 + (20 - 1) = 25 \"cycles\"",
+    "\"speedup\" = 120 / 25 = 4.8"
+   ]
+  },
+  {
+   "id": "rd",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"instruction\" i \"enters IF in cycle\" i",
+    "\"instruction\" i \"finishes WB in cycle\" i + k - 1",
+    "\"in cycle\" c, \"instruction\" i \"is in stage number\" c - i + 1",
+    "\"I3 in cycle 5\": 5 - 3 + 1 = 3 quad \"(EX)\"",
+    "\"I100 finishes in cycle\" 100 + 5 - 1 = 104"
+   ]
+  },
+  {
+   "id": "q2",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"I15 finishes in cycle\" 15 + 6 - 1 = 20",
+    "\"in cycle 10, I7 is in stage\" 10 - 7 + 1 = 4"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A laundry has a washer, a dryer and a folding table. You do not wait for one load to be folded before washing the next."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "The instruction pipeline"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A processor can do the same with instructions: start the next one before the last one has finished. That is pipelining."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "pipelining: overlap the steps of different instructions"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the six stages of this video."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The five steps, and what each kind of instruction does in them."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the same five instructions without and with a pipeline, drawn cycle by cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the formula for counting cycles, with the difference between latency and throughput."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "five",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: the classic five-stage pipeline splits every instruction into five steps."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 6: the five steps"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "five"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "IF, instruction fetch: read the instruction the program counter points to, and add 4 to the PC."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "five[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "ID, instruction decode: work out what the instruction is, and read its source registers."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "five[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "EX, execute: the ALU does the arithmetic, works out a memory address, or tests a branch."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "five[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "MEM, memory access: a load reads data memory, and a store writes it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "five[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "WB, write back: the result goes into the destination register."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "five[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each step takes one clock cycle, and each has its own hardware, so five instructions can be in five different steps at once."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "one step per cycle · each step has its own hardware"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "kinds",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: not every instruction needs every step. Here are four kinds."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 6: who uses which step"
+      },
+      {
+       "action": "hide",
+       "target": "five"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "kinds"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A load uses all five: fetch, read R2, add 8 to it for the address, read memory, and write R1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An add does its work in EX, and has nothing to do in MEM."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "kinds[1][4]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A store writes memory in MEM, and has no register to write back."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "kinds[2][5]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A branch compares its registers and works out the target address in EX."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "kinds[3][3]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Even so, every instruction passes through all five stages, so each one always takes five cycles. That keeps the pipeline regular."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "every instruction passes all 5 stages, even when a stage has nothing to do"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sequential",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: five instructions, I1 to I5, without a pipeline."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 6: without a pipeline"
+      },
+      {
+       "action": "hide",
+       "target": "kinds"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "seq"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I1 goes through IF, ID, EX, MEM and WB: five cycles, and nothing else happens meanwhile."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s00",
+       "lane": "I1",
+       "start": 0,
+       "end": 1,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s01",
+       "lane": "I1",
+       "start": 1,
+       "end": 2,
+       "label": "ID",
+       "delay": 0.15
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s02",
+       "lane": "I1",
+       "start": 2,
+       "end": 3,
+       "label": "EX",
+       "delay": 0.3
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s03",
+       "lane": "I1",
+       "start": 3,
+       "end": 4,
+       "label": "MEM",
+       "delay": 0.45
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s04",
+       "lane": "I1",
+       "start": 4,
+       "end": 5,
+       "label": "WB",
+       "delay": 0.6
+      },
+      {
+       "action": "advance",
+       "target": "seq",
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Only then does I2 start its fetch, in cycle 6."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s10",
+       "lane": "I2",
+       "start": 5,
+       "end": 6,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s11",
+       "lane": "I2",
+       "start": 6,
+       "end": 7,
+       "label": "ID",
+       "delay": 0.15
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s12",
+       "lane": "I2",
+       "start": 7,
+       "end": 8,
+       "label": "EX",
+       "delay": 0.3
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s13",
+       "lane": "I2",
+       "start": 8,
+       "end": 9,
+       "label": "MEM",
+       "delay": 0.45
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s14",
+       "lane": "I2",
+       "start": 9,
+       "end": 10,
+       "label": "WB",
+       "delay": 0.6
+      },
+      {
+       "action": "advance",
+       "target": "seq",
+       "to": 10
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I3 starts in cycle 11."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s20",
+       "lane": "I3",
+       "start": 10,
+       "end": 11,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s21",
+       "lane": "I3",
+       "start": 11,
+       "end": 12,
+       "label": "ID",
+       "delay": 0.15
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s22",
+       "lane": "I3",
+       "start": 12,
+       "end": 13,
+       "label": "EX",
+       "delay": 0.3
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s23",
+       "lane": "I3",
+       "start": 13,
+       "end": 14,
+       "label": "MEM",
+       "delay": 0.45
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s24",
+       "lane": "I3",
+       "start": 14,
+       "end": 15,
+       "label": "WB",
+       "delay": 0.6
+      },
+      {
+       "action": "advance",
+       "target": "seq",
+       "to": 15
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I4 starts in cycle 16."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s30",
+       "lane": "I4",
+       "start": 15,
+       "end": 16,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s31",
+       "lane": "I4",
+       "start": 16,
+       "end": 17,
+       "label": "ID",
+       "delay": 0.15
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s32",
+       "lane": "I4",
+       "start": 17,
+       "end": 18,
+       "label": "EX",
+       "delay": 0.3
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s33",
+       "lane": "I4",
+       "start": 18,
+       "end": 19,
+       "label": "MEM",
+       "delay": 0.45
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s34",
+       "lane": "I4",
+       "start": 19,
+       "end": 20,
+       "label": "WB",
+       "delay": 0.6
+      },
+      {
+       "action": "advance",
+       "target": "seq",
+       "to": 20
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And I5 finishes at the end of cycle 25."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s40",
+       "lane": "I5",
+       "start": 20,
+       "end": 21,
+       "label": "IF",
+       "delay": 0.0
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s41",
+       "lane": "I5",
+       "start": 21,
+       "end": 22,
+       "label": "ID",
+       "delay": 0.15
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s42",
+       "lane": "I5",
+       "start": 22,
+       "end": 23,
+       "label": "EX",
+       "delay": 0.3
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s43",
+       "lane": "I5",
+       "start": 23,
+       "end": 24,
+       "label": "MEM",
+       "delay": 0.45
+      },
+      {
+       "action": "add_block",
+       "target": "seq",
+       "id": "s44",
+       "lane": "I5",
+       "start": 24,
+       "end": 25,
+       "label": "WB",
+       "delay": 0.6
+      },
+      {
+       "action": "advance",
+       "target": "seq",
+       "to": 25
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Five instructions times five cycles is 25 cycles. Most of the hardware sits idle most of the time."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "5 instructions × 5 cycles = 25 cycles"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pipelined",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the same five instructions, pipelined. This picture is the space-time diagram."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 6: the space-time diagram"
+      },
+      {
+       "action": "hide",
+       "target": "seq"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "pipe"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Time runs left to right in clock cycles; each row is one instruction."
+     }
+    },
+    {
+     "say": {
+      "en": "Cycle 1: I1 is fetched."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p00",
+       "lane": "I1",
+       "start": 0,
+       "end": 1,
+       "label": "IF"
+      },
+      {
+       "action": "advance",
+       "target": "pipe",
+       "to": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycle 2: I1 moves to decode, and I2 is fetched in the same cycle."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p01",
+       "lane": "I1",
+       "start": 1,
+       "end": 2,
+       "label": "ID"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p10",
+       "lane": "I2",
+       "start": 1,
+       "end": 2,
+       "label": "IF"
+      },
+      {
+       "action": "advance",
+       "target": "pipe",
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycle 3: I1 in EX, I2 in ID, and I3 in IF."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p02",
+       "lane": "I1",
+       "start": 2,
+       "end": 3,
+       "label": "EX"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p11",
+       "lane": "I2",
+       "start": 2,
+       "end": 3,
+       "label": "ID"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p20",
+       "lane": "I3",
+       "start": 2,
+       "end": 3,
+       "label": "IF"
+      },
+      {
+       "action": "advance",
+       "target": "pipe",
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycle 4: I1 in MEM, I2 in EX, I3 in ID, and I4 in IF."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p03",
+       "lane": "I1",
+       "start": 3,
+       "end": 4,
+       "label": "MEM"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p12",
+       "lane": "I2",
+       "start": 3,
+       "end": 4,
+       "label": "EX"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p21",
+       "lane": "I3",
+       "start": 3,
+       "end": 4,
+       "label": "ID"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p30",
+       "lane": "I4",
+       "start": 3,
+       "end": 4,
+       "label": "IF"
+      },
+      {
+       "action": "advance",
+       "target": "pipe",
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycle 5: the pipeline is full. All five stages are busy, one instruction in each, and I1 writes back."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p04",
+       "lane": "I1",
+       "start": 4,
+       "end": 5,
+       "label": "WB"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p13",
+       "lane": "I2",
+       "start": 4,
+       "end": 5,
+       "label": "MEM"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p22",
+       "lane": "I3",
+       "start": 4,
+       "end": 5,
+       "label": "EX"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p31",
+       "lane": "I4",
+       "start": 4,
+       "end": 5,
+       "label": "ID"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p40",
+       "lane": "I5",
+       "start": 4,
+       "end": 5,
+       "label": "IF"
+      },
+      {
+       "action": "advance",
+       "target": "pipe",
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycle 6: I1 has left. I2 writes back, and one instruction now finishes every cycle."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p14",
+       "lane": "I2",
+       "start": 5,
+       "end": 6,
+       "label": "WB"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p23",
+       "lane": "I3",
+       "start": 5,
+       "end": 6,
+       "label": "MEM"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p32",
+       "lane": "I4",
+       "start": 5,
+       "end": 6,
+       "label": "EX"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p41",
+       "lane": "I5",
+       "start": 5,
+       "end": 6,
+       "label": "ID"
+      },
+      {
+       "action": "advance",
+       "target": "pipe",
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycle 7: I3 in WB, I4 in MEM, and I5 in EX."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p24",
+       "lane": "I3",
+       "start": 6,
+       "end": 7,
+       "label": "WB"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p33",
+       "lane": "I4",
+       "start": 6,
+       "end": 7,
+       "label": "MEM"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p42",
+       "lane": "I5",
+       "start": 6,
+       "end": 7,
+       "label": "EX"
+      },
+      {
+       "action": "advance",
+       "target": "pipe",
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycle 8: only I4 and I5 are left; the pipeline is draining."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p34",
+       "lane": "I4",
+       "start": 7,
+       "end": 8,
+       "label": "WB"
+      },
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p43",
+       "lane": "I5",
+       "start": 7,
+       "end": 8,
+       "label": "MEM"
+      },
+      {
+       "action": "advance",
+       "target": "pipe",
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycle 9: I5 writes back, and all five instructions are done."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "pipe",
+       "id": "p44",
+       "lane": "I5",
+       "start": 8,
+       "end": 9,
+       "label": "WB"
+      },
+      {
+       "action": "advance",
+       "target": "pipe",
+       "to": 9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Read any column to see which instruction is in which stage. Read any row to see one instruction's five steps."
+     }
+    },
+    {
+     "say": {
+      "en": "Nine cycles instead of 25."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "pipelined: 9 cycles · not pipelined: 25 cycles"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "count",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: where does 9 come from? Let k be the number of stages and n the number of instructions."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 6: counting cycles"
+      },
+      {
+       "action": "hide",
+       "target": "pipe"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "count"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Without a pipeline, each of the n instructions takes k cycles, so k times n: 5 times 5 is 25."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "count[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With a pipeline, the first instruction takes k cycles to come out."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "count[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "count[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "After that, each of the other n minus 1 instructions finishes one cycle later. So k plus n minus 1: 5 plus 4 is 9."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "count[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now take 100 instructions: 5 times 100 is 500 cycles without, and 5 plus 99 is 104 with the pipeline."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "count[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "count[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The speedup is 500 divided by 104, about 4.81."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "count[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "count[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "As n grows, the k minus 1 cycles to fill the pipeline matter less, and the speedup approaches k, here 5."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "cycles = k + (n − 1) · speedup → k for large n"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This ideal assumes every stage takes the same time and nothing ever has to wait. Real pipelines fall short; we see why in the next videos."
+     }
+    }
+   ]
+  },
+  {
+   "id": "latency",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a pipeline does not make any one instruction faster."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 6: latency and throughput"
+      },
+      {
+       "action": "hide",
+       "target": "count"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "lat"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Latency, the time for one instruction from fetch to write back, is still 5 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lat[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What improves is throughput: once full, the pipeline finishes one instruction every cycle instead of every five."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lat[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That is why 100 instructions take 104 cycles instead of 500."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lat[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Say it this way in the exam: pipelining increases throughput, not the speed of a single instruction."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "pipelining raises throughput · latency stays the same"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "reading",
+   "steps": [
+    {
+     "say": {
+      "en": "Before the exam question, three rules for reading any space-time diagram without drawing it."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Reading the diagram without drawing it"
+      },
+      {
+       "action": "hide",
+       "target": "lat"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "rd"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Instruction i enters IF in cycle i: I1 in cycle 1, I2 in cycle 2, and so on."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rd[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It spends k cycles in the pipeline, so it finishes write back in cycle i plus k minus 1."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rd[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "rd[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And in cycle c, instruction i is in stage number c minus i plus 1."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rd[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "rd[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check with our diagram: I3 in cycle 5 is in stage 5 minus 3 plus 1, the third stage, EX. That matches."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rd[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "rd[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And I100 finishes in cycle 100 plus 5 minus 1, which is 104, the same total we found before."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rd[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "rd[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If the answer for the stage number is below 1, the instruction has not entered yet; above k, it has already left."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "stage number below 1: not entered yet · above k: already finished"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One more note: textbooks differ on k. Some use four stages, some six or more. The rules stay the same; only k changes."
+     }
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "rd"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 6-stage pipeline runs 20 instructions. How many cycles with and without the pipeline, and what is the speedup? Pause and try it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Without: k times n, 6 times 20, is 120 cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "q[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With: k plus n minus 1, 6 plus 19, is 25 cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "q[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Speedup: 120 divided by 25 is 4.8, a little below the ideal of 6."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "q[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two more parts, on the same pipeline: in which cycle does I15 finish, and which stage is I7 in during cycle 10?"
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "q2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I15 finishes in cycle 15 plus 6 minus 1, which is 20."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q2[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In cycle 10, I7 is in stage 10 minus 7 plus 1, which is stage 4 of the 6."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "q2[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "q2[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip is writing k times n for the pipelined case too, or forgetting the minus 1."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "pipelined cycles = k + n − 1, not k × n"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "q2"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Five steps: fetch, decode, execute, memory, write back, one cycle each."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Without a pipeline, five instructions took 25 cycles; with one, 9."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycles are k plus n minus 1; speedup approaches k; latency stays the same, throughput goes up."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: hazards, the reasons a pipeline sometimes has to wait."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: pipeline hazards — finding them"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

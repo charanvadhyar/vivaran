@@ -1,0 +1,1276 @@
+{
+ "version": 1,
+ "title": "Pipeline speedup with stage delays and latches",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Without a pipeline: add up the stage delays"
+    ],
+    [
+     2,
+     "With a pipeline: the slowest stage plus the latch sets the clock"
+    ],
+    [
+     3,
+     "Speedup for n instructions, and its limit"
+    ],
+    [
+     4,
+     "Latency gets worse, throughput gets better"
+    ],
+    [
+     5,
+     "Balancing and deepening the pipeline"
+    ],
+    [
+     6,
+     "Adding stalls"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "dl",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "IF",
+    "ID",
+    "EX",
+    "MEM",
+    "WB",
+    "total"
+   ],
+   "rows": [
+    [
+     "delay (ns)",
+     "4",
+     "3",
+     "5",
+     "6",
+     "2",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "latch",
+   "type": "diagram",
+   "region": "center",
+   "layout": "layers",
+   "direction": "right",
+   "nodes": [
+    {
+     "id": "if",
+     "label": "IF 4"
+    },
+    {
+     "id": "l1",
+     "label": "latch"
+    },
+    {
+     "id": "id",
+     "label": "ID 3"
+    },
+    {
+     "id": "l2",
+     "label": "latch"
+    },
+    {
+     "id": "ex",
+     "label": "EX 5"
+    },
+    {
+     "id": "l3",
+     "label": "latch"
+    },
+    {
+     "id": "mem",
+     "label": "MEM 6"
+    },
+    {
+     "id": "l4",
+     "label": "latch"
+    },
+    {
+     "id": "wb",
+     "label": "WB 2"
+    }
+   ],
+   "edges": [
+    {
+     "from": "if",
+     "to": "l1"
+    },
+    {
+     "from": "l1",
+     "to": "id"
+    },
+    {
+     "from": "id",
+     "to": "l2"
+    },
+    {
+     "from": "l2",
+     "to": "ex"
+    },
+    {
+     "from": "ex",
+     "to": "l3"
+    },
+    {
+     "from": "l3",
+     "to": "mem"
+    },
+    {
+     "from": "mem",
+     "to": "l4"
+    },
+    {
+     "from": "l4",
+     "to": "wb"
+    }
+   ]
+  },
+  {
+   "id": "clk",
+   "type": "math",
+   "region": "bottom",
+   "lines": [
+    "T_\"clock\" = max(\"stage delays\") + \"latch delay\" = max(4, 3, 5, 6, 2) + 1 = 7 \"ns\""
+   ]
+  },
+  {
+   "id": "sp",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"without\": n times 20 \"ns\" quad \"with\": (k + n - 1) times 7 \"ns\"",
+    "n = 100: quad 100 times 20 = 2000 \"ns\" quad \"vs\" quad 104 times 7 = 728 \"ns\"",
+    "\"speedup\" = 2000 / 728 approx 2.75",
+    "n -> infinity: quad \"speedup\" -> 20 / 7 approx 2.86 quad \"(not\" k = 5 \")\"",
+    "\"efficiency\" = 2.75 / 5 = 55%"
+   ]
+  },
+  {
+   "id": "lat",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "one instruction, no pipeline",
+    "one instruction, pipelined"
+   ],
+   "end": 35,
+   "unit": "ns",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "latx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "no pipeline",
+    "pipelined"
+   ],
+   "rows": [
+    [
+     "latency of one instruction",
+     "20 ns",
+     "5 × 7 = 35 ns"
+    ],
+    [
+     "throughput",
+     "1 per 20 ns = 50 million/s",
+     "1 per 7 ns ≈ 142.9 million/s"
+    ]
+   ]
+  },
+  {
+   "id": "deep",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "design",
+    "stages k",
+    "clock",
+    "time for 100",
+    "speedup",
+    "limit"
+   ],
+   "rows": [
+    [
+     "as given",
+     "5",
+     "6 + 1 = 7 ns",
+     "728 ns",
+     "2.75",
+     "2.86"
+    ],
+    [
+     "MEM split into 3 + 3",
+     "6",
+     "5 + 1 = 6 ns",
+     "",
+     "",
+     ""
+    ],
+    [
+     "perfectly balanced, 4 ns each",
+     "5",
+     "4 + 1 = 5 ns",
+     "",
+     "",
+     "4"
+    ],
+    [
+     "20 stages of 1 ns",
+     "20",
+     "1 + 1 = 2 ns",
+     "",
+     "",
+     "10, not 20"
+    ]
+   ]
+  },
+  {
+   "id": "stl",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"speedup\" = (\"time per instruction, no pipeline\") / (\"CPI\"_\"pipe\" times T_\"clock\")",
+    "\"CPI\"_\"pipe\" = 1 + \"stall cycles per instruction\"",
+    "0.4 \"stalls per instruction\": quad 20 / (1.4 times 7) approx 2.04",
+    "\"balanced:\" quad \"speedup\" approx k / (1 + \"stalls per instruction\")"
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "stage",
+    "S1",
+    "S2",
+    "S3",
+    "S4"
+   ],
+   "rows": [
+    [
+     "delay (ps)",
+     "80",
+     "120",
+     "100",
+     "60"
+    ]
+   ]
+  },
+  {
+   "id": "qt",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "latch 20 ps, 1000 instructions. Find:"
+   ],
+   "rows": [
+    [
+     "a) clock period and frequency"
+    ],
+    [
+     "b) time with and without the pipeline, speedup"
+    ],
+    [
+     "c) the limit of the speedup"
+    ],
+    [
+     "d) latency of one instruction"
+    ],
+    [
+     "e) speedup limit with 0.25 stalls per instruction"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad 120 + 20 = 140 \"ps\", quad f = 1 / (140 \"ps\") approx 7.14 \"GHz\"",
+    "\"b)\" quad 1000 times 360 = 360000 \"ps\", quad (4 + 999) times 140 = 140420 \"ps\", quad approx 2.56",
+    "\"c)\" quad 360 / 140 approx 2.57",
+    "\"d)\" quad 4 times 140 = 560 \"ps\" quad \"(vs 360 ps without)\"",
+    "\"e)\" quad 360 / (1.25 times 140) approx 2.06"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Video 3 assumed every stage takes exactly one equal cycle, with nothing in between. Real stages take different times, and each one ends in a latch. Now we count that properly."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Pipeline speedup, for real"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The time without a pipeline, the clock with one, and the speedup that follows."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then why one instruction gets slower while the program gets faster, how splitting stages helps, and what stalls do."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And an exam question with every part they ask."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "nopipe",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: here are the delays of the five stages: 4, 3, 5, 6 and 2 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: no pipeline"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "dl"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Without a pipeline, one instruction passes through all five pieces of logic before the next one starts. So it takes the sum: 20 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dl[0]"
+      },
+      {
+       "action": "set",
+       "target": "dl[0][6]",
+       "value": "20",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "There are no latches between the stages, so nothing is added. And n instructions take n times 20 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "no pipeline: time per instruction = sum of stage delays"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "clock",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: a pipeline puts a latch, a pipeline register, after each stage, to hold that stage's result for the next one."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: the pipeline clock"
+      },
+      {
+       "action": "hide",
+       "target": "dl"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "latch"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every stage moves forward on the same clock edge. So the clock must wait for the slowest stage: MEM, at 6 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "latch.mem"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the latch itself takes time to capture the value: here, 1 nanosecond."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "latch.l1"
+      },
+      {
+       "action": "highlight",
+       "target": "latch.l2",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "latch.l3",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "latch.l4",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the clock period is the largest stage delay plus the latch delay: 6 plus 1, which is 7 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "clk"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case: the faster stages just finish early and wait. WB is done after 2 nanoseconds and idles for 5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "latch.wb"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case two: use the maximum, never the average. The average stage is 4 nanoseconds, but the clock cannot tick faster than its slowest stage."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "latch.mem"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "speedup",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: without the pipeline, n instructions take n times 20 nanoseconds. With it, the first instruction needs k cycles, and each later one one more cycle: k plus n minus 1 cycles of 7 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: speedup"
+      },
+      {
+       "action": "hide",
+       "target": "latch"
+      },
+      {
+       "action": "hide",
+       "target": "clk"
+      },
+      {
+       "action": "show",
+       "target": "sp"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For 100 instructions: 2000 nanoseconds without, against 104 cycles of 7, which is 728 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "sp[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "sp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The speedup is 2000 over 728, about 2.75."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "sp[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "sp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For a very long program, the k minus 1 fill cycles stop mattering. The speedup approaches 20 over 7, about 2.86: the unpipelined time over the clock period."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "sp[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "sp[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Not 5, the number of stages. Two things cost us: unequal stages, and the latch overhead."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "sp[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Efficiency is speedup over the number of stages: 2.75 over 5, which is 55 percent."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "sp[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "sp[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "limit = (sum of delays) ÷ (max delay + latch), not k"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "latency",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: follow one instruction by itself. Without a pipeline it is done in 20 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: latency and throughput"
+      },
+      {
+       "action": "hide",
+       "target": "sp"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "lat"
+      },
+      {
+       "action": "add_block",
+       "target": "lat",
+       "id": "u0",
+       "lane": "one instruction, no pipeline",
+       "start": 0,
+       "end": 4,
+       "label": "IF 4"
+      },
+      {
+       "action": "add_block",
+       "target": "lat",
+       "id": "u1",
+       "lane": "one instruction, no pipeline",
+       "start": 4,
+       "end": 7,
+       "label": "ID 3",
+       "delay": 0.15
+      },
+      {
+       "action": "add_block",
+       "target": "lat",
+       "id": "u2",
+       "lane": "one instruction, no pipeline",
+       "start": 7,
+       "end": 12,
+       "label": "EX 5",
+       "delay": 0.3
+      },
+      {
+       "action": "add_block",
+       "target": "lat",
+       "id": "u3",
+       "lane": "one instruction, no pipeline",
+       "start": 12,
+       "end": 18,
+       "label": "MEM 6",
+       "delay": 0.45
+      },
+      {
+       "action": "add_block",
+       "target": "lat",
+       "id": "u4",
+       "lane": "one instruction, no pipeline",
+       "start": 18,
+       "end": 20,
+       "label": "WB 2",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In the pipeline, every stage takes a full 7 nanosecond cycle, so it needs 5 times 7, which is 35 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "lat",
+       "id": "p0",
+       "lane": "one instruction, pipelined",
+       "start": 0,
+       "end": 7,
+       "label": "IF"
+      },
+      {
+       "action": "add_block",
+       "target": "lat",
+       "id": "p1",
+       "lane": "one instruction, pipelined",
+       "start": 7,
+       "end": 14,
+       "label": "ID",
+       "delay": 0.15
+      },
+      {
+       "action": "add_block",
+       "target": "lat",
+       "id": "p2",
+       "lane": "one instruction, pipelined",
+       "start": 14,
+       "end": 21,
+       "label": "EX",
+       "delay": 0.3
+      },
+      {
+       "action": "add_block",
+       "target": "lat",
+       "id": "p3",
+       "lane": "one instruction, pipelined",
+       "start": 21,
+       "end": 28,
+       "label": "MEM",
+       "delay": 0.45
+      },
+      {
+       "action": "add_block",
+       "target": "lat",
+       "id": "p4",
+       "lane": "one instruction, pipelined",
+       "start": 28,
+       "end": 35,
+       "label": "WB",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So pipelining makes each instruction slower: its latency grows from 20 to 35 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "lat"
+      },
+      {
+       "action": "show",
+       "target": "latx"
+      },
+      {
+       "action": "highlight",
+       "target": "latx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But a new instruction finishes every 7 nanoseconds instead of every 20. Throughput rises from 50 to about 143 million instructions per second."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "latx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pipelining improves throughput, never the latency of one instruction."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "latency ↑ (20 → 35 ns) · throughput ↑ (1 per 20 ns → 1 per 7 ns)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "deep",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: how do we get closer to the ideal? The slow MEM stage sets the clock, so split it into two stages of 3 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: balance and depth"
+      },
+      {
+       "action": "hide",
+       "target": "latx"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "deep"
+      },
+      {
+       "action": "highlight",
+       "target": "deep[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the slowest stage is EX at 5, so the clock is 6 nanoseconds, with 6 stages. 100 instructions take 105 cycles of 6: 630 nanoseconds. Speedup about 3.17, with a limit of 20 over 6, about 3.33."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "deep[1]"
+      },
+      {
+       "action": "set",
+       "target": "deep[1][3]",
+       "value": "105 × 6 = 630 ns",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "deep[1][4]",
+       "value": "3.17",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "deep[1][5]",
+       "value": "3.33",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If the same 20 nanoseconds of logic were perfectly balanced, 4 each, the clock would be 5 and the limit exactly 4. Balance matters as much as depth. 100 instructions would take 520 nanoseconds, a speedup of about 3.85."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "deep[2]"
+      },
+      {
+       "action": "set",
+       "target": "deep[2][3]",
+       "value": "104 × 5 = 520 ns",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "deep[2][4]",
+       "value": "3.85",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Go to extremes: 20 stages of 1 nanosecond. The latch adds 1 to every stage, so the clock is 2, and the limit is 10, not 20. 100 instructions take 119 cycles of 2: 238 nanoseconds, a speedup of 8.4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "deep[3]"
+      },
+      {
+       "action": "set",
+       "target": "deep[3][3]",
+       "value": "119 × 2 = 238 ns",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "deep[3][4]",
+       "value": "8.40",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The deeper the pipeline, the larger the share of each cycle spent in the latch. Deeper pipelines also mean more hazards and longer branch penalties. So depth gives diminishing returns."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "deep[3][5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "latch overhead caps the gain from more stages"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stalls",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: real pipelines also stall. A stall adds cycles, so the pipeline's CPI rises above 1."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: stalls"
+      },
+      {
+       "action": "hide",
+       "target": "deep"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stl"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The pipeline CPI is 1 plus the stall cycles per instruction."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "stl[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "stl[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 0.4 stall cycles per instruction, the limit falls from 2.86 to 20 over 1.4 times 7, about 2.04."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "stl[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "stl[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For balanced stages with no latch overhead, this reduces to the textbook form: speedup is the pipeline depth over one plus the stalls per instruction."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "stl[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "stl[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "speedup = unpipelined time ÷ (CPI_pipe × clock)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question. A four stage pipeline has stage delays of 80, 120, 100 and 60 picoseconds, and a 20 picosecond latch."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "stl"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qt"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For a thousand instructions, find the clock, the times with and without the pipeline, the speedup and its limit, the latency, and the limit with 0.25 stalls per instruction. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: the slowest stage plus the latch: 120 plus 20, so 140 picoseconds, about 7.14 gigahertz."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "hide",
+       "target": "qt"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: without the pipeline, each instruction takes the sum, 360 picoseconds, so 360 thousand in all. With it, 4 plus 999 cycles of 140: 140420 picoseconds. The speedup is about 2.56."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: the limit is 360 over 140, about 2.57. A thousand instructions is already very close to it."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: one instruction takes 4 cycles of 140: 560 picoseconds, longer than 360 without the pipeline."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "e: with stalls, CPI is 1.25, so the limit is 360 over 1.25 times 140, about 2.06."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual mistakes: adding latches to the unpipelined time, using the average stage delay, and forgetting the k minus 1 fill cycles."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "max + latch · sum for no pipeline · k + n − 1 cycles"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "No pipeline: add the stage delays. Pipeline: the slowest stage plus the latch sets the clock, and n instructions take k plus n minus 1 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Latency grows while throughput rises. Balancing helps, depth hits the latch overhead, and stalls raise the CPI."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: going beyond one instruction per cycle, with superscalar, superpipelined and VLIW processors."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: superscalar, superpipelined and VLIW"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

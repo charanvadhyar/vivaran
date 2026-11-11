@@ -1,0 +1,1411 @@
+{
+ "version": 1,
+ "title": "Parallelism: data-level, task-level, and how hardware exploits them",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Two kinds of parallelism in programs: data-level and task-level"
+    ],
+    [
+     2,
+     "Instruction-level parallelism: overlap independent instructions"
+    ],
+    [
+     3,
+     "Vector architectures and GPUs: one instruction, many data"
+    ],
+    [
+     4,
+     "Thread-level parallelism: tightly coupled threads"
+    ],
+    [
+     5,
+     "Request-level parallelism: many independent requests"
+    ],
+    [
+     6,
+     "One table: what each exploits, and who finds the parallelism"
+    ]
+   ]
+  },
+  {
+   "id": "kinds",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "kind",
+    "what is parallel",
+    "example"
+   ],
+   "rows": [
+    [
+     "data-level (DLP)",
+     "the same operation on many data items at once",
+     "add 10 to every element of an array"
+    ],
+    [
+     "task-level (TLP)",
+     "different tasks that can run independently",
+     "a browser downloads, decodes video and draws the page"
+    ]
+   ]
+  },
+  {
+   "id": "arr",
+   "type": "array",
+   "region": "center",
+   "values": [
+    3,
+    8,
+    1,
+    6,
+    4,
+    9,
+    2,
+    7
+   ]
+  },
+  {
+   "id": "arr2",
+   "type": "array",
+   "region": "center",
+   "values": [
+    13,
+    18,
+    11,
+    16,
+    14,
+    19,
+    12,
+    17
+   ]
+  },
+  {
+   "id": "ilpcode",
+   "type": "code",
+   "region": "left",
+   "language": "c",
+   "lines": [
+    "a = b + c;",
+    "d = e + f;",
+    "g = a + d;"
+   ]
+  },
+  {
+   "id": "ilptime",
+   "type": "timeline",
+   "region": "right",
+   "lanes": [
+    "unit 1",
+    "unit 2"
+   ],
+   "end": 4,
+   "unit": "clock cycle",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "vcode",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "loop: LD   R1, 0(R2)",
+    "      ADDI R1, R1, 10",
+    "      SD   R1, 0(R2)",
+    "      ADDI R2, R2, 8",
+    "      SUBI R3, R3, 1",
+    "      BNEZ R3, loop"
+   ]
+  },
+  {
+   "id": "vcode2",
+   "type": "code",
+   "region": "right",
+   "language": "asm",
+   "lines": [
+    "LV    V1, 0(R2)",
+    "ADDVS V1, V1, 10",
+    "SV    V1, 0(R2)"
+   ]
+  },
+  {
+   "id": "vmath",
+   "type": "math",
+   "region": "bottom",
+   "lines": [
+    "\"scalar\": 64 times 6 = 384 \"instructions\" quad \"vector\": 3 \"instructions\""
+   ]
+  },
+  {
+   "id": "tlp",
+   "type": "diagram",
+   "region": "center",
+   "layout": "layers",
+   "direction": "down",
+   "nodes": [
+    {
+     "id": "data",
+     "label": "8000 numbers, shared"
+    },
+    {
+     "id": "c0",
+     "label": "T0: 0–1999"
+    },
+    {
+     "id": "c1",
+     "label": "T1: 2000–3999"
+    },
+    {
+     "id": "c2",
+     "label": "T2: 4000–5999"
+    },
+    {
+     "id": "c3",
+     "label": "T3: 6000–7999"
+    },
+    {
+     "id": "sum",
+     "label": "add 4 sums",
+     "shape": "pill"
+    }
+   ],
+   "edges": [
+    {
+     "from": "data",
+     "to": "c0"
+    },
+    {
+     "from": "data",
+     "to": "c1"
+    },
+    {
+     "from": "data",
+     "to": "c2"
+    },
+    {
+     "from": "data",
+     "to": "c3"
+    },
+    {
+     "from": "c0",
+     "to": "sum"
+    },
+    {
+     "from": "c1",
+     "to": "sum"
+    },
+    {
+     "from": "c2",
+     "to": "sum"
+    },
+    {
+     "from": "c3",
+     "to": "sum"
+    }
+   ]
+  },
+  {
+   "id": "rlp",
+   "type": "diagram",
+   "region": "center",
+   "layout": "layers",
+   "direction": "right",
+   "nodes": [
+    {
+     "id": "u1",
+     "label": "student 1: result?",
+     "shape": "pill"
+    },
+    {
+     "id": "u2",
+     "label": "student 2: result?",
+     "shape": "pill"
+    },
+    {
+     "id": "u3",
+     "label": "student 3: result?",
+     "shape": "pill"
+    },
+    {
+     "id": "lb",
+     "label": "load balancer"
+    },
+    {
+     "id": "s1",
+     "label": "server 1"
+    },
+    {
+     "id": "s2",
+     "label": "server 2"
+    },
+    {
+     "id": "s3",
+     "label": "server 3"
+    }
+   ],
+   "edges": [
+    {
+     "from": "u1",
+     "to": "lb"
+    },
+    {
+     "from": "u2",
+     "to": "lb"
+    },
+    {
+     "from": "u3",
+     "to": "lb"
+    },
+    {
+     "from": "lb",
+     "to": "s1"
+    },
+    {
+     "from": "lb",
+     "to": "s2"
+    },
+    {
+     "from": "lb",
+     "to": "s3"
+    }
+   ]
+  },
+  {
+   "id": "summary",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "hardware approach",
+    "exploits",
+    "who finds the parallelism",
+    "example"
+   ],
+   "rows": [
+    [
+     "instruction-level (ILP)",
+     "data-level, modestly",
+     "hardware and compiler: implicit",
+     "pipelining, superscalar"
+    ],
+    [
+     "vector, GPU, SIMD instructions",
+     "data-level",
+     "programmer or compiler: explicit",
+     "add 10 to 64 numbers at once"
+    ],
+    [
+     "thread-level",
+     "data-level or task-level",
+     "programmer: explicit threads",
+     "4 cores share one array"
+    ],
+    [
+     "request-level",
+     "largely independent tasks",
+     "programmer or OS",
+     "a web server's many users"
+    ]
+   ]
+  },
+  {
+   "id": "qx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "#",
+    "situation",
+    "parallelism exploited"
+   ],
+   "rows": [
+    [
+     "a",
+     "a GPU blurs every pixel of a photo with the same filter",
+     ""
+    ],
+    [
+     "b",
+     "a CPU starts the next independent add before the last one finishes",
+     ""
+    ],
+    [
+     "c",
+     "8 threads share memory and each sorts part of one array, then merge",
+     ""
+    ],
+    [
+     "d",
+     "a search engine answers millions of separate queries",
+     ""
+    ],
+    [
+     "e",
+     "one vector instruction multiplies 128 pairs of numbers",
+     ""
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A computer gets faster in two ways: a faster clock, or doing more than one thing at a time."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Parallelism: what programs offer, and how hardware uses it"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Doing more at once is parallelism, and it comes in a few clear kinds."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "parallelism = doing more than one thing at the same time"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here is the plan, in six stages."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "First, the two kinds of parallelism a program can contain: data-level and task-level."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the four ways hardware exploits them: instruction-level, vector and GPU, thread-level, and request-level."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[1..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And one table at the end that puts all four side by side."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "kinds",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: what kind of parallelism is in the program itself?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 6: data-level and task-level"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "kinds"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Data-level parallelism means the same operation is applied to many data items, and they can all be done at once."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Adding 10 to every element of an array is the classic example."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Task-level parallelism means different tasks that do not depend on each other, so they can run at the same time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A browser downloading a file, playing a video and drawing a page is task-level parallelism."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[1][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here is our data-level example: eight numbers, and we want to add 10 to each one."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "kinds"
+      },
+      {
+       "action": "show",
+       "target": "arr"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Done one at a time, that is eight separate adds, one after another."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "arr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But no element depends on any other, so all eight adds could happen together."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "arr[0..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "3 becomes 13, 8 becomes 18, and so on, all in one go."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "arr"
+      },
+      {
+       "action": "show",
+       "target": "arr2"
+      },
+      {
+       "action": "mark",
+       "target": "arr2[0..=7]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A program offers the parallelism; the hardware decides how much of it to use. There are four ways."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "programs offer DLP and TLP · hardware exploits them in 4 ways"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ilp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: instruction-level parallelism, or ILP."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 6: instruction-level parallelism"
+      },
+      {
+       "action": "hide",
+       "target": "arr2"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "ilpcode"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Look at these three lines. The first adds b and c; the second adds e and f."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "ilpcode",
+       "line": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Neither uses the other's result, so the hardware can work on both at the same time."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ilpcode",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The third line needs a and d, so it must wait for both."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "ilpcode",
+       "line": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With two adders, lines one and two run together in cycle one."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "ilptime"
+      },
+      {
+       "action": "add_block",
+       "target": "ilptime",
+       "id": "i1",
+       "lane": "unit 1",
+       "start": 0,
+       "end": 1,
+       "label": "a = b + c"
+      },
+      {
+       "action": "add_block",
+       "target": "ilptime",
+       "id": "i2",
+       "lane": "unit 2",
+       "start": 0,
+       "end": 1,
+       "label": "d = e + f",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Line three runs in cycle two: two cycles instead of three."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "ilptime",
+       "id": "i3",
+       "lane": "unit 1",
+       "start": 1,
+       "end": 2,
+       "label": "g = a + d"
+      },
+      {
+       "action": "advance",
+       "target": "ilptime",
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The programmer wrote ordinary sequential code; the hardware and compiler found the overlap themselves."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "ILP is implicit: hardware and compiler find it, the program looks sequential"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pipelining overlaps the stages of instructions; superscalar issues several per cycle; speculation guesses past branches. All are ILP."
+     }
+    },
+    {
+     "say": {
+      "en": "ILP exploits data-level parallelism, but only modestly: programs rarely have more than a few independent instructions close together."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "ILP exploits DLP at modest levels: a few instructions at a time"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vector",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: vector architectures and GPUs, which go after data-level parallelism directly."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 6: vector architectures and GPUs"
+      },
+      {
+       "action": "hide",
+       "target": "ilpcode"
+      },
+      {
+       "action": "hide",
+       "target": "ilptime"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "vcode"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Take 64 numbers. A scalar processor runs this loop once per element."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "vcode",
+       "from": 1,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Load one number, add 10, store it back, move the pointer, count down, and branch: 6 instructions each time."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "vcode",
+       "line": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A vector processor uses one instruction for all 64: load a whole vector, add 10 to every element, store the vector."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "vcode2"
+      },
+      {
+       "action": "mark_lines",
+       "target": "vcode2",
+       "from": 1,
+       "to": 3,
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Count them: 64 times 6 is 384 instructions for the loop, against just 3 vector instructions."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "vmath"
+      },
+      {
+       "action": "highlight",
+       "target": "vmath[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Fewer instructions also means less fetching and decoding, which saves time and energy."
+     }
+    },
+    {
+     "say": {
+      "en": "This is single instruction, multiple data, or SIMD: one instruction, applied to a whole collection of data."
+     }
+    },
+    {
+     "say": {
+      "en": "GPUs do the same with thousands of small threads, and multimedia instructions like Intel's AVX do it on short vectors inside a normal CPU."
+     }
+    },
+    {
+     "say": {
+      "en": "Unlike ILP, this is explicit: the programmer or the compiler must write the vector operation."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "vmath"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "vector, GPU, SIMD: exploit DLP explicitly, one instruction for many data"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tlp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: thread-level parallelism."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 6: thread-level parallelism"
+      },
+      {
+       "action": "hide",
+       "target": "vcode"
+      },
+      {
+       "action": "hide",
+       "target": "vcode2"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "tlp"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Say we want the sum of 8000 numbers on a processor with 4 cores."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tlp.data"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Split the work: 8000 divided by 4 is 2000 numbers per thread."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tlp.c0"
+      },
+      {
+       "action": "highlight",
+       "target": "tlp.c3",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Thread 0 sums elements 0 to 1999, thread 1 sums 2000 to 3999, and so on, all at once."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "tlp.c0"
+      },
+      {
+       "action": "mark",
+       "target": "tlp.c1",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "tlp.c2",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "tlp.c3",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the four partial sums are combined into one answer."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tlp.sum"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The threads share memory and must coordinate at the end, so we call them tightly coupled."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "TLP: many threads, shared memory, they interact"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Thread-level parallelism can exploit data-level parallelism, as here, or task-level, by giving each thread a different job."
+     }
+    },
+    {
+     "say": {
+      "en": "It is explicit too: the programmer creates the threads and decides how to split the work."
+     }
+    }
+   ]
+  },
+  {
+   "id": "rlp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: request-level parallelism."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 6: request-level parallelism"
+      },
+      {
+       "action": "hide",
+       "target": "tlp"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "rlp"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On results day, thousands of students ask the university website for their marks at the same moment."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rlp.u1"
+      },
+      {
+       "action": "highlight",
+       "target": "rlp.u3",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each request is independent: one student's result has nothing to do with another's."
+     }
+    },
+    {
+     "say": {
+      "en": "A load balancer simply hands requests to many servers, and each one answers on its own."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rlp.lb"
+      },
+      {
+       "action": "mark",
+       "target": "rlp.s1",
+       "delay": 0.3
+      },
+      {
+       "action": "mark",
+       "target": "rlp.s2",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "rlp.s3",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This is request-level parallelism: largely decoupled tasks, set up by the programmer or the operating system."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "RLP: largely independent requests, hardly any interaction"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The difference from thread-level is coupling: these tasks barely talk to each other, so they scale across whole warehouses of servers."
+     }
+    }
+   ]
+  },
+  {
+   "id": "summary",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: all four, side by side."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 6: what each exploits"
+      },
+      {
+       "action": "hide",
+       "target": "rlp"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "summary"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Instruction-level: exploits data-level parallelism modestly, found implicitly by hardware and compiler."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "summary[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Vector, GPU and SIMD instructions: exploit data-level parallelism directly, written explicitly."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "summary[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Thread-level: exploits data-level or task-level parallelism, with threads that share memory and interact."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "summary[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Request-level: exploits largely independent tasks, like the requests to a web server."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "summary[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Read the third column for the exam: only instruction-level parallelism is implicit; the other three are explicit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "summary.c2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Moving down the table, the units grow from instructions, to data items, to threads, to whole requests."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "summary.c0"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: name the parallelism each situation exploits."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "summary"
+      },
+      {
+       "action": "show",
+       "target": "qx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pause and try all five, then check with me."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx.situation"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: the same filter on every pixel is data-level parallelism, exploited by the GPU."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[0]"
+      },
+      {
+       "action": "set",
+       "target": "qx[0][2]",
+       "value": "data-level, by a GPU (SIMD)",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: overlapping independent instructions on its own is instruction-level parallelism, found implicitly."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[1]"
+      },
+      {
+       "action": "set",
+       "target": "qx[1][2]",
+       "value": "instruction-level (implicit)",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: threads that share memory and merge their results are thread-level parallelism, tightly coupled."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[2]"
+      },
+      {
+       "action": "set",
+       "target": "qx[2][2]",
+       "value": "thread-level, tightly coupled",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: millions of separate queries are request-level parallelism."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[3]"
+      },
+      {
+       "action": "set",
+       "target": "qx[3][2]",
+       "value": "request-level",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "e: one instruction on 128 pairs is data-level parallelism on a vector unit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[4]"
+      },
+      {
+       "action": "set",
+       "target": "qx[4][2]",
+       "value": "data-level, by a vector unit",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual mistake is between c and d: if the tasks share data and interact, it is thread-level; if they are independent requests, it is request-level."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qx[3]",
+       "delay": 0.4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages once more."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "qx"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Programs offer two kinds: data-level, the same work on many items, and task-level, independent jobs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "ILP overlaps independent instructions, implicitly. Vector machines and GPUs apply one instruction to many data."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Thread-level uses tightly coupled threads; request-level uses independent requests."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: Flynn's taxonomy, which sorts machines by how many instruction and data streams they have."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: Flynn's taxonomy — SISD, SIMD, MISD, MIMD"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
