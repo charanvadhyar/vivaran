@@ -388,6 +388,85 @@
      "close to LRU in large caches"
     ]
    ]
+  },
+  {
+   "id": "qx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "#",
+    "ref",
+    "LRU blocks",
+    "LRU",
+    "FIFO blocks",
+    "FIFO"
+   ],
+   "rows": [
+    [
+     1,
+     "1",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     2,
+     "2",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     3,
+     "3",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     4,
+     "4",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     5,
+     "2",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     6,
+     "5",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     7,
+     "4",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     8,
+     "2",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
   }
  ],
  "scenes": [
@@ -730,7 +809,7 @@
    "steps": [
     {
      "say": {
-      "en": "Stage 4: reference string one is A, B, C, B, A, D, B, A, B."
+      "en": "Stage 4: reference string one is A, B, C, B, A, D, A, B, A."
      },
      "do": [
       {
@@ -1970,6 +2049,325 @@
    ]
   },
   {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "cost"
+      },
+      {
+       "action": "show",
+       "target": "qx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A fully associative cache holds 3 blocks. For the references 1, 2, 3, 4, 2, 5, 4, 2, find the hits under LRU and FIFO."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx.ref"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pause and try it, then check each row with me."
+     }
+    },
+    {
+     "say": {
+      "en": "References 1, 2 and 3 fill the three empty blocks: three misses for both."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[0..=2]"
+      },
+      {
+       "action": "set",
+       "target": "qx[0][2]",
+       "value": "1 – –"
+      },
+      {
+       "action": "set",
+       "target": "qx[0][3]",
+       "value": "miss"
+      },
+      {
+       "action": "set",
+       "target": "qx[0][4]",
+       "value": "1 – –",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "qx[0][5]",
+       "value": "miss",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "qx[1][2]",
+       "value": "1 2 –"
+      },
+      {
+       "action": "set",
+       "target": "qx[1][3]",
+       "value": "miss"
+      },
+      {
+       "action": "set",
+       "target": "qx[1][4]",
+       "value": "1 2 –",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "qx[1][5]",
+       "value": "miss",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "qx[2][2]",
+       "value": "1 2 3"
+      },
+      {
+       "action": "set",
+       "target": "qx[2][3]",
+       "value": "miss"
+      },
+      {
+       "action": "set",
+       "target": "qx[2][4]",
+       "value": "1 2 3",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "qx[2][5]",
+       "value": "miss",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 misses. Block 1 is both the least recently used and the oldest, so both evict 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[3]"
+      },
+      {
+       "action": "set",
+       "target": "qx[3][2]",
+       "value": "4 2 3"
+      },
+      {
+       "action": "set",
+       "target": "qx[3][3]",
+       "value": "miss (1 out)"
+      },
+      {
+       "action": "set",
+       "target": "qx[3][4]",
+       "value": "4 2 3",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "qx[3][5]",
+       "value": "miss (1 out)",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2 hits in both. LRU now counts 2 as most recent; FIFO's queue does not move."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[4]"
+      },
+      {
+       "action": "set",
+       "target": "qx[4][2]",
+       "value": "4 2 3"
+      },
+      {
+       "action": "set",
+       "target": "qx[4][3]",
+       "value": "hit"
+      },
+      {
+       "action": "set",
+       "target": "qx[4][4]",
+       "value": "4 2 3",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "qx[4][5]",
+       "value": "hit",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 misses. LRU evicts 3, the least recently used; FIFO evicts 2, the oldest arrival."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[5]"
+      },
+      {
+       "action": "set",
+       "target": "qx[5][2]",
+       "value": "4 2 5"
+      },
+      {
+       "action": "set",
+       "target": "qx[5][3]",
+       "value": "miss (3 out)"
+      },
+      {
+       "action": "set",
+       "target": "qx[5][4]",
+       "value": "4 5 3",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "qx[5][5]",
+       "value": "miss (2 out)",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 hits in both."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[6]"
+      },
+      {
+       "action": "set",
+       "target": "qx[6][2]",
+       "value": "4 2 5"
+      },
+      {
+       "action": "set",
+       "target": "qx[6][3]",
+       "value": "hit"
+      },
+      {
+       "action": "set",
+       "target": "qx[6][4]",
+       "value": "4 5 3",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "qx[6][5]",
+       "value": "hit",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2: LRU kept it, so a hit; FIFO threw it out, so a miss, and 3 leaves."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[7]"
+      },
+      {
+       "action": "set",
+       "target": "qx[7][2]",
+       "value": "4 2 5"
+      },
+      {
+       "action": "set",
+       "target": "qx[7][3]",
+       "value": "hit"
+      },
+      {
+       "action": "set",
+       "target": "qx[7][4]",
+       "value": "4 5 2",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "qx[7][5]",
+       "value": "miss (3 out)",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Answer: LRU 3 hits and 5 misses; FIFO 2 hits and 6 misses."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "qx.c3"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "LRU: 3 hits, 5 misses · FIFO: 2 hits, 6 misses"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check: each pair adds up to the 8 references."
+     }
+    },
+    {
+     "say": {
+      "en": "The usual slip is moving a block in the FIFO queue on a hit; only misses change the queue."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[4]"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "id": "recap",
    "steps": [
     {
@@ -1984,7 +2382,11 @@
       },
       {
        "action": "hide",
-       "target": "cost"
+       "target": "qx"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
       },
       {
        "action": "show",

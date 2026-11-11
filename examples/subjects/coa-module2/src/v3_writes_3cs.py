@@ -197,9 +197,37 @@ s.step("A larger cache cuts capacity misses, but slows the hit and costs power."
 s.step("Higher associativity cuts conflict misses, but also slows the hit.", [{"action": "highlight", "target": "fix[2]"}])
 s.step("These three ideas start the list of basic cache optimizations, two videos from now.", [{"action": "mark", "target": "fix"}])
 
+# ---------------------------------------------------------------- exam question
+QSEQ = [0, 2, 0, 1, 3, 1, 2]
+QC = classify(QSEQ, lines=2)
+assert [o["c"] for o in QC] == ["compulsory", "compulsory", "conflict", "compulsory", "compulsory", "conflict", "capacity"]
+s.obj({"id": "qx", "type": "table", "region": "center", "columns": ["#", "block", "line", "seen?", "FA hits?", "class"],
+       "rows": [[i + 1, o["b"], "", "", "", ""] for i, o in enumerate(QC)]})
+s.scene("exam")
+s.step("Now an exam question.", [s.head("Exam question"), {"action": "hide", "target": "fix"}, s.untake(), {"action": "show", "target": "qx"}])
+s.step("A direct-mapped cache has 2 lines. Classify each miss for the blocks 0, 2, 0, 1, 3, 1, 2.", [{"action": "highlight", "target": "qx.block"}])
+s.step("Pause and try it. Remember the shadow: a fully associative LRU cache with 2 lines.", [s.take("line = block mod 2 · shadow: fully associative LRU, 2 lines")])
+qsay = [
+    "Block 0 goes to line 0, first use: compulsory.",
+    "Block 2: 2 mod 2 is 0, line 0, first use: compulsory, and 0 is thrown out.",
+    "Block 0: line 0 holds 2, a miss. The shadow still holds 0 and 2, so it would hit: conflict.",
+    "Block 1 goes to line 1, first use: compulsory. The shadow drops 2 and keeps 0 and 1.",
+    "Block 3: line 1, first use: compulsory. The shadow drops 0 and keeps 1 and 3.",
+    "Block 1: line 1 holds 3, a miss; the shadow holds 1, so it would hit: conflict.",
+    "Block 2: line 0 holds 0, a miss; the shadow holds 3 and 1, not 2, so capacity.",
+]
+for i, o in enumerate(QC):
+    s.step(qsay[i], [{"action": "highlight", "target": f"qx[{i}]"},
+                     {"action": "set", "target": f"qx[{i}][2]", "value": str(o["line"])},
+                     {"action": "set", "target": f"qx[{i}][3]", "value": "yes" if o["seen"] else "no", "delay": 0.3},
+                     {"action": "set", "target": f"qx[{i}][4]", "value": ("yes" if o["fahit"] else "no") if o["seen"] else "–", "delay": 0.4},
+                     {"action": "set", "target": f"qx[{i}][5]", "value": o["c"], "delay": 0.6}])
+s.step("Answer: 4 compulsory, 2 conflict and 1 capacity, so all 7 references miss.", [{"action": "mark", "target": "qx.class"}, s.take("4 compulsory · 2 conflict · 1 capacity")])
+s.step("The usual slip is calling the last miss conflict: always check the shadow, not just the line.", [{"action": "highlight", "target": "qx[6]"}])
+
 # ---------------------------------------------------------------- recap
 s.scene("recap")
-s.step("Let us walk the six stages again.", [s.head("Recap"), {"action": "hide", "target": "fix"}, {"action": "show", "target": "stages"}])
+s.step("Let us walk the six stages again.", [s.head("Recap"), {"action": "hide", "target": "qx"}, s.untake(), {"action": "show", "target": "stages"}])
 s.step("A write must check the tag before it changes the block.", [{"action": "highlight", "target": "stages[0]"}])
 s.step("On a hit: write-through updates memory every time; write-back waits for eviction and uses a dirty bit.", [{"action": "highlight", "target": "stages[1]"}])
 s.step("On a miss: write-allocate fetches the block; no-write-allocate writes around the cache.", [{"action": "highlight", "target": "stages[2]"}])

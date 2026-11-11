@@ -138,7 +138,7 @@ s.step("This one difference, whether a hit updates the order, is where the two p
 
 # ---------------------------------------------------------------- string 1
 s.scene("string1")
-s.step("Stage 4: reference string one is A, B, C, B, A, D, B, A, B.", [s.head("Stage 4 of 6: reference string 1"), {"action": "hide", "target": "rules"}, s.untake(), {"action": "show", "target": "t1"}])
+s.step("Stage 4: reference string one is A, B, C, B, A, D, A, B, A.", [s.head("Stage 4 of 6: reference string 1"), {"action": "hide", "target": "rules"}, s.untake(), {"action": "show", "target": "t1"}])
 s.step("For each reference we write the ways, the order, and hit or miss, for LRU and then FIFO.", [{"action": "highlight", "target": "t1.c1"}])
 for i in range(len(S1)):
     if i == 0:
@@ -190,9 +190,39 @@ s.step("So real caches with many ways use pseudo-LRU, a few bits per set that ap
 s.step("FIFO needs only a pointer to the oldest way, moved on each miss.", [{"action": "highlight", "target": "cost[2]"}])
 s.step("And in large caches, random's miss rate comes close to LRU's, which is why it is still used.", [{"action": "highlight", "target": "cost[3][3]"}])
 
+# ---------------------------------------------------------------- exam question
+QS = "12342542"
+QL, QF = trace(QS, "LRU"), trace(QS, "FIFO")
+assert (hits(QL), hits(QF)) == (3, 2)
+s.obj({"id": "qx", "type": "table", "region": "center", "columns": ["#", "ref", "LRU blocks", "LRU", "FIFO blocks", "FIFO"],
+       "rows": [[i + 1, r, "", "", "", ""] for i, r in enumerate(QS)]})
+s.scene("exam")
+
+
+def qrow(i):
+    l, f = QL[i], QF[i]
+    return [{"action": "set", "target": f"qx[{i}][2]", "value": ways_s(l["ways"])},
+            {"action": "set", "target": f"qx[{i}][3]", "value": l["res"] + (f" ({l['ev']} out)" if l["ev"] else "")},
+            {"action": "set", "target": f"qx[{i}][4]", "value": ways_s(f["ways"]), "delay": 0.4},
+            {"action": "set", "target": f"qx[{i}][5]", "value": f["res"] + (f" ({f['ev']} out)" if f["ev"] else ""), "delay": 0.4}]
+
+
+s.step("Now an exam question.", [s.head("Exam question"), {"action": "hide", "target": "cost"}, s.untake(), {"action": "show", "target": "qx"}])
+s.step("A fully associative cache holds 3 blocks. For the references 1, 2, 3, 4, 2, 5, 4, 2, find the hits under LRU and FIFO.", [{"action": "highlight", "target": "qx.ref"}])
+s.step("Pause and try it, then check each row with me.", [])
+s.step("References 1, 2 and 3 fill the three empty blocks: three misses for both.", [{"action": "highlight", "target": "qx[0..=2]"}] + qrow(0) + qrow(1) + qrow(2))
+s.step("4 misses. Block 1 is both the least recently used and the oldest, so both evict 1.", [{"action": "highlight", "target": "qx[3]"}] + qrow(3))
+s.step("2 hits in both. LRU now counts 2 as most recent; FIFO's queue does not move.", [{"action": "highlight", "target": "qx[4]"}] + qrow(4))
+s.step("5 misses. LRU evicts 3, the least recently used; FIFO evicts 2, the oldest arrival.", [{"action": "highlight", "target": "qx[5]"}] + qrow(5))
+s.step("4 hits in both.", [{"action": "highlight", "target": "qx[6]"}] + qrow(6))
+s.step("2: LRU kept it, so a hit; FIFO threw it out, so a miss, and 3 leaves.", [{"action": "highlight", "target": "qx[7]"}] + qrow(7))
+s.step("Answer: LRU 3 hits and 5 misses; FIFO 2 hits and 6 misses.", [{"action": "mark", "target": "qx.c3"}, s.take("LRU: 3 hits, 5 misses · FIFO: 2 hits, 6 misses")])
+s.step("Check: each pair adds up to the 8 references.", [])
+s.step("The usual slip is moving a block in the FIFO queue on a hit; only misses change the queue.", [{"action": "highlight", "target": "qx[4]"}])
+
 # ---------------------------------------------------------------- recap
 s.scene("recap")
-s.step("Let us walk the six stages again.", [s.head("Recap"), {"action": "hide", "target": "cost"}, {"action": "show", "target": "stages"}, {"action": "reset", "target": "stages"}])
+s.step("Let us walk the six stages again.", [s.head("Recap"), {"action": "hide", "target": "qx"}, s.untake(), {"action": "show", "target": "stages"}, {"action": "reset", "target": "stages"}])
 s.step("A choice exists only in set-associative and fully associative caches, when every way is full.", [{"action": "highlight", "target": "stages[0]"}])
 s.step("LRU evicts the least recently used block and reorders on every access.", [{"action": "highlight", "target": "stages[1]"}])
 s.step("FIFO evicts the oldest arrival, and a hit changes nothing.", [{"action": "highlight", "target": "stages[2]"}])
