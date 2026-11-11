@@ -1,0 +1,2226 @@
+{
+ "version": 1,
+ "title": "Write policies, step by step",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Why a write is harder than a read"
+    ],
+    [
+     2,
+     "Write-through, animated"
+    ],
+    [
+     3,
+     "The write buffer: why the processor need not wait"
+    ],
+    [
+     4,
+     "Write-back and the dirty bit, animated"
+    ],
+    [
+     5,
+     "Write misses: write-allocate or no-write-allocate"
+    ],
+    [
+     6,
+     "One trace, two policy pairs: count the traffic"
+    ],
+    [
+     7,
+     "What each policy costs, in cycles and bytes"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "why",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "read",
+    "write"
+   ],
+   "rows": [
+    [
+     "tag check",
+     "in parallel with the data",
+     "must finish first"
+    ],
+    [
+     "size",
+     "whole word or block",
+     "1 to 8 bytes"
+    ],
+    [
+     "afterwards",
+     "cache = memory",
+     "cache ≠ memory"
+    ]
+   ]
+  },
+  {
+   "id": "path",
+   "type": "diagram",
+   "region": "left",
+   "layout": "layers",
+   "direction": "right",
+   "nodes": [
+    {
+     "id": "cpu",
+     "label": "CPU"
+    },
+    {
+     "id": "cache",
+     "label": "cache"
+    },
+    {
+     "id": "mem",
+     "label": "memory"
+    }
+   ],
+   "edges": [
+    {
+     "from": "cpu",
+     "to": "cache"
+    },
+    {
+     "from": "cache",
+     "to": "mem"
+    }
+   ]
+  },
+  {
+   "id": "pathb",
+   "type": "diagram",
+   "region": "left",
+   "layout": "layers",
+   "direction": "right",
+   "nodes": [
+    {
+     "id": "cpu",
+     "label": "CPU"
+    },
+    {
+     "id": "cache",
+     "label": "cache"
+    },
+    {
+     "id": "buf",
+     "label": "buffer"
+    },
+    {
+     "id": "mem",
+     "label": "memory"
+    }
+   ],
+   "edges": [
+    {
+     "from": "cpu",
+     "to": "cache"
+    },
+    {
+     "from": "cache",
+     "to": "buf"
+    },
+    {
+     "from": "buf",
+     "to": "mem"
+    }
+   ]
+  },
+  {
+   "id": "c1",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "line",
+    "valid",
+    "dirty",
+    "block",
+    "data"
+   ],
+   "rows": [
+    [
+     "0",
+     "1",
+     "–",
+     "A",
+     "10"
+    ],
+    [
+     "1",
+     "0",
+     "–",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "m1",
+   "type": "table",
+   "region": "bottom",
+   "columns": [
+    "memory block",
+    "A",
+    "B",
+    "C"
+   ],
+   "rows": [
+    [
+     "value",
+     "10",
+     "20",
+     "30"
+    ]
+   ]
+  },
+  {
+   "id": "buf",
+   "type": "array",
+   "region": "right",
+   "values": [
+    "",
+    "",
+    "",
+    ""
+   ]
+  },
+  {
+   "id": "bufx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "write buffer",
+    "what it means"
+   ],
+   "rows": [
+    [
+     "the CPU writes into the buffer and goes on",
+     "a write costs about 1 cycle, not a memory access"
+    ],
+    [
+     "the buffer drains to memory in the background",
+     "memory sees every write, just later"
+    ],
+    [
+     "the buffer is full",
+     "the CPU stalls until a slot frees up"
+    ],
+    [
+     "a read miss to a block still in the buffer",
+     "check the buffer first, or wait until it drains"
+    ]
+   ]
+  },
+  {
+   "id": "c2",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "line",
+    "valid",
+    "dirty",
+    "block",
+    "data"
+   ],
+   "rows": [
+    [
+     "0",
+     "1",
+     "0",
+     "A",
+     "10"
+    ],
+    [
+     "1",
+     "0",
+     "0",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "m2",
+   "type": "table",
+   "region": "bottom",
+   "columns": [
+    "memory block",
+    "A",
+    "B",
+    "C"
+   ],
+   "rows": [
+    [
+     "value",
+     "10",
+     "20",
+     "30"
+    ]
+   ]
+  },
+  {
+   "id": "c3",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "line",
+    "valid",
+    "dirty",
+    "block",
+    "data"
+   ],
+   "rows": [
+    [
+     "0",
+     "1",
+     "–",
+     "A",
+     "10"
+    ],
+    [
+     "1",
+     "0",
+     "–",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "m3",
+   "type": "table",
+   "region": "bottom",
+   "columns": [
+    "memory block",
+    "A",
+    "B",
+    "C"
+   ],
+   "rows": [
+    [
+     "value",
+     "10",
+     "20",
+     "30"
+    ]
+   ]
+  },
+  {
+   "id": "pairs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "write-allocate",
+    "no-write-allocate"
+   ],
+   "rows": [
+    [
+     "on a write miss",
+     "fetch the block, then write it in the cache",
+     "write to memory; leave the cache alone"
+    ],
+    [
+     "usual partner",
+     "write-back: later writes to the block hit",
+     "write-through: every write goes to memory anyway"
+    ],
+    [
+     "good when",
+     "the block is soon read or written again",
+     "the data is written once and not reused"
+    ]
+   ]
+  },
+  {
+   "id": "traffic",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "#",
+    "access",
+    "write-back + write-allocate",
+    "WB traffic",
+    "write-through + no-write-allocate",
+    "WT traffic"
+   ],
+   "rows": [
+    [
+     1,
+     "write X",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     2,
+     "write X",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     3,
+     "read X",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     4,
+     "write Y",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     5,
+     "read X",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "tsum",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "policy pair",
+    "block reads",
+    "block writes",
+    "single-word writes"
+   ],
+   "rows": [
+    [
+     "write-back + write-allocate",
+     "",
+     "",
+     ""
+    ],
+    [
+     "write-through + no-write-allocate",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "cost",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"write-back miss penalty\" = (1 + f_\"dirty\") times T_\"block\"",
+    "f_\"dirty\" = 0.3, quad T_\"block\" = 100: quad 1.3 times 100 = 130 \"cycles\"",
+    "\"write-through traffic\" = \"writes\" times \"word size\" = 10^6 times 4 \"B\" = 4 \"MB\"",
+    "\"write-back traffic\" = \"dirty evictions\" times \"block size\" = 20000 times 64 \"B\" = 1.28 \"MB\""
+   ]
+  },
+  {
+   "id": "cmp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "write-through",
+    "write-back"
+   ],
+   "rows": [
+    [
+     "memory up to date?",
+     "always",
+     "only after the block is evicted"
+    ],
+    [
+     "extra hardware",
+     "write buffer",
+     "dirty bit per line"
+    ],
+    [
+     "read miss cost",
+     "fetch the block",
+     "maybe write back a dirty block, then fetch"
+    ],
+    [
+     "traffic for repeated writes",
+     "one memory write each time",
+     "one block write, at eviction"
+    ],
+    [
+     "multiprocessors and I/O",
+     "easy: memory is current",
+     "needs coherence: memory may be stale"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "Direct-mapped, 2 lines; A and C map to line 0, B to line 1; the cache starts empty. Trace:"
+   ],
+   "rows": [
+    [
+     "write A · write A · read B · write C · read A · write B"
+    ],
+    [
+     "a) write-back + write-allocate: hits, block reads, block writes, and which lines end dirty"
+    ],
+    [
+     "b) write-through + no-write-allocate: hits, block reads, word writes"
+    ]
+   ]
+  },
+  {
+   "id": "qt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "access",
+    "write-back + write-allocate",
+    "write-through + no-write-allocate"
+   ],
+   "rows": [
+    [
+     "write A",
+     "",
+     ""
+    ],
+    [
+     "write A",
+     "",
+     ""
+    ],
+    [
+     "read B",
+     "",
+     ""
+    ],
+    [
+     "write C",
+     "",
+     ""
+    ],
+    [
+     "read A",
+     "",
+     ""
+    ],
+    [
+     "write B",
+     "",
+     ""
+    ],
+    [
+     "total",
+     "",
+     ""
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A cache must answer four questions. We have done placement, finding a block and replacement. Now the last one: what happens on a write."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Write policies, step by step"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why writes are hard, then write-through with its write buffer, and write-back with its dirty bit, each animated step by step."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then what happens on a write miss, a full traffic count, the costs, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: why is a write harder than a read?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: why writes are harder"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On a read, the cache reads the data and checks the tag at the same time. On a miss, it just throws the data away."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[0][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A write cannot do that. If the tag does not match, writing first would destroy another block's data. So the tag check comes first, and a write hit takes longer."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A write may also change just one byte of a block, so the cache must change exactly those bytes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And after a write, the cache holds a newer value than memory. When does memory catch up? That is the policy."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "the question: when does memory get the new value?"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "wt",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: write-through. Here is a CPU, a two line cache, and memory holding blocks A, B and C."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: write-through"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "path"
+      },
+      {
+       "action": "show",
+       "target": "c1"
+      },
+      {
+       "action": "show",
+       "target": "m1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Line 0 holds block A, with the value 10. Memory also says 10. They agree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "c1[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "m1[0][1]",
+       "delay": 0.25
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The CPU writes 11 to A. It is a hit, so the cache line changes to 11."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "path.cpu"
+      },
+      {
+       "action": "highlight",
+       "target": "path.cpu->cache",
+       "delay": 0.25
+      },
+      {
+       "action": "highlight",
+       "target": "path.cache",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "c1[0][4]",
+       "value": "11",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through sends the same write on to memory at once. Memory becomes 11 too."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "path.cache->mem"
+      },
+      {
+       "action": "highlight",
+       "target": "path.mem",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "m1[0][1]",
+       "value": "11",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now 12, then 13. Every write goes to the cache and to memory."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "c1[0][4]",
+       "value": "12"
+      },
+      {
+       "action": "set",
+       "target": "m1[0][1]",
+       "value": "12",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "c1[0][4]",
+       "value": "13",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "m1[0][1]",
+       "value": "13",
+       "delay": 0.7
+      },
+      {
+       "action": "highlight",
+       "target": "path.cache->mem",
+       "delay": 0.1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Memory always holds the latest value, so a line never needs to be written back. The dirty bit is not needed: shown as a dash."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "c1.dirty"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The cost: three writes made three trips to memory. Memory takes around 100 cycles, so if the CPU waited each time, every store would cost 100 cycles."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "write-through: every write goes to memory · memory is always current"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "buffer",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: so write-through caches add a write buffer between the cache and memory."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: the write buffer"
+      },
+      {
+       "action": "hide",
+       "target": "path"
+      },
+      {
+       "action": "hide",
+       "target": "c1"
+      },
+      {
+       "action": "hide",
+       "target": "m1"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "pathb"
+      },
+      {
+       "action": "show",
+       "target": "buf"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The CPU writes A equals 11 into the cache and into the buffer, and carries on with its next instruction straight away."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pathb.cpu->cache"
+      },
+      {
+       "action": "highlight",
+       "target": "pathb.cache->buf",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "buf[0]",
+       "value": "A=11",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "More writes arrive: B equals 21, A equals 12, C equals 31. Each takes a slot."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "buf[1]",
+       "value": "B=21"
+      },
+      {
+       "action": "set",
+       "target": "buf[2]",
+       "value": "A=12",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "buf[3]",
+       "value": "C=31",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Meanwhile, the buffer drains to memory in the background, oldest first. A equals 11 goes out, and its slot frees up."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pathb.buf->mem"
+      },
+      {
+       "action": "highlight",
+       "target": "pathb.mem",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "buf[0]",
+       "value": "",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But if writes come faster than memory can take them, the buffer fills, and then the CPU must stall."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "buf[0]",
+       "value": "B=22"
+      },
+      {
+       "action": "mark",
+       "target": "buf[0..=3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the four rules of a write buffer."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "pathb"
+      },
+      {
+       "action": "hide",
+       "target": "buf"
+      },
+      {
+       "action": "show",
+       "target": "bufx"
+      },
+      {
+       "action": "highlight",
+       "target": "bufx[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A full buffer stalls the CPU. And a trap: if a read misses on a block whose new value is still waiting in the buffer, memory has the old value."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bufx[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "bufx[3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the read must check the buffer first, or wait for it to drain. Otherwise it reads stale data."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "write buffer: the CPU does not wait · full buffer → stall · read misses check it"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "wb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: write-back. Same machine, but now each line has a dirty bit, and memory is updated only when a line is evicted."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: write-back and the dirty bit"
+      },
+      {
+       "action": "hide",
+       "target": "bufx"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "path"
+      },
+      {
+       "action": "show",
+       "target": "c2"
+      },
+      {
+       "action": "show",
+       "target": "m2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Line 0 holds A equals 10, dirty bit 0, which means clean: the same as memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "c2[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "c2[0][2]",
+       "delay": 0.25
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The CPU writes 11 to A. The cache changes to 11, and the dirty bit is set to 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "path.cpu->cache"
+      },
+      {
+       "action": "highlight",
+       "target": "path.cache",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "c2[0][4]",
+       "value": "11",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "c2[0][2]",
+       "value": "1",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Memory is not touched. It still says 10. The cache and memory now disagree, and the dirty bit records that."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "m2[0][1]"
+      },
+      {
+       "action": "mark",
+       "target": "c2[0][2]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Writes of 12 and 13 change only the cache. Three writes, zero trips to memory."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "c2[0][4]",
+       "value": "12"
+      },
+      {
+       "action": "set",
+       "target": "c2[0][4]",
+       "value": "13",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "c2[0][4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the CPU reads C. C also maps to line 0, so it is a miss, and A must be evicted."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "c2[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "m2[0][3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A is dirty, so before C can come in, the whole block A is written back. Memory finally gets 13."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "path.cache->mem"
+      },
+      {
+       "action": "highlight",
+       "target": "path.mem",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "m2[0][1]",
+       "value": "13",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then C is fetched into line 0, clean, with the value 30."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "c2[0][3]",
+       "value": "C"
+      },
+      {
+       "action": "set",
+       "target": "c2[0][4]",
+       "value": "30",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "c2[0][2]",
+       "value": "0",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "c2[0]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Later, if C is evicted while still clean, it is just dropped: memory already has the same value. Only dirty blocks cost a write back."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "write-back: write the cache only · dirty bit · write the block back on eviction"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge case: the dirty bit is per line, not per byte. Change one byte, and the whole block goes back to memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "c2.dirty"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "wmiss",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: so far every write was a hit. What if the block is not in the cache?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: write misses"
+      },
+      {
+       "action": "hide",
+       "target": "c2"
+      },
+      {
+       "action": "hide",
+       "target": "m2"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "c3"
+      },
+      {
+       "action": "show",
+       "target": "m3"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Line 0 holds A. The CPU writes 31 to C, which maps to line 0: a write miss."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "c3[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "m3[0][3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Choice one, write-allocate: treat it like a read miss. Fetch C into line 0, then write 31 into the cache."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "c3[0][3]",
+       "value": "C"
+      },
+      {
+       "action": "set",
+       "target": "c3[0][4]",
+       "value": "30",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "c3[0][4]",
+       "value": "31",
+       "delay": 0.7
+      },
+      {
+       "action": "highlight",
+       "target": "path.cache->mem"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next time the CPU touches C, it hits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "c3[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Choice two, no-write-allocate: go around the cache. Put C back the way it was, with A in line 0."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "c3[0][3]",
+       "value": "A"
+      },
+      {
+       "action": "set",
+       "target": "c3[0][4]",
+       "value": "10",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The write of 31 goes straight to memory, and the cache does not change. Also called write-around."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "path.cache->mem"
+      },
+      {
+       "action": "set",
+       "target": "m3[0][3]",
+       "value": "31",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Which pairs make sense?"
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "path"
+      },
+      {
+       "action": "hide",
+       "target": "c3"
+      },
+      {
+       "action": "hide",
+       "target": "m3"
+      },
+      {
+       "action": "show",
+       "target": "pairs"
+      },
+      {
+       "action": "highlight",
+       "target": "pairs[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-back goes with write-allocate: bring the block in, and later writes to it hit and stay in the cache."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pairs[1][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through goes with no-write-allocate: every write goes to memory anyway, so fetching the block would only add traffic."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pairs[1][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-allocate pays off when the block is used again soon. No-write-allocate pays off for data written once, like clearing a large array."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pairs[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "write-back + write-allocate · write-through + no-write-allocate"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "traffic",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: one trace, both pairs. X and Y map to the same line of a direct-mapped cache, which starts empty."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: counting the traffic"
+      },
+      {
+       "action": "hide",
+       "target": "pairs"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "traffic"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access 1, write X, misses. Write-back with allocate fetches X, writes it in the cache, and sets dirty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic[0]"
+      },
+      {
+       "action": "set",
+       "target": "traffic[0][2]",
+       "value": "miss: fetch X, write, dirty"
+      },
+      {
+       "action": "set",
+       "target": "traffic[0][3]",
+       "value": "1 block read",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through with no allocate sends the word to memory and leaves the cache empty."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "traffic[0][4]",
+       "value": "miss: write word to memory"
+      },
+      {
+       "action": "set",
+       "target": "traffic[0][5]",
+       "value": "1 word write",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access 2, write X again. Write-back: now a hit, the cache changes, memory does not."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic[1]"
+      },
+      {
+       "action": "set",
+       "target": "traffic[1][2]",
+       "value": "hit: write in cache"
+      },
+      {
+       "action": "set",
+       "target": "traffic[1][3]",
+       "value": "none",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through: X was never brought in, so a miss again, and another word to memory."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "traffic[1][4]",
+       "value": "miss: write word to memory"
+      },
+      {
+       "action": "set",
+       "target": "traffic[1][5]",
+       "value": "1 word write",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access 3, read X. Write-back: a hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic[2]"
+      },
+      {
+       "action": "set",
+       "target": "traffic[2][2]",
+       "value": "hit"
+      },
+      {
+       "action": "set",
+       "target": "traffic[2][3]",
+       "value": "none",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through: a read miss, so now X is fetched into the cache."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "traffic[2][4]",
+       "value": "miss: fetch X"
+      },
+      {
+       "action": "set",
+       "target": "traffic[2][5]",
+       "value": "1 block read",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access 4, write Y, same line. Write-back: a miss; dirty X must be written back, then Y fetched."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic[3]"
+      },
+      {
+       "action": "set",
+       "target": "traffic[3][2]",
+       "value": "miss: write back X, fetch Y, dirty"
+      },
+      {
+       "action": "set",
+       "target": "traffic[3][3]",
+       "value": "1 block write + 1 block read",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through: a miss, the word goes to memory, and X stays in the cache."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "traffic[3][4]",
+       "value": "miss: write word to memory"
+      },
+      {
+       "action": "set",
+       "target": "traffic[3][5]",
+       "value": "1 word write",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access 5, read X. Write-back: X was evicted, so a miss; dirty Y goes back, then X is fetched."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "traffic[4]"
+      },
+      {
+       "action": "set",
+       "target": "traffic[4][2]",
+       "value": "miss: write back Y, fetch X"
+      },
+      {
+       "action": "set",
+       "target": "traffic[4][3]",
+       "value": "1 block write + 1 block read",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through: X is still there, a hit."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "traffic[4][4]",
+       "value": "hit"
+      },
+      {
+       "action": "set",
+       "target": "traffic[4][5]",
+       "value": "none",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add up each column."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "traffic"
+      },
+      {
+       "action": "show",
+       "target": "tsum"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-back: block reads at accesses 1, 4 and 5 make 3; block writes at 4 and 5 make 2; no single-word writes."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tsum[0][1]",
+       "value": "3"
+      },
+      {
+       "action": "set",
+       "target": "tsum[0][2]",
+       "value": "2",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tsum[0][3]",
+       "value": "0",
+       "delay": 0.7
+      },
+      {
+       "action": "highlight",
+       "target": "tsum[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through: one block read at access 3, and single-word writes at 1, 2 and 4: 3."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tsum[1][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "tsum[1][2]",
+       "value": "0",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tsum[1][3]",
+       "value": "3",
+       "delay": 0.7
+      },
+      {
+       "action": "highlight",
+       "target": "tsum[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Neither always wins. Write-back moves whole blocks, but rarely. Write-through moves small words, but often."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "write-back: few, large transfers · write-through: many, small ones"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "costs",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: putting numbers on the costs."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: costs in cycles and bytes"
+      },
+      {
+       "action": "hide",
+       "target": "tsum"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "cost"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With write-back, a miss sometimes has to write a dirty block back first. If a fraction f of evicted blocks are dirty, the average miss penalty is 1 plus f, times the block transfer time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 30 percent dirty and 100 cycles per block, a miss costs 130 cycles on average, not 100."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cost[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "cost[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Traffic in bytes: a million 4 byte writes under write-through send 4 megabytes to memory."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cost[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "cost[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Under write-back, suppose those writes cause 20 thousand dirty evictions of 64 byte blocks: 1.28 megabytes. Much less, when writes hit the same blocks again and again."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cost[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "cost[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here is everything side by side."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "cost"
+      },
+      {
+       "action": "show",
+       "target": "cmp"
+      },
+      {
+       "action": "highlight",
+       "target": "cmp[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Read misses cost more under write-back, because a dirty victim must go first. Repeated writes cost far less."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And with several processors or DMA devices sharing memory, write-back means memory can be stale. That needs cache coherence, a later topic."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "most modern caches: write-back + write-allocate, with a write buffer for the evictions"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "cmp"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A direct-mapped cache with 2 lines. A and C map to line 0, and B to line 1. The trace is: write A, write A, read B, write C, read A, write B."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For both policy pairs, count the hits and the memory traffic, and say which lines end dirty. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here is the table."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qt"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write A: both miss. Write-back fetches A and sets it dirty. Write-through sends a word to memory, and A stays out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[0]"
+      },
+      {
+       "action": "set",
+       "target": "qt[0][1]",
+       "value": "miss: read A, dirty",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "qt[0][2]",
+       "value": "miss: word write",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write A again: a hit for write-back. Write-through misses again, another word write."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[1]"
+      },
+      {
+       "action": "set",
+       "target": "qt[1][1]",
+       "value": "hit",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "qt[1][2]",
+       "value": "miss: word write",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Read B: both miss and fetch B into line 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[2]"
+      },
+      {
+       "action": "set",
+       "target": "qt[2][1]",
+       "value": "miss: read B",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "qt[2][2]",
+       "value": "miss: read B",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write C, line 0. Write-back: dirty A is written back, then C is fetched, dirty. Write-through: a word write, the cache unchanged."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[3]"
+      },
+      {
+       "action": "set",
+       "target": "qt[3][1]",
+       "value": "miss: write A back, read C",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "qt[3][2]",
+       "value": "miss: word write",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Read A. Write-back: dirty C is written back, then A is fetched, clean. Write-through: a miss, fetch A."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[4]"
+      },
+      {
+       "action": "set",
+       "target": "qt[4][1]",
+       "value": "miss: write C back, read A",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "qt[4][2]",
+       "value": "miss: read A",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write B: a hit for both. Write-back sets B dirty. Write-through still sends the word to memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[5]"
+      },
+      {
+       "action": "set",
+       "target": "qt[5][1]",
+       "value": "hit, B dirty",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "qt[5][2]",
+       "value": "hit: word write",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Totals. Write-back: 2 hits, 4 block reads, 2 block writes, and line 1, holding B, ends dirty."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "qt[6][1]",
+       "value": "2 hits · 4 block reads · 2 block writes · B dirty"
+      },
+      {
+       "action": "highlight",
+       "target": "qt[6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through: 1 hit, 2 block reads, 4 word writes, and nothing is ever dirty."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "qt[6][2]",
+       "value": "1 hit · 2 block reads · 4 word writes"
+      },
+      {
+       "action": "highlight",
+       "target": "qt[6][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slips: forgetting the write back of a dirty victim, and counting a no-write-allocate write as a block fetch."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "dirty victim → write back first · no-write-allocate → word to memory, no fetch"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "qt"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Writes must check the tag first, and they make the cache and memory disagree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through keeps memory current, with a write buffer so the CPU need not wait. Write-back writes only the cache, and uses a dirty bit to write blocks back on eviction."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On a miss, allocate or write around; count the traffic and the dirty victims. Next video: the three kinds of cache misses."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: the three C's of cache misses"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
