@@ -37,6 +37,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: profile.email ?? "",
           name: profile.name ?? profile.email ?? "Creator",
           image: (profile.picture as string | undefined) ?? null,
+          verified: profile.email_verified === true,
         });
         token.uid = saved.id;
       } else if (account?.provider === "dev" && user?.id) {

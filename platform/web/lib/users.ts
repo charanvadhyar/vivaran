@@ -27,12 +27,24 @@ function slug(name: string): string {
 }
 
 /** The account for a Google identity, created the first time it signs in. */
-export async function upsertUser(profile: { sub: string; email: string; name: string; image?: string | null }): Promise<User> {
+export async function upsertUser(profile: { sub: string; email: string; name: string; image?: string | null; verified?: boolean }): Promise<User> {
   const existing = await one<User>(
     `update users set email = $2, name = $3, image = $4 where google_sub = $1 returning ${COLUMNS}`,
     [profile.sub, profile.email, profile.name, profile.image ?? null],
   );
   if (existing) return existing;
+
+  // An account made before its owner could sign in (google_sub "pending:…", such as the
+  // founder's, which owns the demo videos) is claimed by the first sign-in whose
+  // Google-verified email matches it; its connector address stays the same.
+  if (profile.verified && profile.email) {
+    const claimed = await one<User>(
+      `update users set google_sub = $1, name = $3, image = $4
+        where google_sub like 'pending:%' and lower(email) = lower($2) returning ${COLUMNS}`,
+      [profile.sub, profile.email, profile.name, profile.image ?? null],
+    );
+    if (claimed) return claimed;
+  }
 
   // A handle must be unique; add a short suffix until it is.
   for (let attempt = 0; attempt < 6; attempt++) {
