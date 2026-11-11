@@ -14,6 +14,8 @@ import "@/styles/base.css";
 export const metadata: Metadata = {
   title: { default: `${BRAND.name} — ${BRAND.tagline}`, template: `%s — ${BRAND.name}` },
   description: BRAND.description,
+  // Google Search Console ownership of vivaran-kappa.vercel.app, needed for the Google sign-in consent screen.
+  verification: { google: "winpmUDxnpwe276C3DpN9iCswXWb_0LsjaNDpzCq3HM" },
 };
 
 // Applies a remembered dark theme before paint, so there is no flash.
