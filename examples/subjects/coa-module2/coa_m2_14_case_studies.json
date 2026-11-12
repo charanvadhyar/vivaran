@@ -1,0 +1,1419 @@
+{
+ "version": 1,
+ "title": "Case studies: ARM Cortex-A53 and Intel Core i7",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Two very different processors"
+    ],
+    [
+     2,
+     "The Cortex-A53's caches"
+    ],
+    [
+     3,
+     "The Cortex-A53's address translation"
+    ],
+    [
+     4,
+     "The Core i7-6700's caches"
+    ],
+    [
+     5,
+     "The Core i7-6700's TLBs and memory"
+    ],
+    [
+     6,
+     "Side by side, with AMAT"
+    ],
+    [
+     7,
+     "Why they differ"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "two",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "ARM Cortex-A53",
+    "Intel Core i7-6700 (Skylake)"
+   ],
+   "rows": [
+    [
+     "found in",
+     "phones, Raspberry Pi 3, embedded boards",
+     "desktop PCs (2015)"
+    ],
+    [
+     "pipeline",
+     "8 stages, 2-wide, in order",
+     "deep, 4-wide, out of order"
+    ],
+    [
+     "clock",
+     "about 1.2 to 2 GHz",
+     "3.4 GHz, up to 4.0 GHz"
+    ],
+    [
+     "goal",
+     "low power, small area",
+     "single-thread speed"
+    ]
+   ]
+  },
+  {
+   "id": "a53",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "A53 level",
+    "size",
+    "organization",
+    "latency (measured)"
+   ],
+   "rows": [
+    [
+     "L1 instruction",
+     "8–64 KB, the chip maker's choice",
+     "2-way, 64 B lines, VIPT",
+     ""
+    ],
+    [
+     "L1 data",
+     "8–64 KB",
+     "4-way, 64 B lines, PIPT",
+     "3 cycles"
+    ],
+    [
+     "L2, shared by the cores",
+     "128 KB to 2 MB",
+     "16-way, 64 B lines",
+     "15 cycles"
+    ],
+    [
+     "main memory",
+     "LPDDR or DDR",
+     "",
+     "15 cycles + 128 ns"
+    ]
+   ]
+  },
+  {
+   "id": "a53t",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "A53 translation",
+    "entries",
+    "role"
+   ],
+   "rows": [
+    [
+     "micro TLB (data)",
+     "10",
+     "tiny and fast: checked first"
+    ],
+    [
+     "main TLB",
+     "512, 4-way",
+     "on a micro TLB miss, a few cycles more"
+    ],
+    [
+     "page walk cache",
+     "64, 4-way",
+     "keeps upper page table levels, shortening a walk"
+    ],
+    [
+     "page walk",
+     "in hardware",
+     "reads the page table through L2 and memory"
+    ]
+   ]
+  },
+  {
+   "id": "vp",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"VIPT needs\" quad \"size\" / \"ways\" <= 4 \"KB page\"",
+    "\"A53 L1 data, 32 KB 4-way:\" quad 32 / 4 = 8 \"KB\" > 4 quad -> quad \"PIPT: translate first\"",
+    "\"i7 L1 data, 32 KB 8-way:\" quad 32 / 8 = 4 \"KB\" <= 4 quad -> quad \"VIPT: in parallel\""
+   ]
+  },
+  {
+   "id": "i7",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "i7-6700 level",
+    "size",
+    "organization",
+    "latency (measured)"
+   ],
+   "rows": [
+    [
+     "L1 instruction",
+     "32 KB per core",
+     "8-way, 64 B lines",
+     ""
+    ],
+    [
+     "L1 data",
+     "32 KB per core",
+     "8-way, 64 B lines",
+     "4 cycles"
+    ],
+    [
+     "L2",
+     "256 KB per core",
+     "4-way, 64 B lines",
+     "12 cycles"
+    ],
+    [
+     "L3, shared by 4 cores",
+     "8 MB",
+     "16-way, 64 B lines, inclusive",
+     "about 42 cycles"
+    ],
+    [
+     "main memory",
+     "DDR4-2133, 2 channels",
+     "",
+     "42 cycles + about 51 ns"
+    ]
+   ]
+  },
+  {
+   "id": "i7t",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "i7-6700 TLB",
+    "entries (4 KB pages)",
+    "notes"
+   ],
+   "rows": [
+    [
+     "L1 instruction TLB",
+     "128, 8-way",
+     ""
+    ],
+    [
+     "L1 data TLB",
+     "64, 4-way",
+     "miss costs about 9 cycles"
+    ],
+    [
+     "L2 TLB (shared)",
+     "1536, 12-way",
+     "also holds 2 MB page entries"
+    ],
+    [
+     "virtual address",
+     "48 bits",
+     "4-level page table, walked in hardware"
+    ]
+   ]
+  },
+  {
+   "id": "bw",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"DDR4-2133, two channels:\" quad 2 times 2133 times 10^6 times 8 \"B\" approx 34.1 \"GB/s\"",
+    "\"TLB reach, 4 KB pages:\" quad 64 times 4 \"KB\" = 256 \"KB\" quad 1536 times 4 \"KB\" = 6 \"MB\"",
+    "\"with 2 MB pages:\" quad 1536 times 2 \"MB\" = 3 \"GB\""
+   ]
+  },
+  {
+   "id": "sbs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "Cortex-A53",
+    "Core i7-6700"
+   ],
+   "rows": [
+    [
+     "cache levels",
+     "2",
+     "3"
+    ],
+    [
+     "L1 data",
+     "8–64 KB, 4-way, PIPT, 3 cycles",
+     "32 KB, 8-way, VIPT, 4 cycles"
+    ],
+    [
+     "last level",
+     "L2: up to 2 MB, 15 cycles",
+     "L3: 8 MB, about 42 cycles"
+    ],
+    [
+     "memory",
+     "about 207 cycles at 1.5 GHz",
+     "about 246 cycles at 4 GHz"
+    ],
+    [
+     "last-level TLB",
+     "512 entries",
+     "1536 entries"
+    ]
+   ]
+  },
+  {
+   "id": "am",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"assumed miss rates: L1 5%, L2 local 30%, L3 local 20%\"",
+    "\"A53:\" quad 3 + 0.05 times (15 + 0.3 times 200) = 6.75 \"cycles\" = 4.5 \"ns at 1.5 GHz\"",
+    "\"i7:\" quad 4 + 0.05 times (12 + 0.3 times (42 + 0.2 times 246)) approx 5.97 \"cycles\"",
+    "5.97 \"cycles at 4 GHz\" approx 1.49 \"ns\""
+   ]
+  },
+  {
+   "id": "why",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "choice",
+    "A53: power and area",
+    "i7: speed"
+   ],
+   "rows": [
+    [
+     "L1 size",
+     "configurable: small chips save area",
+     "fixed 32 KB at full speed"
+    ],
+    [
+     "L1 data indexing",
+     "PIPT, with a 10-entry micro TLB",
+     "8 ways so that VIPT works"
+    ],
+    [
+     "levels",
+     "two: an L3 costs power and area",
+     "three: a big shared L3 hides memory"
+    ],
+    [
+     "out-of-order",
+     "no: a miss stalls the pipeline",
+     "yes: many misses in flight at once"
+    ],
+    [
+     "prefetching",
+     "simple stream prefetch",
+     "several aggressive prefetchers"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "given",
+    "find"
+   ],
+   "rows": [
+    [
+     "4 KB pages; A53 L1D 32 KB 4-way; i7 L1D 32 KB 8-way",
+     "a) which can be VIPT?"
+    ],
+    [
+     "A53 main TLB 512 entries; i7 L2 TLB 1536 entries",
+     "b) TLB reach of each, 4 KB pages"
+    ],
+    [
+     "i7: DDR4-2133, two channels, 8 B each",
+     "c) peak memory bandwidth"
+    ],
+    [
+     "A53: L1 3, L2 15, memory 200 cycles; misses 4%, 25%",
+     "d) AMAT in cycles"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad \"A53:\" 32 / 4 = 8 \"KB\" > 4 \"KB: no\" quad \"i7:\" 32 / 8 = 4 \"KB: yes\"",
+    "\"b)\" quad 512 times 4 \"KB\" = 2 \"MB\" quad 1536 times 4 \"KB\" = 6 \"MB\"",
+    "\"c)\" quad 2 times 2133 times 10^6 times 8 approx 34.1 \"GB/s\"",
+    "\"d)\" quad 3 + 0.04 times (15 + 0.25 times 200) = 3 + 0.04 times 65 = 5.6 \"cycles\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "After a whole module of theory, two real chips: a small ARM core found in phones, and an Intel desktop processor. Every idea from this module shows up in them."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Case studies: Cortex-A53 and Core i7"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The two processors, then each one's caches and address translation."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then side by side with AMAT, why they differ, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "two",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: two very different processors."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: two processors"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "two"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The ARM Cortex-A53 is everywhere: phones, the Raspberry Pi 3, embedded boards. The Core i7-6700 is a 2015 desktop chip from Intel's Skylake family."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "two[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The A53 has a short 8-stage pipeline, issuing 2 instructions per cycle, in order. The i7 is 4-wide and out of order, with a much deeper pipeline."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "two[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The A53 runs at about 1.2 to 2 gigahertz, the i7 at 3.4, boosting to 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "two[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the goals are opposite. The A53 is built for low power and a small area. The i7 is built for speed on one thread."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "two[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "same ideas, opposite goals: power versus speed"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "a53",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the A53's caches. The latencies here were measured on a board running at 1.5 gigahertz."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: the Cortex-A53's caches"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "two"
+      },
+      {
+       "action": "show",
+       "target": "a53"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two L1 caches per core, instructions and data. ARM lets the chip maker pick each size, from 8 to 64 kilobytes. A small chip saves area; a phone chip may pick 32."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "a53[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The instruction cache is 2-way, the data cache 4-way. Both use 64 byte lines. A data hit takes 3 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "a53[0][2]"
+      },
+      {
+       "action": "highlight",
+       "target": "a53[1][2]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "a53[1][3]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The L2 is shared by all the cores, 128 kilobytes to 2 megabytes, and 16-way. A hit takes about 15 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "a53[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "There is no L3. A miss in L2 goes to memory: 15 cycles plus about 128 nanoseconds. At 1.5 gigahertz that is about 207 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "a53[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "A53: L1 3 cycles · L2 15 · memory ≈ 200"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Look at the indexing. The instruction cache is virtually indexed, VIPT. The data cache is physically indexed, PIPT. Why?"
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "mark",
+       "target": "a53[0][2]"
+      },
+      {
+       "action": "mark",
+       "target": "a53[1][2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Apply the VIPT condition from earlier: size over ways must not exceed the page size."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "a53"
+      },
+      {
+       "action": "show",
+       "target": "vp"
+      },
+      {
+       "action": "highlight",
+       "target": "vp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The A53's 32 kilobyte, 4-way data cache gives 8 kilobytes per way, more than a 4 kilobyte page. So it cannot simply index with the virtual address. It translates first."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "vp[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "vp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The i7's 32 kilobyte cache uses 8 ways: exactly 4 kilobytes per way. So it can be VIPT. Remember that when we reach the i7."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "vp[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "vp[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "more ways can make VIPT possible"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "a53tlb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: if the A53 translates before every data access, translation must be very fast."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: the A53's address translation"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "vp"
+      },
+      {
+       "action": "show",
+       "target": "a53t"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So it has a micro TLB of just 10 entries. Tiny, so it answers almost instantly."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "a53t[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Behind it, a main TLB of 512 entries, 4-way. A micro TLB miss that hits here costs only a couple of cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "a53t[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If both miss, a page walk cache of 64 entries keeps the upper levels of the page table, so most walks skip straight to the last level."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "a53t[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the walk itself is done in hardware, reading page table entries through the L2 cache. This is the TLB hierarchy we built in the virtual memory video, in miniature."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "a53t[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "micro TLB 10 → main TLB 512 → walk cache → page walk"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "i7",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the Core i7-6700. Its latencies were measured at 4 gigahertz."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: the Core i7-6700's caches"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "a53t"
+      },
+      {
+       "action": "show",
+       "target": "i7"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each of the 4 cores has 32 kilobytes of instruction cache and 32 of data, both 8-way with 64 byte lines. A data hit takes 4 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "i7[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each core also has a private L2 of 256 kilobytes, 4-way, at 12 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "i7[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then an L3 of 8 megabytes, 16-way, shared by all four cores, at about 42 cycles. It is inclusive: everything in the L1s and L2s is also in L3, which makes checking other cores' data simpler."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "i7[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Memory is DDR4-2133 on two channels. A miss all the way out costs about 42 cycles plus 51 nanoseconds: about 246 cycles at 4 gigahertz."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "i7[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "i7: L1 4 · L2 12 · L3 ≈ 42 · memory ≈ 246 cycles"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "i7tlb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the i7's translation."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: the i7's TLBs and memory"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "i7"
+      },
+      {
+       "action": "show",
+       "target": "i7t"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Separate first-level TLBs: 128 entries for instructions, 8-way, and 64 entries for data, 4-way."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "i7t[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Behind them, a shared second-level TLB of 1536 entries, 12-way, that also holds entries for 2 megabyte pages. A data TLB miss that hits here costs about 9 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "i7t[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Virtual addresses are 48 bits, with the 4-level page table we drew earlier, walked in hardware."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "i7t[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Some numbers. Peak memory bandwidth: 2 channels, times 2133 million transfers, times 8 bytes. About 34.1 gigabytes per second."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "i7t"
+      },
+      {
+       "action": "show",
+       "target": "bw"
+      },
+      {
+       "action": "highlight",
+       "target": "bw[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "TLB reach with 4 kilobyte pages: the 64-entry data TLB covers 256 kilobytes, the 1536-entry L2 TLB 6 megabytes."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bw[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "bw[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 2 megabyte pages, the L2 TLB covers 3 gigabytes. That is why databases and virtual machines ask for huge pages."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bw[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "bw[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "TLB reach = entries × page size"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sbs",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: side by side."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: side by side"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bw"
+      },
+      {
+       "action": "show",
+       "target": "sbs"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two cache levels against three. The A53's L1 is configurable and physically indexed; the i7's is fixed, 8-way, and virtually indexed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sbs[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The A53's last level is a small, fast L2. The i7's is a big L3, three times slower to reach, but four times larger."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sbs[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Memory costs a similar number of cycles in both, about 200 to 250. But the i7's cycles are almost three times shorter."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sbs[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now AMAT. The latencies are measured, with the A53's memory rounded to 200 cycles. The miss rates are assumptions, for illustration."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "sbs"
+      },
+      {
+       "action": "show",
+       "target": "am"
+      },
+      {
+       "action": "highlight",
+       "target": "am[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A53: 3, plus 0.05 times, 15 plus 0.3 times 200. 6.75 cycles. At 1.5 gigahertz, 4.5 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "am[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "am[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "i7: 4, plus 0.05 times, 12 plus 0.3 times, 42 plus 0.2 times 246. About 6 cycles. At 4 gigahertz, about 1.5 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "am[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "am[2]"
+      },
+      {
+       "action": "reveal",
+       "target": "am[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "am[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Similar in cycles, three times apart in time. The extra L3 keeps the i7's AMAT low even though memory is farther away in cycles."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "compare AMAT in nanoseconds, not just cycles"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: why did the designers choose so differently? Every row is a trade-off from this module."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: why they differ"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "am"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "L1 size: ARM lets small chips save area. Intel fixes 32 kilobytes, the largest that still hits in 4 cycles at 4 gigahertz."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Indexing: the A53 pays for translation with a tiny micro TLB. The i7 uses 8 ways precisely so that VIPT works."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Levels: an L3 costs power and area that a phone core cannot spare. The i7 spends them to hide memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And out-of-order execution: when the A53 misses, its in-order pipeline waits. The i7 keeps running, with many misses in flight, the nonblocking caches of the advanced optimizations video."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Prefetching follows the same pattern: simple on the A53, several aggressive prefetchers on the i7."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "every design choice is a trade-off you can now compute"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now the exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 4 kilobyte pages: which L1 data cache can be VIPT? And the TLB reach of the A53's main TLB and the i7's L2 TLB."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[1]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The i7's peak memory bandwidth. And the A53's AMAT with L1 3 cycles, L2 15, memory 200, an L1 miss rate of 4 percent and an L2 local miss rate of 25. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: the A53 has 32 over 4, 8 kilobytes per way, too big: no. The i7 has 32 over 8, 4 kilobytes: yes."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: 512 times 4 kilobytes is 2 megabytes. 1536 times 4 kilobytes is 6 megabytes."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 2 times 2133 million times 8 bytes: about 34.1 gigabytes per second."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: 15 plus 0.25 times 200 is 65. 3 plus 0.04 times 65: 5.6 cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slips: forgetting that DDR's number already counts both clock edges, and using an L2's global miss rate where the formula needs the local one."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "know which rate is local and which is global"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The A53: small configurable caches, two levels, a physically indexed L1 data cache, and a tiny micro TLB to keep translation fast."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The i7: three levels with a shared inclusive L3, an 8-way VIPT L1, large TLBs, and out-of-order execution to overlap misses."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Compare them in nanoseconds, and read every choice as a trade-off. That completes Module 2, the memory hierarchy."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=6]"
+      },
+      {
+       "action": "mark",
+       "target": "stages[0..=7]",
+       "delay": 0.5
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Module 2 complete: the memory hierarchy"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

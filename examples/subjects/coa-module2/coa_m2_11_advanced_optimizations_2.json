@@ -1,0 +1,1950 @@
+{
+ "version": 1,
+ "title": "Advanced cache optimizations, part 2",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Where part 2 fits"
+    ],
+    [
+     2,
+     "Compiler: loop interchange"
+    ],
+    [
+     3,
+     "Compiler: blocking"
+    ],
+    [
+     4,
+     "Hardware prefetching"
+    ],
+    [
+     5,
+     "Compiler-controlled prefetching"
+    ],
+    [
+     6,
+     "HBM as an extra cache level"
+    ],
+    [
+     7,
+     "All ten on one table"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "p2",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "#",
+    "optimization",
+    "improves",
+    "how"
+   ],
+   "rows": [
+    [
+     8,
+     "compiler optimizations",
+     "miss rate",
+     "reorder the program, no new hardware"
+    ],
+    [
+     9,
+     "hardware prefetching",
+     "miss penalty or miss rate",
+     "fetch blocks before they are asked for"
+    ],
+    [
+     9,
+     "compiler-controlled prefetching",
+     "miss penalty or miss rate",
+     "prefetch instructions in the code"
+    ],
+    [
+     10,
+     "HBM as an extra level",
+     "miss penalty",
+     "a gigabyte-sized DRAM cache"
+    ]
+   ]
+  },
+  {
+   "id": "li1",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "/* before: inner loop goes down a column */",
+    "for (j = 0; j < 100; j++)",
+    "  for (i = 0; i < 5000; i++)",
+    "    x[i][j] = 2 * x[i][j];"
+   ]
+  },
+  {
+   "id": "li2",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "/* after: inner loop goes along a row */",
+    "for (i = 0; i < 5000; i++)",
+    "  for (j = 0; j < 100; j++)",
+    "    x[i][j] = 2 * x[i][j];"
+   ]
+  },
+  {
+   "id": "grid",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "x",
+    "[0]",
+    "[1]",
+    "[2]",
+    "[3]",
+    "[4]",
+    "[5]",
+    "[6]",
+    "[7]"
+   ],
+   "rows": [
+    [
+     "row 0",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "row 1",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "row 2",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "row 3",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "lim",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"column order:\" quad 5000 times 100 = 500000 \"misses\"",
+    "\"row order:\" quad 500000 / 8 = 62500 \"misses\" quad \"8 times fewer\""
+   ]
+  },
+  {
+   "id": "bl1",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "/* x = y * z, all N x N */",
+    "for (i = 0; i < N; i++)",
+    "  for (j = 0; j < N; j++) {",
+    "    r = 0;",
+    "    for (k = 0; k < N; k++)",
+    "      r = r + y[i][k] * z[k][j];",
+    "    x[i][j] = r;",
+    "  }"
+   ]
+  },
+  {
+   "id": "bl2",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "/* blocked: work on B x B tiles */",
+    "for (jj = 0; jj < N; jj += B)",
+    "  for (kk = 0; kk < N; kk += B)",
+    "    for (i = 0; i < N; i++)",
+    "      for (j = jj; j < min(jj + B, N); j++) {",
+    "        r = 0;",
+    "        for (k = kk; k < min(kk + B, N); k++)",
+    "          r = r + y[i][k] * z[k][j];",
+    "        x[i][j] = x[i][j] + r;",
+    "      }"
+   ]
+  },
+  {
+   "id": "blm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"naive, worst case:\" quad 2 N^3 + N^2 \"words from memory\"",
+    "\"blocked:\" quad (2 N^3) / B + N^2 \"words\"",
+    "N = 512, B = 32 : quad 268 \"million\" quad -> quad 8.65 \"million\" quad \"about 31 times fewer\"",
+    "\"three tiles must fit:\" quad 3 times 32^2 times 8 \"B\" = 24 \"KB\" <= 32 \"KB L1\""
+   ]
+  },
+  {
+   "id": "co",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "other compiler tricks",
+    "what they do"
+   ],
+   "rows": [
+    [
+     "merging arrays",
+     "two arrays used together become one array of pairs: one block brings both"
+    ],
+    [
+     "loop fusion",
+     "two loops over the same data become one: reuse while it is still cached"
+    ]
+   ]
+  },
+  {
+   "id": "hp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "hardware prefetcher",
+    "how it guesses"
+   ],
+   "rows": [
+    [
+     "next-line",
+     "on a miss to block i, also fetch block i + 1"
+    ],
+    [
+     "stream buffer",
+     "keeps the next few blocks in a small buffer beside the cache"
+    ],
+    [
+     "stride",
+     "notices a load stepping by a fixed distance, fetches ahead along it"
+    ]
+   ]
+  },
+  {
+   "id": "pt",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "no prefetch: CPU",
+    "prefetch: CPU",
+    "prefetch: memory"
+   ],
+   "end": 185,
+   "unit": "cycles",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "ptm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"prefetch distance\" = ceil(\"memory latency\" / \"time per iteration\")",
+    "\"latency 30, iteration 30:\" quad 1 \"ahead\" quad \"latency 90:\" quad 3 \"ahead\"",
+    "\"costs: memory bandwidth, and useless prefetches push out useful blocks\""
+   ]
+  },
+  {
+   "id": "cp",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "for (i = 0; i < 3; i = i + 1)",
+    "  for (j = 0; j < 100; j = j + 1)",
+    "    a[i][j] = b[j][0] * b[j+1][0];"
+   ]
+  },
+  {
+   "id": "cpm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"8 KB direct-mapped, 16 B blocks, 8 B elements\"",
+    "a: quad 300 / 2 = 150 \"misses\" quad quad b: quad 101 \"misses\" quad \"total\" quad 251",
+    "\"prefetch 7 iterations ahead:\" quad 7 + 4 + 4 + 4 = 19 \"misses\"",
+    "\"cost:\" quad 400 \"prefetch instructions\""
+   ]
+  },
+  {
+   "id": "cpx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "kind",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "cache prefetch",
+     "loads the block into the cache only: the usual kind"
+    ],
+    [
+     "register prefetch",
+     "loads the value into a register"
+    ],
+    [
+     "nonfaulting",
+     "a bad address is simply ignored: the prefetch becomes a no-op"
+    ],
+    [
+     "needs",
+     "a nonblocking cache, so the CPU keeps running while prefetches are in flight"
+    ]
+   ]
+  },
+  {
+   "id": "hb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "design",
+    "tags",
+    "problem"
+   ],
+   "rows": [
+    [
+     "1 GB, 64 B blocks, tags in SRAM",
+     "2²⁴ blocks × 6 B = 96 MB",
+     "far more SRAM than the chip has"
+    ],
+    [
+     "1 GB, 4 KB blocks, tags in SRAM",
+     "2¹⁸ blocks × 6 B = 1.5 MB",
+     "moves 4 KB per miss: wasted bandwidth"
+    ],
+    [
+     "64 B blocks, tags in the HBM",
+     "no SRAM needed",
+     "two DRAM accesses: tag, then data"
+    ],
+    [
+     "alloy cache",
+     "tag and data side by side, direct-mapped",
+     "one burst brings both: one access"
+    ]
+   ]
+  },
+  {
+   "id": "all",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "optimization",
+    "hit time",
+    "bandwidth",
+    "miss penalty",
+    "miss rate"
+   ],
+   "rows": [
+    [
+     "small, simple L1",
+     "better",
+     "",
+     "",
+     "worse"
+    ],
+    [
+     "way prediction",
+     "better",
+     "",
+     "",
+     ""
+    ],
+    [
+     "pipelined access",
+     "worse",
+     "better",
+     "",
+     ""
+    ],
+    [
+     "multibanked",
+     "",
+     "better",
+     "",
+     ""
+    ],
+    [
+     "nonblocking",
+     "",
+     "better",
+     "better",
+     ""
+    ],
+    [
+     "critical word first",
+     "",
+     "",
+     "better",
+     ""
+    ],
+    [
+     "merging write buffer",
+     "",
+     "",
+     "better",
+     ""
+    ],
+    [
+     "compiler optimizations",
+     "",
+     "",
+     "",
+     "better"
+    ],
+    [
+     "prefetching",
+     "",
+     "",
+     "better",
+     "better"
+    ],
+    [
+     "HBM as a cache",
+     "",
+     "",
+     "better",
+     "better"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "given",
+    "find"
+   ],
+   "rows": [
+    [
+     "double x[1024][1024], 64 B blocks, small cache",
+     "a) misses: column order, row order"
+    ],
+    [
+     "iteration 25 cycles, memory latency 100",
+     "b) the prefetch distance"
+    ],
+    [
+     "512 MB HBM cache, 64 B blocks, 4 B tag each",
+     "c) the tag storage"
+    ],
+    [
+     "blocked matrix multiply, doubles, 32 KB L1",
+     "d) the largest power-of-two tile B"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad 1024 times 1024 = 1048576 \"misses\" quad \"vs\" quad 1048576 / 8 = 131072",
+    "\"b)\" quad ceil(100 / 25) = 4 \"iterations ahead\"",
+    "\"c)\" quad (512 \"MB\") / (64 \"B\") = 8 \"M blocks\" quad times 4 \"B\" = 32 \"MB\"",
+    "\"d)\" quad 3 B^2 times 8 <= 32768 quad => quad B^2 <= 1365 quad => quad B = 32"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Part 1 sped up the cache hardware. Part 2 attacks misses from two other sides: the program itself, and fetching data before it is needed."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Ten advanced cache optimizations: part 2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two compiler techniques, two kinds of prefetching, and HBM. Then all ten on one table, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[1..=5]"
+      },
+      {
+       "action": "highlight",
+       "target": "stages[6..=7]",
+       "delay": 0.6
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "where",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: the last three of the ten."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: where part 2 fits"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "p2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Number 8: compiler optimizations. They lower the miss rate with no new hardware at all, just by changing the order of the work."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "p2[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Number 9: prefetching, by hardware or by instructions the compiler inserts. Fetch the block before the program asks for it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "p2[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Number 10: a large stacked DRAM, HBM, used as one more cache level before main memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "p2[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "change the program · fetch early · add a huge cache"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "interchange",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: loop interchange. Here is a loop that doubles every element of an array x, 5000 rows by 100 columns."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: loop interchange"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "p2"
+      },
+      {
+       "action": "show",
+       "target": "li1"
+      },
+      {
+       "action": "mark_lines",
+       "target": "li1",
+       "from": 2,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "C stores arrays row by row. So x of i, j and x of i, j plus 1 sit next to each other, and a 64 byte block holds 8 doubles of one row."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "li1",
+       "line": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Look at the order. The inner loop changes i, so it walks down a column."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "li1",
+       "line": 3
+      },
+      {
+       "action": "show",
+       "target": "grid"
+      },
+      {
+       "action": "hide",
+       "target": "li1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "x 0 0, then x 1 0, then x 2 0, then x 3 0. Every access is in a different row, so a different block."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "grid[0][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "grid[1][1]",
+       "value": "2",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "grid[2][1]",
+       "value": "3",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "grid[3][1]",
+       "value": "4",
+       "delay": 0.75
+      },
+      {
+       "action": "highlight",
+       "target": "grid[0..=3]",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 5000 rows, the cache cannot hold them all. By the time the loop comes back for x 0 1, that block has long been evicted. Every access misses."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "grid[0][2]",
+       "value": "5001"
+      },
+      {
+       "action": "highlight",
+       "target": "grid[0][2]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now swap the two loops. The inner loop changes j, walking along a row."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "grid[0][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "grid[0][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "grid[1][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "grid[1][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "grid[2][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "grid[2][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "grid[3][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "grid[3][2]",
+       "value": ""
+      },
+      {
+       "action": "show",
+       "target": "li2"
+      },
+      {
+       "action": "hide",
+       "target": "grid"
+      },
+      {
+       "action": "mark_lines",
+       "target": "li2",
+       "from": 2,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The first access to a row misses and brings in 8 elements. The next 7 accesses hit."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "li2"
+      },
+      {
+       "action": "show",
+       "target": "grid"
+      },
+      {
+       "action": "set",
+       "target": "grid[0][1]",
+       "value": "1",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "grid[0][2]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "grid[0][3]",
+       "value": "3",
+       "delay": 0.30000000000000004
+      },
+      {
+       "action": "set",
+       "target": "grid[0][4]",
+       "value": "4",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "grid[0][5]",
+       "value": "5",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "grid[0][6]",
+       "value": "6",
+       "delay": 0.6000000000000001
+      },
+      {
+       "action": "set",
+       "target": "grid[0][7]",
+       "value": "7",
+       "delay": 0.7000000000000001
+      },
+      {
+       "action": "set",
+       "target": "grid[0][8]",
+       "value": "8",
+       "delay": 0.8
+      },
+      {
+       "action": "mark",
+       "target": "grid[0][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "grid[0]",
+       "delay": 0.9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The count: column order, 500 thousand misses. Row order, one in eight: 62500. Eight times fewer, and the program computes exactly the same thing."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "grid"
+      },
+      {
+       "action": "show",
+       "target": "lim"
+      },
+      {
+       "action": "highlight",
+       "target": "lim[0]"
+      },
+      {
+       "action": "reveal",
+       "target": "lim[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "lim[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Same work, same answer, a different order. That is all a compiler optimization does."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "walk arrays in the order they are stored"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "blocking",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: blocking. Some programs cannot be fixed by swapping loops. Matrix multiply reads y along rows, but z down columns."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: blocking"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lim"
+      },
+      {
+       "action": "show",
+       "target": "bl1"
+      },
+      {
+       "action": "goto_line",
+       "target": "bl1",
+       "line": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For one row of x, the loop reads one row of y, and all N columns of z: the whole of z."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "bl1",
+       "from": 2,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If z does not fit in the cache, every pass evicts it. In the worst case, 2 N cubed plus N squared words come from memory."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "bl1"
+      },
+      {
+       "action": "show",
+       "target": "blm"
+      },
+      {
+       "action": "highlight",
+       "target": "blm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Blocking works on small B by B tiles, sized so they stay in the cache while they are reused."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "blm"
+      },
+      {
+       "action": "show",
+       "target": "bl2"
+      },
+      {
+       "action": "mark_lines",
+       "target": "bl2",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The two outer loops pick a tile. The inner loops do all the work that tile allows, before moving on."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "bl2",
+       "from": 4,
+       "to": 9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now each word fetched is used B times before it leaves. Memory traffic falls to 2 N cubed over B, plus N squared."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "bl2"
+      },
+      {
+       "action": "show",
+       "target": "blm"
+      },
+      {
+       "action": "reveal",
+       "target": "blm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "blm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For N of 512 and B of 32: from about 268 million words, to about 8.65 million. 31 times fewer."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "blm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "blm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Choose B so that three tiles fit: 3 times 32 squared times 8 bytes is 24 kilobytes. That fits a 32 kilobyte L1."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "blm[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "blm[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "blocking: reuse a tile while it is still in the cache"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two smaller tricks. Merging arrays: two arrays always used together become one array of pairs, so one block brings both."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "blm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "co"
+      },
+      {
+       "action": "highlight",
+       "target": "co[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Loop fusion: two loops over the same data become one, so the data is reused while it is still cached."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[1]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hwpf",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: hardware prefetching. The hardware guesses which blocks come next, and fetches them before they are asked for."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: hardware prefetching"
+      },
+      {
+       "action": "hide",
+       "target": "co"
+      },
+      {
+       "action": "show",
+       "target": "hp"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The simplest: on a miss to block i, also fetch block i plus 1. It suits code, and arrays read in order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A stream buffer holds the next few blocks beside the cache, so wrong guesses do not evict anything."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A stride prefetcher notices a load stepping by a fixed distance, say every 256 bytes, and runs ahead along it. Modern cores, the Core i7 among them, prefetch into L1 and L2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why it helps, in a timeline. Each loop iteration computes for 30 cycles, and needs a new block that takes 30 cycles to fetch."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "hp"
+      },
+      {
+       "action": "show",
+       "target": "pt"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Without prefetching: miss, wait 30, compute 30. Again and again. Three iterations take 180 cycles."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "pt",
+       "id": "n0",
+       "lane": "no prefetch: CPU",
+       "start": 0,
+       "end": 30,
+       "label": "miss"
+      },
+      {
+       "action": "add_block",
+       "target": "pt",
+       "id": "n1",
+       "lane": "no prefetch: CPU",
+       "start": 30,
+       "end": 60,
+       "label": "iter 1",
+       "delay": 0.15
+      },
+      {
+       "action": "add_block",
+       "target": "pt",
+       "id": "n2",
+       "lane": "no prefetch: CPU",
+       "start": 60,
+       "end": 90,
+       "label": "miss",
+       "delay": 0.3
+      },
+      {
+       "action": "add_block",
+       "target": "pt",
+       "id": "n3",
+       "lane": "no prefetch: CPU",
+       "start": 90,
+       "end": 120,
+       "label": "iter 2",
+       "delay": 0.45
+      },
+      {
+       "action": "add_block",
+       "target": "pt",
+       "id": "n4",
+       "lane": "no prefetch: CPU",
+       "start": 120,
+       "end": 150,
+       "label": "miss",
+       "delay": 0.6
+      },
+      {
+       "action": "add_block",
+       "target": "pt",
+       "id": "n5",
+       "lane": "no prefetch: CPU",
+       "start": 150,
+       "end": 180,
+       "label": "iter 3",
+       "delay": 0.75
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With prefetching one block ahead: the first miss still waits. But while iteration 1 computes, the next block is already on its way."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "pt",
+       "id": "p0",
+       "lane": "prefetch: CPU",
+       "start": 0,
+       "end": 30,
+       "label": "miss"
+      },
+      {
+       "action": "add_block",
+       "target": "pt",
+       "id": "m0",
+       "lane": "prefetch: memory",
+       "start": 0,
+       "end": 30,
+       "label": "block 1",
+       "delay": 0.1
+      },
+      {
+       "action": "add_block",
+       "target": "pt",
+       "id": "p1",
+       "lane": "prefetch: CPU",
+       "start": 30,
+       "end": 60,
+       "label": "iter 1",
+       "delay": 0.3
+      },
+      {
+       "action": "add_block",
+       "target": "pt",
+       "id": "m1",
+       "lane": "prefetch: memory",
+       "start": 30,
+       "end": 60,
+       "label": "block 2",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each block arrives just as it is needed. Three iterations take 120 cycles instead of 180."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "pt",
+       "id": "p2",
+       "lane": "prefetch: CPU",
+       "start": 60,
+       "end": 90,
+       "label": "iter 2"
+      },
+      {
+       "action": "add_block",
+       "target": "pt",
+       "id": "m2",
+       "lane": "prefetch: memory",
+       "start": 60,
+       "end": 90,
+       "label": "block 3",
+       "delay": 0.2
+      },
+      {
+       "action": "add_block",
+       "target": "pt",
+       "id": "p3",
+       "lane": "prefetch: CPU",
+       "start": 90,
+       "end": 120,
+       "label": "iter 3",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "How far ahead to prefetch? Memory latency over the time per iteration, rounded up."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "pt"
+      },
+      {
+       "action": "show",
+       "target": "ptm"
+      },
+      {
+       "action": "highlight",
+       "target": "ptm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Latency 30 with 30 cycle iterations: one ahead. If latency were 90, three ahead."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ptm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "ptm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The costs: prefetches use memory bandwidth, and a wrong guess can push useful blocks out. So prefetchers back off when their guesses keep missing."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ptm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "ptm[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "prefetch distance = latency ÷ iteration time, rounded up"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "swpf",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: compiler-controlled prefetching. The compiler inserts prefetch instructions, because it can see the loop's future addresses."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: compiler-controlled prefetching"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ptm"
+      },
+      {
+       "action": "show",
+       "target": "cpx"
+      },
+      {
+       "action": "highlight",
+       "target": "cpx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A cache prefetch only brings the block into the cache. A register prefetch loads the value itself."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cpx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Prefetches are nonfaulting: a bad address is ignored rather than crashing the program. And the cache must be nonblocking, so the CPU runs on while they are in flight."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cpx[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "cpx[3]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The textbook's example. a is 3 by 100, b is 101 by 3, all 8 byte doubles, in an 8 kilobyte direct-mapped cache with 16 byte blocks."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "cpx"
+      },
+      {
+       "action": "show",
+       "target": "cp"
+      },
+      {
+       "action": "mark_lines",
+       "target": "cp",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a is written in row order, two elements per block: 300 over 2, 150 misses."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "cp",
+       "line": 3
+      },
+      {
+       "action": "show",
+       "target": "cpm"
+      },
+      {
+       "action": "highlight",
+       "target": "cpm[0]"
+      },
+      {
+       "action": "reveal",
+       "target": "cpm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "cpm[1]"
+      },
+      {
+       "action": "hide",
+       "target": "cp"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b is read down column 0: b of j, 0 and b of j plus 1, 0. 101 different blocks, missed only on the first pass of i. 251 misses in all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cpm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the compiler adds prefetches for a and b, 7 iterations ahead. Only the first 7 iterations of each row still miss: 7 for b, and 4 for each row of a. 19 misses."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cpm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "cpm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The cost: 400 extra prefetch instructions. Worth it only if the misses saved outweigh them."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cpm[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "cpm[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "251 misses → 19, for 400 prefetch instructions"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hbm",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: HBM as an extra cache level. Put a gigabyte of stacked DRAM in the package, and use it as an L4 cache in front of main memory."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: HBM as an extra cache level"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cpm"
+      },
+      {
+       "action": "show",
+       "target": "hb"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The problem is the tags. With 64 byte blocks, 1 gigabyte is 2 to the 24 blocks. At 6 bytes of tag and state each, that is 96 megabytes of tags: far more SRAM than the chip has."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Use 4 kilobyte blocks, and the tags shrink to 1.5 megabytes. But every miss moves 4 kilobytes, most of it never used."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Or keep 64 byte blocks, and store the tags in the HBM itself. Now each access needs two DRAM reads: first the tag, then the data."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The alloy cache fixes that: direct-mapped, with each tag stored right beside its data, so one burst brings both. One access, not two."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hb[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Designs also add a predictor that guesses a miss early, and starts the main memory access at once."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "hb[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "an HBM cache lives or dies by where its tags are kept"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "all",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: all ten advanced optimizations on one table."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: all ten"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hb"
+      },
+      {
+       "action": "show",
+       "target": "all"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two cut the hit time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "all[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three raise bandwidth. Pipelining pays for it with more cycles per hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "all[2..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two cut the miss penalty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "all[5..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the three from this video lower the miss rate, or hide the miss penalty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "all[7..=9]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "no optimization is free: check what it worsens"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "all"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An array of doubles, 1024 by 1024, stored by rows, with 64 byte blocks. How many misses for one pass in column order, and in row order?"
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A loop iteration takes 25 cycles and memory 100: how far ahead to prefetch? A 512 megabyte HBM cache with 64 byte blocks and 4 bytes of tag each: how much tag storage? And the largest power-of-two tile for blocked matrix multiply in a 32 kilobyte L1. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[2]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "q[3]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: column order misses on every element, 1024 times 1024, about 1.05 million. Row order misses once per 8 doubles: 131072."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: 100 over 25 is 4. Prefetch 4 iterations ahead."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 512 megabytes over 64 bytes is 8 million blocks, times 4 bytes: 32 megabytes of tags."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: three tiles of B squared doubles must fit in 32768 bytes, so B squared is at most 1365. The largest power of two is 32."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slips: forgetting that C stores arrays by rows, and sizing a tile for one matrix instead of three."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "C is row-major · a tile size must fit three tiles"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Loop interchange and blocking lower the miss rate by reordering the work."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Prefetching, by hardware or compiler, fetches blocks before they are needed. And HBM adds a huge cache level, if its tags are handled well."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: virtual memory and the TLB."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: virtual memory and the TLB"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

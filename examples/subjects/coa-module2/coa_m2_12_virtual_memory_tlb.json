@@ -1,0 +1,1574 @@
+{
+ "version": 1,
+ "title": "Virtual memory and the TLB",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Why virtual memory"
+    ],
+    [
+     2,
+     "Pages and the page table"
+    ],
+    [
+     3,
+     "Translating an address, step by step"
+    ],
+    [
+     4,
+     "Multilevel page tables"
+    ],
+    [
+     5,
+     "The TLB: a cache for translations"
+    ],
+    [
+     6,
+     "Effective access time and TLB reach"
+    ],
+    [
+     7,
+     "Protection and process switches"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "why",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "what it gives",
+    "how"
+   ],
+   "rows": [
+    [
+     "each program its own address space",
+     "addresses start at 0, as if it owned the machine"
+    ],
+    [
+     "protection",
+     "one process cannot read or write another's memory"
+    ],
+    [
+     "more memory than RAM",
+     "pages not in use wait on disk, loaded on demand"
+    ],
+    [
+     "easy loading and sharing",
+     "any page in any frame; frames can be shared"
+    ]
+   ]
+  },
+  {
+   "id": "va",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "virtual address",
+    "physical address"
+   ],
+   "end": 32,
+   "unit": "bit",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "ptm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"32-bit address, 4 KB pages:\" quad \"offset\" = log_2 4096 = 12 \"bits\" quad \"VPN\" = 32 - 12 = 20 \"bits\"",
+    "\"page table:\" quad 2^20 \"entries\" times 4 \"B\" = 4 \"MB per process\""
+   ]
+  },
+  {
+   "id": "pte",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "page table entry field",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "frame number (PFN)",
+     "where the page sits in physical memory"
+    ],
+    [
+     "valid",
+     "1: in memory · 0: on disk, a page fault"
+    ],
+    [
+     "dirty",
+     "written since loaded: must be saved before eviction"
+    ],
+    [
+     "reference",
+     "used recently: helps the OS approximate LRU"
+    ],
+    [
+     "protection",
+     "read, write, execute; user or kernel only"
+    ]
+   ]
+  },
+  {
+   "id": "pt",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "VPN",
+    "valid",
+    "PFN"
+   ],
+   "rows": [
+    [
+     "0x00401",
+     "1",
+     "0x0A7"
+    ],
+    [
+     "0x00402",
+     "0",
+     "disk"
+    ],
+    [
+     "0x00403",
+     "1",
+     "0x1F2"
+    ],
+    [
+     "0x00404",
+     "1",
+     "0x035"
+    ]
+   ]
+  },
+  {
+   "id": "tr",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "step",
+    "value"
+   ],
+   "rows": [
+    [
+     "virtual address",
+     "0x00403ABC"
+    ],
+    [
+     "VPN (top 20 bits)",
+     ""
+    ],
+    [
+     "offset (low 12 bits)",
+     ""
+    ],
+    [
+     "PFN from the table",
+     ""
+    ],
+    [
+     "physical address",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "ml",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "level",
+    "bits of the address",
+    "picks"
+   ],
+   "rows": [
+    [
+     "1",
+     "47 to 39 (9 bits)",
+     "one of 512 entries in the top table"
+    ],
+    [
+     "2",
+     "38 to 30 (9 bits)",
+     "an entry in a second-level table"
+    ],
+    [
+     "3",
+     "29 to 21 (9 bits)",
+     "an entry in a third-level table"
+    ],
+    [
+     "4",
+     "20 to 12 (9 bits)",
+     "the page table entry: the PFN"
+    ],
+    [
+     "offset",
+     "11 to 0 (12 bits)",
+     "the byte inside the 4 KB page"
+    ]
+   ]
+  },
+  {
+   "id": "mlm",
+   "type": "math",
+   "region": "bottom",
+   "lines": [
+    "9 + 9 + 9 + 9 + 12 = 48 \"bits\" quad \"a miss in the TLB costs 4 memory reads\""
+   ]
+  },
+  {
+   "id": "tlb",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "TLB: VPN",
+    "PFN",
+    "valid"
+   ],
+   "rows": [
+    [
+     "0x00401",
+     "0x0A7",
+     "1"
+    ],
+    [
+     "0x00403",
+     "0x1F2",
+     "1"
+    ],
+    [
+     "0x7FFF0",
+     "0x2C0",
+     "1"
+    ],
+    [
+     "",
+     "",
+     "0"
+    ]
+   ]
+  },
+  {
+   "id": "tlbx",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "lookup",
+    "result"
+   ],
+   "rows": [
+    [
+     "VPN 0x00403",
+     ""
+    ],
+    [
+     "VPN 0x00404",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "tlbt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "typical TLB",
+    "value"
+   ],
+   "rows": [
+    [
+     "entries",
+     "16 to 512 for L1, a few thousand for L2"
+    ],
+    [
+     "organization",
+     "fully associative or highly set-associative"
+    ],
+    [
+     "hit time",
+     "under 1 cycle, in parallel with the L1 cache index"
+    ],
+    [
+     "hit rate",
+     "usually over 99%"
+    ]
+   ]
+  },
+  {
+   "id": "eat",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"TLB 1 ns, memory 100 ns, TLB hit rate 98%\"",
+    "\"hit:\" quad 1 + 100 = 101 \"ns\" quad \"miss, 1-level table:\" quad 1 + 100 + 100 = 201 \"ns\"",
+    "\"EAT\" = 0.98 times 101 + 0.02 times 201 = 103 \"ns\"",
+    "\"4-level table:\" quad 0.98 times 101 + 0.02 times (1 + 400 + 100) = 109 \"ns\"",
+    "\"TLB reach\" = \"entries\" times \"page size:\" quad 64 times 4 \"KB\" = 256 \"KB\" quad 64 times 2 \"MB\" = 128 \"MB\""
+   ]
+  },
+  {
+   "id": "pr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "problem",
+    "solution"
+   ],
+   "rows": [
+    [
+     "a user program writes to kernel memory",
+     "user/kernel bit in each entry: the access traps"
+    ],
+    [
+     "code overwritten by a bug, data run as code",
+     "read, write, execute bits per page"
+    ],
+    [
+     "process switch: old translations in the TLB",
+     "flush the TLB, or tag entries with a process ID (ASID)"
+    ],
+    [
+     "the page is not in memory",
+     "valid = 0: page fault, the OS loads it from disk"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "given",
+    "find"
+   ],
+   "rows": [
+    [
+     "32-bit virtual addresses, 4 KB pages, 1 GB physical memory",
+     "a) offset, VPN and PFN bits"
+    ],
+    [
+     "4-byte page table entries, one-level table",
+     "b) the page table size"
+    ],
+    [
+     "TLB 2 ns, hit rate 95%; memory 50 ns; two-level table",
+     "c) the effective access time"
+    ],
+    [
+     "page table: VPN 5 → PFN 0x2A",
+     "d) the physical address of 0x00005A3C"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad \"offset\" = 12 quad \"VPN\" = 32 - 12 = 20 quad \"PFN\" = log_2 (2^30 / 2^12) = 18 \"bits\"",
+    "\"b)\" quad 2^20 times 4 \"B\" = 4 \"MB\"",
+    "\"c)\" quad 0.95 times (2 + 50) + 0.05 times (2 + 2 times 50 + 50) = 49.4 + 7.6 = 57 \"ns\"",
+    "\"d)\" quad \"VPN\" = 5 , \"offset\" = \"A3C\" quad -> quad \"2A\" | \"A3C\" = \"0x2AA3C\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Every address a program uses is a lie. It is a virtual address, and the hardware translates it, on every single load and store. This video shows how, and how the TLB makes it fast."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Virtual memory and the TLB"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why we want it, how pages and page tables work, and a translation done by hand."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the TLB, the effective access time, protection, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: why virtual memory?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: why virtual memory"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each program gets its own address space starting at 0, as if it owned the whole machine. The compiler and linker never need to know where it will really sit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Protection: one process simply has no address that reaches another's memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Programs can be bigger than RAM. Pages not in use wait on disk, and are loaded only when touched."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And any page can go into any free frame, so loading is easy, and two processes can share a frame, like a shared library."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "main memory acts as a cache for the disk"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pages",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: memory is split into fixed-size pages, typically 4 kilobytes. Physical memory is split into frames of the same size."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: pages and the page table"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "va"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 32-bit virtual address splits in two. The low 12 bits are the offset inside the page, because 2 to the 12 is 4096."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "va",
+       "id": "o1",
+       "lane": "virtual address",
+       "start": 0,
+       "end": 12,
+       "label": "offset: bits 11 to 0"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The top 20 bits are the virtual page number, the VPN."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "va",
+       "id": "v1",
+       "lane": "virtual address",
+       "start": 12,
+       "end": 32,
+       "label": "VPN: bits 31 to 12 (20 bits)"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Translation replaces the VPN with a physical frame number, the PFN. The offset is copied unchanged."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "va",
+       "id": "o2",
+       "lane": "physical address",
+       "start": 0,
+       "end": 12,
+       "label": "offset: copied"
+      },
+      {
+       "action": "add_block",
+       "target": "va",
+       "id": "p2",
+       "lane": "physical address",
+       "start": 12,
+       "end": 32,
+       "label": "PFN: from the page table",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The page table holds one entry per virtual page. 20 bits of VPN means 2 to the 20 entries, about a million. At 4 bytes each, 4 megabytes, for every process."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "va"
+      },
+      {
+       "action": "show",
+       "target": "ptm"
+      },
+      {
+       "action": "highlight",
+       "target": "ptm[0]"
+      },
+      {
+       "action": "reveal",
+       "target": "ptm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "ptm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What is in an entry? First, the frame number."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "ptm"
+      },
+      {
+       "action": "show",
+       "target": "pte"
+      },
+      {
+       "action": "highlight",
+       "target": "pte[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A valid bit. If it is 0, the page is on disk, and touching it causes a page fault."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pte[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A dirty bit, set on a write, so the OS knows the page must be saved before it is evicted. Virtual memory is always write-back."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pte[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A reference bit, that the OS clears and checks to approximate LRU. And protection bits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pte[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "pte[4]",
+       "delay": 0.4
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "page table entry: PFN, valid, dirty, reference, protection"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "translate",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: a translation by hand. The program loads from virtual address hex 0 0 4 0 3 A B C."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: translating an address"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pte"
+      },
+      {
+       "action": "show",
+       "target": "tr"
+      },
+      {
+       "action": "show",
+       "target": "pt"
+      },
+      {
+       "action": "highlight",
+       "target": "tr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The low 12 bits, three hex digits, are the offset: A B C."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tr[2][1]",
+       "value": "0xABC"
+      },
+      {
+       "action": "highlight",
+       "target": "tr[2]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The rest is the VPN: hex 0 0 4 0 3."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tr[1][1]",
+       "value": "0x00403"
+      },
+      {
+       "action": "highlight",
+       "target": "tr[1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The hardware indexes the page table with the VPN. Entry 4 0 3 is valid, and holds frame hex 1 F 2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pt[2]"
+      },
+      {
+       "action": "set",
+       "target": "tr[3][1]",
+       "value": "0x1F2",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Put the frame number in front of the unchanged offset: hex 1 F 2 A B C. That is the physical address sent to the cache."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tr[4][1]",
+       "value": "0x1F2ABC"
+      },
+      {
+       "action": "mark",
+       "target": "tr[4]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Had the program touched page 4 0 2, the valid bit would be 0: a page fault. The OS loads the page from disk, updates the entry, and restarts the instruction."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pt[1]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "physical address = PFN followed by the same offset"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "multilevel",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: 4 megabytes per process is too much, and a 64-bit address would need far more. The fix is a multilevel page table."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: multilevel page tables"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tr"
+      },
+      {
+       "action": "hide",
+       "target": "pt"
+      },
+      {
+       "action": "show",
+       "target": "ml"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "x86-64 uses 48-bit virtual addresses and four levels. Each level uses 9 bits, picking one of 512 entries."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ml[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Level 1 points to a level 2 table, which points to level 3, then level 4, whose entry holds the frame number."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ml[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "ml[1]",
+       "delay": 0.25
+      },
+      {
+       "action": "highlight",
+       "target": "ml[2]",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "ml[3]",
+       "delay": 0.75
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The low 12 bits stay the offset. 9 times 4 plus 12 is 48."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ml[4]"
+      },
+      {
+       "action": "show",
+       "target": "mlm"
+      },
+      {
+       "action": "highlight",
+       "target": "mlm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The win: tables are created only for the parts of the address space a program uses. A small program needs a handful of 4 kilobyte tables, not megabytes."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "ml[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The cost: one translation now takes 4 memory reads, a page walk, before the real access. Without help, every load would be five times slower."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "multilevel: small tables, but a 4-read page walk"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tlb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the help is the TLB, the translation lookaside buffer. It is a small cache that holds recent translations."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: the TLB"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ml"
+      },
+      {
+       "action": "hide",
+       "target": "mlm"
+      },
+      {
+       "action": "show",
+       "target": "tlb"
+      },
+      {
+       "action": "show",
+       "target": "tlbx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each entry holds a VPN as its tag, the frame number, and the valid, dirty and protection bits copied from the page table."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tlb[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Lookup VPN hex 0 0 4 0 3. All entries are compared at once. Entry 2 matches: a TLB hit, and the frame number comes out within the cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tlbx[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "tlb[1]",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tlbx[0][1]",
+       "value": "hit: PFN 0x1F2",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Lookup VPN hex 0 0 4 0 4. No entry matches: a TLB miss."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tlbx[1]"
+      },
+      {
+       "action": "set",
+       "target": "tlbx[1][1]",
+       "value": "miss",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The page table is walked, in hardware on x86 and ARM, finding frame hex 0 3 5. The translation goes into a free TLB entry, and the access is retried."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tlb[3][0]",
+       "value": "0x00404"
+      },
+      {
+       "action": "set",
+       "target": "tlb[3][1]",
+       "value": "0x035",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tlb[3][2]",
+       "value": "1",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "tlb[3]",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "tlbx[1][1]",
+       "value": "miss → walk → filled",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why does a tiny TLB work? Locality again: one entry covers a whole 4 kilobyte page, so a loop touches the same few pages over and over."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "tlb"
+      },
+      {
+       "action": "hide",
+       "target": "tlbx"
+      },
+      {
+       "action": "show",
+       "target": "tlbt"
+      },
+      {
+       "action": "highlight",
+       "target": "tlbt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "TLBs are small and highly associative, so conflicts are rare."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tlbt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The lookup runs in parallel with the L1 cache index, the VIPT trick from the previous videos, so a hit adds no time at all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tlbt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And hit rates are usually above 99 percent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tlbt[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "TLB: a cache of page table entries"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "eat",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: putting numbers on it. The TLB takes 1 nanosecond, memory 100, and the TLB hit rate is 98 percent."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: effective access time"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tlbt"
+      },
+      {
+       "action": "show",
+       "target": "eat"
+      },
+      {
+       "action": "highlight",
+       "target": "eat[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A TLB hit costs 1 plus 100: 101 nanoseconds. A miss with a one-level table adds a page table read: 201."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "eat[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "eat[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Effective access time: 0.98 times 101, plus 0.02 times 201. 103 nanoseconds, only 3 percent above perfect."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "eat[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "eat[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With a 4-level table, a miss costs 1 plus 400 plus 100. The average rises to 109 nanoseconds. Still fine, because misses are rare."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "eat[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "eat[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "TLB reach is how much memory the TLB covers: entries times page size. 64 entries of 4 kilobytes cover only 256 kilobytes. With 2 megabyte huge pages, 128 megabytes."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "eat[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "eat[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "EAT = h × (TLB + mem) + (1 − h) × (TLB + walk + mem)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "protect",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: protection, checked on every access by the same hardware."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: protection and process switches"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "eat"
+      },
+      {
+       "action": "show",
+       "target": "pr"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A user/kernel bit in each entry: if a user program touches a kernel page, the access traps to the OS."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Read, write and execute bits per page stop a bug from overwriting code, or data from being run as code."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On a process switch, the TLB holds the old process's translations. Either flush it, or tag each entry with an address space ID, so entries of several processes can live side by side."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And a valid bit of 0 is a page fault, handled in software by the OS, as we counted in the replacement video."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "every access is translated and checked: TLB hit, walk, or fault"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pr"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "32-bit virtual addresses, 4 kilobyte pages, 1 gigabyte of physical memory, 4-byte page table entries."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0][0]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[1][0]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A TLB of 2 nanoseconds with a 95 percent hit rate, memory of 50 nanoseconds, and a two-level page table. The table maps page 5 to frame hex 2 A."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[2][0]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[3][0]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find the field widths, the page table size, the effective access time, and the physical address of hex 0 0 0 0 5 A 3 C. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[1][1]",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "q[2][1]",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "q[3][1]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: the offset is 12 bits, so the VPN is 20. 1 gigabyte is 2 to the 30 bytes, over 2 to the 12 per frame: 2 to the 18 frames, so the PFN is 18 bits."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: 2 to the 20 entries, times 4 bytes: 4 megabytes."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: a hit costs 2 plus 50. A miss costs 2, plus two table reads of 50 each, plus the access: 152. 0.95 times 52, plus 0.05 times 152: 57 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: the VPN is 5 and the offset A 3 C. Frame hex 2 A followed by A 3 C gives hex 2 A A 3 C."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slips: counting one page table read for a multilevel table, and changing the offset during translation. The offset never changes."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a k-level table costs k reads on a TLB miss"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Virtual memory gives each process its own pages. The page table maps each VPN to a frame, keeping the offset."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Multilevel tables save space but need a walk. The TLB caches translations, so the walk is rare. And every access is checked for protection."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: virtual machines and hypervisors."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: virtual machines and hypervisors"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

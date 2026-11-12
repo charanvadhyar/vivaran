@@ -1,0 +1,1303 @@
+{
+ "version": 1,
+ "title": "Memory technology: SRAM, DRAM, DDR, HBM and flash",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Latency and bandwidth: the two numbers that matter"
+    ],
+    [
+     2,
+     "SRAM and DRAM cells"
+    ],
+    [
+     3,
+     "Inside a DRAM: banks, rows, the row buffer"
+    ],
+    [
+     4,
+     "Three kinds of DRAM access, timed"
+    ],
+    [
+     5,
+     "Refresh"
+    ],
+    [
+     6,
+     "SDRAM and DDR: bandwidth in numbers"
+    ],
+    [
+     7,
+     "GDDR, HBM and flash"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "met",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "metric",
+    "meaning",
+    "decides"
+   ],
+   "rows": [
+    [
+     "access time",
+     "from request to the data appearing",
+     "how long a miss waits"
+    ],
+    [
+     "cycle time",
+     "minimum time between two requests",
+     "how often memory can be used"
+    ],
+    [
+     "bandwidth",
+     "bytes delivered per second",
+     "how fast a whole block arrives"
+    ]
+   ]
+  },
+  {
+   "id": "cell",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "SRAM",
+    "DRAM"
+   ],
+   "rows": [
+    [
+     "cell",
+     "6 transistors",
+     "1 transistor + 1 capacitor"
+    ],
+    [
+     "keeps data",
+     "as long as power is on",
+     "charge leaks: must be refreshed"
+    ],
+    [
+     "reading",
+     "non-destructive",
+     "destructive: the row is written back"
+    ],
+    [
+     "speed",
+     "fast: about 1 ns",
+     "slower: tens of ns"
+    ],
+    [
+     "density, cost",
+     "low density, costly",
+     "about 4 to 8 times denser, cheap"
+    ],
+    [
+     "used for",
+     "caches, registers",
+     "main memory"
+    ]
+   ]
+  },
+  {
+   "id": "bank",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "DRAM bank",
+    "columns 0 … 1023"
+   ],
+   "rows": [
+    [
+     "row 0",
+     "…"
+    ],
+    [
+     "row 1",
+     "…"
+    ],
+    [
+     "row 2",
+     "…"
+    ],
+    [
+     "row 3",
+     "…"
+    ],
+    [
+     "row buffer",
+     "(empty)"
+    ]
+   ]
+  },
+  {
+   "id": "bx",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "step",
+    "command",
+    "what it does"
+   ],
+   "rows": [
+    [
+     "1",
+     "ACTIVATE (RAS)",
+     "row → row buffer"
+    ],
+    [
+     "2",
+     "READ (CAS)",
+     "bytes from the buffer"
+    ],
+    [
+     "3",
+     "PRECHARGE",
+     "close the row"
+    ]
+   ]
+  },
+  {
+   "id": "acc",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "row hit: row already open",
+    "row closed",
+    "row conflict: another row open"
+   ],
+   "end": 45,
+   "unit": "ns",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "ref",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"every row refreshed every\" 64 \"ms\"",
+    "8192 \"rows:\" quad (64 \"ms\") / 8192 approx 7.8 \"µs between refreshes\"",
+    "\"each refresh busy 50 ns:\" quad (8192 times 50 \"ns\") / (64 \"ms\") approx 0.64% \"of the time\""
+   ]
+  },
+  {
+   "id": "ddr",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"bandwidth\" = \"transfers per second\" times \"bus width in bytes\"",
+    "\"DDR4-3200:\" quad 3200 times 10^6 times 8 \"B\" = 25.6 \"GB/s per channel\"",
+    "\"two channels:\" quad 51.2 \"GB/s\" quad \"DDR5-4800:\" quad 38.4 \"GB/s\"",
+    "\"64 B block\" = 8 \"transfers:\" quad 8 / (3200 times 10^6) = 2.5 \"ns\"",
+    "\"miss penalty, row conflict:\" quad 42 + 2.5 = 44.5 \"ns\""
+   ]
+  },
+  {
+   "id": "ddrx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "name",
+    "means"
+   ],
+   "rows": [
+    [
+     "SDRAM",
+     "synchronous: commands follow a clock, bursts of data"
+    ],
+    [
+     "DDR",
+     "double data rate: data on both clock edges"
+    ],
+    [
+     "DDR4-3200",
+     "3200 million transfers per second, from a 1600 MHz clock"
+    ],
+    [
+     "PC4-25600",
+     "the module's name: 25600 MB/s"
+    ]
+   ]
+  },
+  {
+   "id": "hbm",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "memory",
+    "how it is built",
+    "for"
+   ],
+   "rows": [
+    [
+     "GDDR",
+     "fast pins, many chips around the processor",
+     "graphics cards"
+    ],
+    [
+     "HBM",
+     "DRAM dies stacked, 1024-bit bus on a silicon interposer",
+     "GPUs, AI accelerators"
+    ],
+    [
+     "flash (NAND)",
+     "non-volatile; erase in large blocks; wears out",
+     "SSDs, phones: storage, not main memory"
+    ]
+   ]
+  },
+  {
+   "id": "hbmm",
+   "type": "math",
+   "region": "bottom",
+   "lines": [
+    "\"HBM stack:\" quad (1024 \"bits\" times 2 \"Gb/s per pin\") / 8 = 256 \"GB/s\" quad \"(at 6.4 Gb/s: 819 GB/s)\""
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "DDR4-2400, two channels; row conflict = 3 × 15 ns; 64 B blocks; 3 GHz CPU; 16384 rows. Find:"
+   ],
+   "rows": [
+    [
+     "a) the peak bandwidth"
+    ],
+    [
+     "b) the miss penalty of one block on one channel, in ns and CPU cycles"
+    ],
+    [
+     "c) how often a row refresh must start"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad 2400 times 10^6 times 8 \"B\" times 2 = 38.4 \"GB/s\"",
+    "\"b)\" quad 45 + 64 / (19.2 \"GB/s\") = 45 + 3.33 approx 48.3 \"ns\" quad times 3 \"GHz\" = 145 \"cycles\"",
+    "\"c)\" quad (64 \"ms\") / 16384 approx 3.9 \"µs\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Every cache miss ends up in main memory. This video opens the memory chips themselves, and puts numbers on how long a miss really takes."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Memory technology"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The two metrics, the two kinds of cell, and how a DRAM chip is organized and timed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then refresh, DDR bandwidth, the newer memories, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "metrics",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: memory is measured two ways."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: latency and bandwidth"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "met"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Access time: from the request until the data appears. This is what a miss waits for."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "met[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycle time: the minimum gap between two requests. For DRAM it is longer than the access time, because a read must be followed by restoring the row."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "met[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Bandwidth: how many bytes per second flow once data starts. It decides how fast a whole block arrives."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "met[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "miss penalty ≈ latency + block size ÷ bandwidth"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cells",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: two kinds of memory cell."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: SRAM and DRAM"
+      },
+      {
+       "action": "hide",
+       "target": "met"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "cell"
+      },
+      {
+       "action": "highlight",
+       "target": "cell[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "SRAM stores a bit in 6 transistors, two cross-coupled inverters. DRAM stores it as charge on a capacitor, with one transistor to reach it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cell[0][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "cell[0][2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "SRAM holds its value while powered. DRAM's charge leaks away, so every cell must be refreshed, many times a second."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cell[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Reading a DRAM cell drains it, so the value must be written back after every read. That is why its cycle time exceeds its access time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cell[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So SRAM is fast but large and costly. DRAM is slower, but several times denser and much cheaper per bit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cell[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Hence SRAM for caches and registers, DRAM for main memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cell[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "SRAM: 6T, fast, caches · DRAM: 1T1C, dense, refresh, main memory"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "org",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: inside a DRAM chip. Cells are arranged in banks, each a grid of rows and columns, with one row buffer per bank."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: banks, rows and the row buffer"
+      },
+      {
+       "action": "hide",
+       "target": "cell"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "bank"
+      },
+      {
+       "action": "show",
+       "target": "bx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To read, the controller first sends ACTIVATE with the row address. This is the old row address strobe, RAS."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bx[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "bank[2]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The whole row, thousands of bits, is copied into the row buffer."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bank[4][1]",
+       "value": "row 2 (open)"
+      },
+      {
+       "action": "highlight",
+       "target": "bank[4]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then READ with the column address, the column strobe, CAS, picks the wanted bytes out of the row buffer."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bx[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "bank[4][1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Before another row of the same bank can be opened, PRECHARGE writes the open row back and empties the buffer."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bx[2]"
+      },
+      {
+       "action": "set",
+       "target": "bank[4][1]",
+       "value": "(empty)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row and column addresses share the same pins, sent one after the other. That address multiplexing halves the pin count."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "ACTIVATE (row) → READ (column) → PRECHARGE"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And because each bank has its own row buffer, several banks can work at once: the interleaving we used in the AMAT video."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bank"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "timing",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: so the time for an access depends on the row buffer. Assume each command takes about 14 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: three kinds of access"
+      },
+      {
+       "action": "hide",
+       "target": "bank"
+      },
+      {
+       "action": "hide",
+       "target": "bx"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "acc"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A row hit: the row is already open, so only the column read is needed. About 14 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "acc",
+       "id": "h1",
+       "lane": "row hit: row already open",
+       "start": 0,
+       "end": 14,
+       "label": "READ 14"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A closed row: activate it, then read. 28 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "acc",
+       "id": "c1",
+       "lane": "row closed",
+       "start": 0,
+       "end": 14,
+       "label": "ACTIVATE 14"
+      },
+      {
+       "action": "add_block",
+       "target": "acc",
+       "id": "c2",
+       "lane": "row closed",
+       "start": 14,
+       "end": 28,
+       "label": "READ 14",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A row conflict: another row is open. Precharge it, activate ours, then read. 42 nanoseconds, three times a row hit."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "acc",
+       "id": "x1",
+       "lane": "row conflict: another row open",
+       "start": 0,
+       "end": 14,
+       "label": "PRECHARGE 14"
+      },
+      {
+       "action": "add_block",
+       "target": "acc",
+       "id": "x2",
+       "lane": "row conflict: another row open",
+       "start": 14,
+       "end": 28,
+       "label": "ACTIVATE 14",
+       "delay": 0.3
+      },
+      {
+       "action": "add_block",
+       "target": "acc",
+       "id": "x3",
+       "lane": "row conflict: another row open",
+       "start": 28,
+       "end": 42,
+       "label": "READ 14",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That is why memory controllers reorder requests to hit open rows, and why accessing memory in order is so much faster than jumping around."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "row hit ≈ 1 step · closed ≈ 2 · conflict ≈ 3"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "refresh",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: refresh. Every DRAM row must be read and rewritten before its charge leaks, typically every 64 milliseconds."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: refresh"
+      },
+      {
+       "action": "hide",
+       "target": "acc"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "ref"
+      },
+      {
+       "action": "highlight",
+       "target": "ref[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 8192 rows, a row refresh must start about every 7.8 microseconds."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ref[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "ref[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If each refresh keeps the bank busy for 50 nanoseconds, that is 8192 times 50 nanoseconds every 64 milliseconds: about 0.64 percent of the time lost."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ref[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "ref[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Small, but it grows with bigger chips, and an access that arrives during a refresh must wait."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "refresh interval = retention time ÷ rows"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ddr",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: modern DRAM is synchronous, SDRAM, and double data rate, DDR."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: SDRAM and DDR"
+      },
+      {
+       "action": "hide",
+       "target": "ref"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "ddrx"
+      },
+      {
+       "action": "highlight",
+       "target": "ddrx[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "DDR moves data on both edges of the clock. So DDR4-3200 runs a 1600 megahertz clock, and makes 3200 million transfers per second."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ddrx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The module is sold by its bandwidth: PC4-25600 means 25600 megabytes per second."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ddrx[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Where does that come from? Bandwidth is transfers per second, times the bus width in bytes."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "ddrx"
+      },
+      {
+       "action": "show",
+       "target": "ddr"
+      },
+      {
+       "action": "highlight",
+       "target": "ddr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A channel is 64 bits, 8 bytes, wide. 3200 million times 8 is 25.6 gigabytes per second."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ddr[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "ddr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two channels double it, 51.2. DDR5-4800 gives 38.4 per module."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ddr[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "ddr[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 64 byte cache block is 8 transfers, a burst of 8. At 3200 million per second, that takes 2.5 nanoseconds."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ddr[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "ddr[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So a miss that hits a row conflict costs 42 plus 2.5, about 44.5 nanoseconds. The latency, not the bandwidth, dominates a single miss."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ddr[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "ddr[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "bandwidth = MT/s × 8 B per channel · latency dominates one miss"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hbm",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: other memories."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: GDDR, HBM and flash"
+      },
+      {
+       "action": "hide",
+       "target": "ddr"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "hbm"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "GDDR is DRAM tuned for graphics: very fast pins, many chips placed around the GPU."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hbm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "HBM, high bandwidth memory, stacks DRAM dies on top of each other and joins them to the processor through a silicon interposer, with a 1024-bit bus."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hbm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At 2 gigabits per second per pin, one stack gives 256 gigabytes per second. Newer stacks run at 6.4, for about 819."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "hbmm"
+      },
+      {
+       "action": "highlight",
+       "target": "hbmm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Flash is different: it keeps data without power. It reads quickly, but must erase in large blocks, and each block survives a limited number of writes, so controllers spread writes out. It is storage, not main memory."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "hbmm"
+      },
+      {
+       "action": "highlight",
+       "target": "hbm[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "GDDR, HBM: bandwidth for GPUs · flash: non-volatile storage"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "hbm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "DDR4-2400 with two channels. A row conflict costs 3 times 15 nanoseconds. Blocks are 64 bytes, the CPU runs at 3 gigahertz, and the chip has 16384 rows."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find the peak bandwidth, the miss penalty of one block on one channel, and how often a refresh must start. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: 2400 million transfers, times 8 bytes, times 2 channels: 38.4 gigabytes per second."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: one channel gives 19.2 gigabytes per second, so 64 bytes take 3.33 nanoseconds. Add 45 of latency: about 48.3 nanoseconds. At 3 gigahertz, that is 145 CPU cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 64 milliseconds over 16384 rows: a refresh every 3.9 microseconds."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slips: forgetting that DDR's number already counts both edges, using two channels for one block, and leaving out the latency."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "MT/s already includes both edges · one block uses one channel"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "SRAM is fast and costly, DRAM dense and refreshed. A DRAM access opens a row, reads columns, and precharges: hits are fast, conflicts slow."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "DDR bandwidth is transfers per second times 8 bytes per channel; HBM stacks dies for GPUs, and flash is storage."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: ten advanced cache optimizations, part 1."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: ten advanced optimizations, part 1"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

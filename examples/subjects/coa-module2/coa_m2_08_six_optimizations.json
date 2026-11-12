@@ -1,0 +1,1529 @@
+{
+ "version": 1,
+ "title": "Six basic cache optimizations",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The three levers: hit time, miss rate, miss penalty"
+    ],
+    [
+     2,
+     "Larger blocks"
+    ],
+    [
+     3,
+     "Larger caches"
+    ],
+    [
+     4,
+     "Higher associativity, and the 2:1 rule"
+    ],
+    [
+     5,
+     "Multilevel caches"
+    ],
+    [
+     6,
+     "Reads before writes"
+    ],
+    [
+     7,
+     "No address translation while indexing"
+    ],
+    [
+     8,
+     "The summary table, and an exam question"
+    ]
+   ]
+  },
+  {
+   "id": "lev",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"AMAT\" = \"hit time\" + \"miss rate\" times \"miss penalty\"",
+    "\"miss rate:\" quad \"larger blocks, larger caches, more ways\"",
+    "\"miss penalty:\" quad \"multilevel caches, reads before writes\"",
+    "\"hit time:\" quad \"no address translation while indexing\""
+   ]
+  },
+  {
+   "id": "bs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "block size",
+    "miss rate",
+    "miss penalty = 40 + size ÷ 8",
+    "AMAT = 1 + rate × penalty"
+   ],
+   "rows": [
+    [
+     "16 B",
+     "4.0%",
+     "42",
+     ""
+    ],
+    [
+     "32 B",
+     "3.0%",
+     "44",
+     ""
+    ],
+    [
+     "64 B",
+     "2.5%",
+     "48",
+     ""
+    ],
+    [
+     "128 B",
+     "2.6%",
+     "56",
+     ""
+    ],
+    [
+     "256 B",
+     "3.3%",
+     "72",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "bp",
+   "type": "plot",
+   "region": "center",
+   "x": {
+    "label": "block size: 16, 32, 64, 128, 256 bytes",
+    "min": 3.5,
+    "max": 8.5
+   },
+   "y": {
+    "label": "AMAT (cycles)",
+    "min": 2,
+    "max": 3.5
+   },
+   "curves": [
+    {
+     "id": "am",
+     "points": [
+      [
+       4,
+       2.68
+      ],
+      [
+       5,
+       2.32
+      ],
+      [
+       6,
+       2.2
+      ],
+      [
+       7,
+       2.46
+      ],
+      [
+       8,
+       3.38
+      ]
+     ],
+     "label": "AMAT",
+     "visible": false
+    }
+   ],
+   "points": [
+    {
+     "id": "best",
+     "at": [
+      6,
+      2.2
+     ],
+     "label": "64 B: 2.2"
+    }
+   ]
+  },
+  {
+   "id": "bx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "bigger blocks",
+    "effect"
+   ],
+   "rows": [
+    [
+     "more neighbours fetched on each miss",
+     "fewer compulsory misses: spatial locality"
+    ],
+    [
+     "each miss moves more bytes",
+     "longer miss penalty"
+    ],
+    [
+     "same cache, fewer lines",
+     "more conflict and capacity misses, if blocks get too big"
+    ]
+   ]
+  },
+  {
+   "id": "cs",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"32 KB:\" quad 1 + 0.04 times 50 = 3.0 \"cycles\"",
+    "\"64 KB, hit 1.2 cycles:\" quad 1.2 + 0.03 times 50 = 2.7 \"cycles\"",
+    "\"cost: longer hit time, more area and power\""
+   ]
+  },
+  {
+   "id": "as",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "rule",
+    "what it says"
+   ],
+   "rows": [
+    [
+     "2:1 cache rule",
+     "a direct-mapped cache of size N misses about as often as a 2-way cache of size N ÷ 2"
+    ],
+    [
+     "8-way ≈ fully associative",
+     "beyond 8 ways, conflict misses almost vanish"
+    ],
+    [
+     "the price",
+     "more comparators and a mux: a longer hit, maybe a slower clock"
+    ]
+   ]
+  },
+  {
+   "id": "asm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"direct-mapped:\" quad 1 + 0.05 times 25 = 2.25 \"cycles\"",
+    "\"2-way, clock 1.36 times longer:\" quad 1.36 + 0.04 times 25 = 2.36 \"cycles\"",
+    "\"with a 100 cycle penalty:\" quad 1 + 5 = 6 quad \"vs\" quad 1.36 + 4 = 5.36"
+   ]
+  },
+  {
+   "id": "ml",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"L1 only:\" quad 1 + 0.04 times 200 = 9 \"cycles\"",
+    "\"add L2 (10 cycles, local miss 25%):\" quad 1 + 0.04 times (10 + 0.25 times 200) = 3.4 \"cycles\""
+   ]
+  },
+  {
+   "id": "mlx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "choice",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "inclusive",
+     "everything in L1 is also in L2: simple coherence, wasted space"
+    ],
+    [
+     "exclusive",
+     "a block is in L1 or L2, never both: more total capacity"
+    ],
+    [
+     "L1 goal",
+     "fast hit: small, simple"
+    ],
+    [
+     "L2 goal",
+     "few misses to memory: large, more ways"
+    ]
+   ]
+  },
+  {
+   "id": "rw",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "situation",
+    "slow way",
+    "fast way"
+   ],
+   "rows": [
+    [
+     "write-through, writes in buffer",
+     "drain the buffer first",
+     "check the buffer, then read now"
+    ],
+    [
+     "write-back, dirty victim",
+     "write victim, then read",
+     "buffer victim, read first"
+    ]
+   ]
+  },
+  {
+   "id": "vi",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "cache indexed and tagged with",
+    "hit needs translation first?",
+    "problem"
+   ],
+   "rows": [
+    [
+     "physical address (PIPT)",
+     "yes: TLB, then cache",
+     "slow hit"
+    ],
+    [
+     "virtual address (VIVT)",
+     "no",
+     "aliases, flush on a process switch, protection"
+    ],
+    [
+     "virtual index, physical tag (VIPT)",
+     "no: TLB and cache in parallel",
+     "only if the index fits in the page offset"
+    ]
+   ]
+  },
+  {
+   "id": "vim",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"VIPT works when\" quad \"cache size\" / \"ways\" <= \"page size\"",
+    "\"32 KB, 8-way, 4 KB pages:\" quad 32 / 8 = 4 \"KB\" <= 4 \"KB\" quad \"works\"",
+    "\"32 KB, 4-way:\" quad 32 / 4 = 8 \"KB\" > 4 \"KB\" quad \"does not\""
+   ]
+  },
+  {
+   "id": "sum",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "optimization",
+    "hit time",
+    "miss penalty",
+    "miss rate",
+    "attacks"
+   ],
+   "rows": [
+    [
+     "larger blocks",
+     "",
+     "worse",
+     "better",
+     "compulsory"
+    ],
+    [
+     "larger caches",
+     "worse",
+     "",
+     "better",
+     "capacity"
+    ],
+    [
+     "higher associativity",
+     "worse",
+     "",
+     "better",
+     "conflict"
+    ],
+    [
+     "multilevel caches",
+     "",
+     "better",
+     "",
+     "–"
+    ],
+    [
+     "reads before writes",
+     "",
+     "better",
+     "",
+     "–"
+    ],
+    [
+     "no translation in indexing",
+     "better",
+     "",
+     "",
+     "–"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "32 KB L1, miss penalty 40 cycles, 4 KB pages. Find:"
+   ],
+   "rows": [
+    [
+     "a) the best of: A direct-mapped, hit 1, miss 6% · B 2-way, hit 1.1, miss 4.5% · C 4-way, hit 1.2, miss 4%"
+    ],
+    [
+     "b) the fewest ways that let this cache be VIPT"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"A:\" quad 1 + 0.06 times 40 = 3.4 \"cycles\"",
+    "\"B:\" quad 1.1 + 0.045 times 40 = 2.9 \"cycles\"",
+    "\"C:\" quad 1.2 + 0.04 times 40 = 2.8 \"cycles\" quad \"best\"",
+    "\"b)\" quad (32 \"KB\") / \"ways\" <= 4 \"KB\" quad => quad \"ways\" >= 8"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Every cache optimization attacks one term of the AMAT formula. Here are the six basic ones, each with a number that shows when it helps, and when it does not."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Six basic cache optimizations"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The three levers, then the three that lower the miss rate: larger blocks, larger caches, and more ways."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then two that cut the miss penalty, one that cuts the hit time, and a summary with an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "levers",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: AMAT is hit time plus miss rate times miss penalty. So there are exactly three levers."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: three levers"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "lev"
+      },
+      {
+       "action": "highlight",
+       "target": "lev[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three optimizations lower the miss rate: larger blocks, larger caches, and higher associativity."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "lev[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "lev[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two lower the miss penalty: multilevel caches, and giving reads priority over writes."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "lev[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "lev[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And one lowers the hit time: avoiding address translation while indexing the cache."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "lev[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "lev[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The catch, which every exam question tests: improving one term usually worsens another. Only AMAT decides."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "each optimization moves one term, and usually hurts another"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "blocks",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: larger blocks. A bigger block brings in more neighbouring bytes on each miss."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: larger blocks"
+      },
+      {
+       "action": "hide",
+       "target": "lev"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "bx"
+      },
+      {
+       "action": "highlight",
+       "target": "bx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Thanks to spatial locality, the next few accesses find those bytes already there: fewer compulsory misses."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bx[0][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But each miss now moves more bytes, so the miss penalty grows."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And in a cache of fixed size, bigger blocks mean fewer lines. Past a point, conflict and capacity misses rise."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Numbers for one example cache. The miss penalty is 40 cycles of latency, plus 1 cycle per 8 bytes."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "bx"
+      },
+      {
+       "action": "show",
+       "target": "bs"
+      },
+      {
+       "action": "highlight",
+       "target": "bs[0][2]"
+      },
+      {
+       "action": "highlight",
+       "target": "bs[4][2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "16 byte blocks: 1 plus 0.04 times 42, which is 2.68 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bs[0]"
+      },
+      {
+       "action": "set",
+       "target": "bs[0][3]",
+       "value": "2.68",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "32 bytes: the miss rate drops to 3 percent. AMAT 2.32."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bs[1]"
+      },
+      {
+       "action": "set",
+       "target": "bs[1][3]",
+       "value": "2.32",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "64 bytes: 2.5 percent, penalty 48. AMAT 2.2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bs[2]"
+      },
+      {
+       "action": "set",
+       "target": "bs[2][3]",
+       "value": "2.2",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "128 bytes: the miss rate starts to rise again, and the penalty is 56. AMAT 2.46."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bs[3]"
+      },
+      {
+       "action": "set",
+       "target": "bs[3][3]",
+       "value": "2.46",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "256 bytes: worse on both counts. AMAT 3.38."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bs[4]"
+      },
+      {
+       "action": "set",
+       "target": "bs[4][3]",
+       "value": "3.38",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Plot it: the AMAT curve falls, bottoms out, and rises again."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "bs"
+      },
+      {
+       "action": "show",
+       "target": "bp"
+      },
+      {
+       "action": "trace",
+       "target": "bp.am"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The best block here is 64 bytes. Not the lowest miss rate alone: the lowest AMAT."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bp.best"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "block size: a U-shaped curve · pick the lowest AMAT"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "size",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: larger caches. The obvious fix for capacity misses: hold more of the program."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: larger caches"
+      },
+      {
+       "action": "hide",
+       "target": "bp"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "cs"
+      },
+      {
+       "action": "highlight",
+       "target": "cs[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Doubling a 32 kilobyte cache to 64 cuts the miss rate from 4 to 3 percent. But the bigger array is slower: hit time rises to 1.2 cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cs[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "cs[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here it still wins, 2.7 against 3.0. But bigger caches also cost area and power, which is why L1 caches stay small."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cs[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "cs[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "larger cache: fewer capacity misses · slower hit, more power"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "assoc",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: higher associativity attacks conflict misses. Two rules of thumb are worth knowing."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: higher associativity"
+      },
+      {
+       "action": "hide",
+       "target": "cs"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "as"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The 2 to 1 rule: a direct-mapped cache of size N misses about as often as a 2-way cache of half the size."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "as[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And 8-way set-associative is, for practical purposes, as good as fully associative."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "as[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The price: more comparators and a wider multiplexer, so the hit takes longer. Sometimes it stretches the clock itself."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "as[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Example: direct-mapped, 5 percent misses, 25 cycle penalty: 2.25 cycles."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "as"
+      },
+      {
+       "action": "show",
+       "target": "asm"
+      },
+      {
+       "action": "highlight",
+       "target": "asm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2-way cuts misses to 4 percent, but stretches the clock by 36 percent. AMAT: 2.36. Worse!"
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "asm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "asm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With a 100 cycle penalty, the same 2-way cache wins: 5.36 against 6. The more a miss costs, the more associativity is worth."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "asm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "asm[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "more ways: fewer conflict misses · slower hit · worth it when misses are costly"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "multilevel",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: multilevel caches attack the miss penalty. We worked the formula in the AMAT video; here is the payoff."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: multilevel caches"
+      },
+      {
+       "action": "hide",
+       "target": "asm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "ml"
+      },
+      {
+       "action": "highlight",
+       "target": "ml[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "L1 alone, with 4 percent misses and 200 cycle memory: 9 cycles. Add a 10 cycle L2 that catches 3 out of 4 of those misses, and AMAT drops to 3.4."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ml[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "ml[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Design choices: an inclusive L2 also holds everything in L1, which simplifies coherence. An exclusive one never duplicates, so the two together hold more."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "ml"
+      },
+      {
+       "action": "show",
+       "target": "mlx"
+      },
+      {
+       "action": "highlight",
+       "target": "mlx[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the goals differ: L1 is kept small and simple for a fast hit; L2 is large and more associative to keep misses away from memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mlx[2..=3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "L1: fast hit · L2: few memory trips"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rw",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: give read misses priority over writes. The processor waits for reads; it does not wait for writes."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: reads before writes"
+      },
+      {
+       "action": "hide",
+       "target": "mlx"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "rw"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-through: a read miss arrives while writes sit in the write buffer. The slow way waits for the buffer to drain."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rw[0][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The fast way checks the buffer for the address. If it is not there, the read goes to memory at once, ahead of the waiting writes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rw[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write-back: a read miss must evict a dirty block. Instead of writing it back first, copy it to a buffer, read the new block, then write the victim later."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rw[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Either way, the read's miss penalty no longer includes a write."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "reads are urgent · writes can wait in a buffer"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vipt",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: avoid address translation during indexing. Programs use virtual addresses, but memory uses physical ones, and the TLB translates between them."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: no translation while indexing"
+      },
+      {
+       "action": "hide",
+       "target": "rw"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "vi"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A physically indexed cache must wait for the TLB first: translation, then cache. That makes every hit slower."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vi[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A fully virtual cache skips the TLB, but two virtual addresses can name the same physical block, the cache must be flushed on a process switch, and protection gets harder."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vi[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The common answer: virtually indexed, physically tagged. Index the cache with page offset bits, which translation never changes, while the TLB translates the rest in parallel. Then compare physical tags."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vi[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It works only if the index and offset bits fit inside the page offset: cache size over ways must be at most the page size."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "vi"
+      },
+      {
+       "action": "show",
+       "target": "vim"
+      },
+      {
+       "action": "highlight",
+       "target": "vim[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "32 kilobytes, 8-way, 4 kilobyte pages: 4 kilobytes per way, so it fits. That is why so many L1 caches are exactly 32 kilobytes and 8-way."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "vim[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "vim[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The same cache 4-way needs 8 kilobytes per way: too big, so it cannot be VIPT."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "vim[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "vim[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "VIPT: cache size ÷ ways ≤ page size"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "summary",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 8: all six in one table, with the term each improves and the term it can hurt."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 8 of 8: the summary"
+      },
+      {
+       "action": "hide",
+       "target": "vim"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "sum"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The first three cut the miss rate, and each targets one of the three C's: compulsory, capacity, conflict. But each makes something else worse."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sum[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Multilevel caches and read priority cut the miss penalty. Avoiding translation cuts the hit time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sum[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Learn this table: GATE asks which optimization reduces which term, and which one it can increase."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "sum.attacks"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "miss rate: blocks, size, ways · penalty: levels, read priority · hit: VIPT"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "sum"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 32 kilobyte L1 with a 40 cycle miss penalty. Three designs: direct-mapped, 2-way and 4-way, each with its own hit time and miss rate. Which is best?"
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And with 4 kilobyte pages, how many ways does it need to be VIPT? Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A: 1 plus 0.06 times 40, 3.4 cycles."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "B: 1.1 plus 0.045 times 40, 2.9 cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "C: 1.2 plus 0.04 times 40, 2.8 cycles. C is best, despite the slowest hit."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: 32 kilobytes over the number of ways must be at most 4 kilobytes, so at least 8 ways."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: picking the design with the fastest hit or the lowest miss rate, instead of computing AMAT."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "always compare AMATs"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Larger blocks, larger caches and more ways cut the miss rate, each with a cost: a longer penalty, or a slower hit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Multilevel caches and read priority cut the penalty, and VIPT indexing cuts the hit time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: memory technology, from SRAM and DRAM to DDR and HBM."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: memory technology"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

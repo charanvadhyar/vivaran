@@ -1,0 +1,2003 @@
+{
+ "version": 1,
+ "title": "Advanced cache optimizations, part 1",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The map: ten advanced optimizations in five groups"
+    ],
+    [
+     2,
+     "Small and simple first-level caches"
+    ],
+    [
+     3,
+     "Way prediction"
+    ],
+    [
+     4,
+     "Pipelined access and multibanked caches"
+    ],
+    [
+     5,
+     "Nonblocking caches"
+    ],
+    [
+     6,
+     "Critical word first and early restart"
+    ],
+    [
+     7,
+     "Merging write buffer"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "map",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "#",
+    "optimization",
+    "improves",
+    "video"
+   ],
+   "rows": [
+    [
+     1,
+     "small and simple first-level caches",
+     "hit time, power",
+     "this one"
+    ],
+    [
+     2,
+     "way prediction",
+     "hit time, power",
+     "this one"
+    ],
+    [
+     3,
+     "pipelined cache access",
+     "bandwidth",
+     "this one"
+    ],
+    [
+     4,
+     "multibanked caches",
+     "bandwidth",
+     "this one"
+    ],
+    [
+     5,
+     "nonblocking caches",
+     "bandwidth, miss penalty",
+     "this one"
+    ],
+    [
+     6,
+     "critical word first, early restart",
+     "miss penalty",
+     "this one"
+    ],
+    [
+     7,
+     "merging write buffer",
+     "miss penalty",
+     "this one"
+    ],
+    [
+     8,
+     "compiler optimizations",
+     "miss rate",
+     "part 2"
+    ],
+    [
+     9,
+     "hardware and compiler prefetching",
+     "miss penalty or rate",
+     "part 2"
+    ],
+    [
+     10,
+     "HBM as an extra cache level",
+     "miss penalty",
+     "part 2"
+    ]
+   ]
+  },
+  {
+   "id": "sm",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "what costs hit time",
+    "why"
+   ],
+   "rows": [
+    [
+     "a larger cache",
+     "longer word lines and bit lines to drive, more rows to decode"
+    ],
+    [
+     "more ways",
+     "more tag comparators and a wider multiplexer after them"
+    ],
+    [
+     "more ways, again",
+     "every way's tag and data are read on each access: more energy"
+    ],
+    [
+     "direct-mapped",
+     "the data can be used while the tag is still being checked"
+    ],
+    [
+     "index beyond the page offset",
+     "must wait for the TLB before indexing"
+    ]
+   ]
+  },
+  {
+   "id": "smm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"L1 must hit in 1 to 4 cycles, at full clock speed\"",
+    "\"so L1 stays small (32 to 64 KB)\" quad \"and\" quad \"size\" / \"ways\" <= \"page size\"",
+    "\"L2 and L3 grow instead: they can afford a slower hit\""
+   ]
+  },
+  {
+   "id": "wp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "set 5",
+    "tag",
+    "access to 0x3C",
+    "access to 0x07"
+   ],
+   "rows": [
+    [
+     "way 0",
+     "0x1A",
+     "",
+     ""
+    ],
+    [
+     "way 1",
+     "0x07",
+     "",
+     ""
+    ],
+    [
+     "way 2",
+     "0x3C",
+     "",
+     ""
+    ],
+    [
+     "way 3",
+     "0x22",
+     "",
+     ""
+    ],
+    [
+     "hit time",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "wpm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"hit time\" = 0.85 times 1 + 0.15 times 2 = 1.15 \"cycles\"",
+    "\"direct-mapped, hit 1, miss 5%:\" quad 1 + 0.05 times 25 = 2.25",
+    "\"4-way, hit 1.3, miss 4%:\" quad 1.3 + 0.04 times 25 = 2.3",
+    "\"4-way + prediction:\" quad 1.15 + 0.04 times 25 = 2.15 quad \"best\""
+   ]
+  },
+  {
+   "id": "pa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "processor",
+    "L1 instruction cache hit"
+   ],
+   "rows": [
+    [
+     "Pentium (mid 1990s)",
+     "1 cycle"
+    ],
+    [
+     "Pentium Pro to Pentium III",
+     "2 cycles"
+    ],
+    [
+     "Pentium 4, Core i7",
+     "4 cycles"
+    ]
+   ]
+  },
+  {
+   "id": "bk",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "bank 0",
+    "bank 1",
+    "bank 2",
+    "bank 3"
+   ],
+   "rows": [
+    [
+     "blocks",
+     "0",
+     "1",
+     "2",
+     "3"
+    ],
+    [
+     "",
+     "4",
+     "5",
+     "6",
+     "7"
+    ],
+    [
+     "",
+     "8",
+     "9",
+     "10",
+     "11"
+    ]
+   ]
+  },
+  {
+   "id": "bkm",
+   "type": "math",
+   "region": "bottom",
+   "lines": [
+    "\"bank\" = \"block address\" mod \"number of banks\""
+   ]
+  },
+  {
+   "id": "nb",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "blocking",
+    "hit under miss: A, C",
+    "hit under miss: B",
+    "miss under miss: A",
+    "miss under miss: B, C"
+   ],
+   "end": 42,
+   "unit": "cycles",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "nbx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "idea",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "MSHR",
+     "miss status holding register: one per outstanding miss, remembers who waits for which block"
+    ],
+    [
+     "number of MSHRs",
+     "how many misses can be in flight at once"
+    ],
+    [
+     "who needs it",
+     "out-of-order cores: they keep running past a missing load"
+    ],
+    [
+     "what it hides",
+     "only the part of the miss that overlaps other work"
+    ]
+   ]
+  },
+  {
+   "id": "cw",
+   "type": "timeline",
+   "region": "center",
+   "lanes": [
+    "wait for the whole block",
+    "early restart",
+    "critical word first"
+   ],
+   "end": 50,
+   "unit": "cycles",
+   "now": 0,
+   "blocks": []
+  },
+  {
+   "id": "cwm",
+   "type": "math",
+   "region": "bottom",
+   "lines": [
+    "\"latency 40, then 1 word per cycle; the CPU wants word 5 of 8:\" quad 48 quad 46 quad 41"
+   ]
+  },
+  {
+   "id": "wb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "entry",
+    "block address",
+    "word 0",
+    "word 1",
+    "word 2",
+    "word 3"
+   ],
+   "rows": [
+    [
+     "1",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "2",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "3",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "4",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "sumt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "optimization",
+    "hit time",
+    "bandwidth",
+    "miss penalty",
+    "cost"
+   ],
+   "rows": [
+    [
+     "small, simple L1",
+     "better",
+     "",
+     "",
+     "higher miss rate"
+    ],
+    [
+     "way prediction",
+     "better",
+     "",
+     "",
+     "mispredictions"
+    ],
+    [
+     "pipelined access",
+     "worse in cycles",
+     "better",
+     "",
+     "longer load-use delay"
+    ],
+    [
+     "multibanked",
+     "",
+     "better",
+     "",
+     "bank conflicts"
+    ],
+    [
+     "nonblocking",
+     "",
+     "better",
+     "better",
+     "complex control"
+    ],
+    [
+     "critical word first",
+     "",
+     "",
+     "better",
+     "needs smart memory"
+    ],
+    [
+     "merging write buffer",
+     "",
+     "",
+     "better",
+     "small"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "4-way L1, given",
+    "find"
+   ],
+   "rows": [
+    [
+     "way prediction right 80%: 1 cycle, else 2 cycles",
+     "a) the average hit time"
+    ],
+    [
+     "miss rate 2%, 64 B blocks",
+     "b) the miss penalty: whole block, and critical word first"
+    ],
+    [
+     "memory: 50 cycles, then 8 B per cycle",
+     "c) AMAT both ways"
+    ],
+    [
+     "8 banks, sequentially interleaved",
+     "d) the bank of block address 1027"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad 0.8 times 1 + 0.2 times 2 = 1.2 \"cycles\"",
+    "\"b)\" quad 50 + 64 / 8 = 58 \"cycles\" quad \"critical word first:\" quad 50 + 1 = 51 \"cycles\"",
+    "\"c)\" quad 1.2 + 0.02 times 58 = 2.36 quad \"vs\" quad 1.2 + 0.02 times 51 = 2.22 \"cycles\"",
+    "\"d)\" quad 1027 mod 8 = 3 quad => quad \"bank 3\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "The basic optimizations changed size, blocks and ways. The ten advanced ones change how a cache is accessed. This is part 1."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Ten advanced cache optimizations: part 1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A map of all ten, then the seven that cut the hit time, raise the bandwidth, or cut the miss penalty, each with a number. Then an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "highlight",
+       "target": "stages[7]",
+       "delay": 0.6
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "map",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: the map. The textbook lists ten advanced optimizations."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: the map"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "map"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two reduce the hit time: small and simple first-level caches, and way prediction."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "map[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three raise the cache bandwidth, the number of accesses served per cycle: pipelined access, multiple banks, and nonblocking caches."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "map[2..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two reduce the miss penalty: critical word first, and the merging write buffer. The last three, compiler optimizations, prefetching, and HBM, are part 2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "map[5..=6]"
+      },
+      {
+       "action": "highlight",
+       "target": "map[7..=9]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Bandwidth is the new lever: a modern core issues several loads per cycle, and the cache must keep up."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "map[2..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "hit time · bandwidth · miss penalty · miss rate"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "small",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: small and simple first-level caches. Why is L1 so small, when L2 and L3 are huge?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: small and simple L1"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "map"
+      },
+      {
+       "action": "show",
+       "target": "sm"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A larger cache has longer wires and more rows to decode. Signals take longer to cross it, so the hit is slower."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "More ways means more tag comparators, and a wider multiplexer to pick the right way. Again slower."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And a set-associative cache reads every way on each access, then throws most away. That costs energy on every load."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A direct-mapped cache can send the data on while the tag is still checked. And an index beyond the page offset must wait for address translation."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sm[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "sm[4]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the L1 must hit in one to four cycles at full clock speed."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "sm"
+      },
+      {
+       "action": "show",
+       "target": "smm"
+      },
+      {
+       "action": "highlight",
+       "target": "smm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It stays small, typically 32 to 64 kilobytes, with size divided by ways no larger than a page. The growth goes into L2 and L3, which can afford a slower hit."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "smm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "smm[1]"
+      },
+      {
+       "action": "reveal",
+       "target": "smm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "smm[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "L1: fast and lean · capacity goes to L2 and L3"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "waypred",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: way prediction. Can we get the miss rate of a 4-way cache with the hit time of a direct-mapped one?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: way prediction"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "smm"
+      },
+      {
+       "action": "show",
+       "target": "wp"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each set keeps a few extra bits that predict which way the next access will hit. Only that way's tag is compared first."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wp[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An access to tag hex 3 C. The predictor says way 2."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "wp[2][2]",
+       "value": "predicted",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "wp[2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Way 2 holds 3 C. Prediction right: the data comes out in one cycle, just like a direct-mapped cache."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "wp[2][2]",
+       "value": "predicted: hit"
+      },
+      {
+       "action": "mark",
+       "target": "wp[2][1]"
+      },
+      {
+       "action": "set",
+       "target": "wp[4][2]",
+       "value": "1 cycle",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next, tag hex 0 7. The predictor again says way 2."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "wp[2][3]",
+       "value": "predicted",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "wp[2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Wrong. The other ways are checked in the next cycle, the hit is found in way 1, and the predictor is updated. The hit took 2 cycles."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "wp[2][3]",
+       "value": "predicted: no"
+      },
+      {
+       "action": "set",
+       "target": "wp[1][3]",
+       "value": "next cycle: hit",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "wp[1]",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "wp[4][3]",
+       "value": "2 cycles",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Predictions are right more than 90 percent of the time for 2-way caches, and about 80 percent for 4-way. With 85 percent right, the average hit time is 0.85 times 1, plus 0.15 times 2: 1.15 cycles."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "wp"
+      },
+      {
+       "action": "show",
+       "target": "wpm"
+      },
+      {
+       "action": "highlight",
+       "target": "wpm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Compare three caches with a 25 cycle miss penalty. Direct-mapped: hit 1, miss rate 5 percent. AMAT 2.25."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "wpm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "wpm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A plain 4-way cache misses less, 4 percent, but its hit takes 1.3 cycles. AMAT 2.3: no better."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "wpm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "wpm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The 4-way with prediction keeps the 4 percent miss rate with a 1.15 cycle hit. AMAT 2.15, the best of the three."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "wpm[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "wpm[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A variant called way selection reads only the predicted way's data too. That saves most of the energy of a set-associative read."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "way prediction: the miss rate of N ways, nearly the hit time of 1 way"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "banks",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: two ways to raise bandwidth. First, pipelined cache access."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: pipelined and multibanked caches"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "wpm"
+      },
+      {
+       "action": "show",
+       "target": "pa"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Split the hit into stages, so a new access can start every cycle and the clock can be faster. On Intel, the L1 instruction cache hit took 1 cycle on the Pentium, 2 on the Pentium Pro to Pentium III, and 4 on the Pentium 4 and Core i7."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pa[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "pa[1]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "pa[2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The price: a load needs more cycles before its value can be used, and a mispredicted branch waits longer for new instructions."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "pipelining: one access per cycle, but more cycles per hit"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Second, multiple banks. Instead of one big array, the cache is split into banks that work independently."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pa"
+      },
+      {
+       "action": "show",
+       "target": "bk"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sequential interleaving spreads blocks across banks in turn, wrapping around. So the bank is the block address mod the number of banks."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bk[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "bk[1]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "bk[2]",
+       "delay": 0.6
+      },
+      {
+       "action": "show",
+       "target": "bkm"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Accesses to blocks 0, 1, 2 and 3 fall in four different banks. All four are served in the same cycle."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "bk[0][1]"
+      },
+      {
+       "action": "mark",
+       "target": "bk[0][2]",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "bk[0][3]",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "bk[0][4]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But blocks 0, 4 and 8 all live in bank 0. That is a bank conflict: they are served one after another."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bk[0][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "bk[1][1]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "bk[2][1]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The textbook's Core i7 has 4 banks in L1, so it can serve two memory accesses per clock, and 8 banks in L2."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "multibanked: bank = block mod banks · conflicts serialize"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "nonblock",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: nonblocking caches. A simple cache blocks: while one miss is fetched, it serves nothing else."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: nonblocking caches"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bk"
+      },
+      {
+       "action": "hide",
+       "target": "bkm"
+      },
+      {
+       "action": "show",
+       "target": "nb"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three loads in a row. A misses, taking 20 cycles. B hits, taking 1. C misses, another 20."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nb"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Blocking: A's miss runs from 0 to 20. B must wait for it, then hits at 21. C's miss runs to 41."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "nb",
+       "id": "a1",
+       "lane": "blocking",
+       "start": 0,
+       "end": 20,
+       "label": "A miss"
+      },
+      {
+       "action": "add_block",
+       "target": "nb",
+       "id": "b1",
+       "lane": "blocking",
+       "start": 20,
+       "end": 21,
+       "label": "B",
+       "delay": 0.3
+      },
+      {
+       "action": "add_block",
+       "target": "nb",
+       "id": "c1",
+       "lane": "blocking",
+       "start": 21,
+       "end": 41,
+       "label": "C miss",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Hit under miss: while A is being fetched, the cache still serves hits. B is done at cycle 2."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "nb",
+       "id": "a2",
+       "lane": "hit under miss: A, C",
+       "start": 0,
+       "end": 20,
+       "label": "A miss"
+      },
+      {
+       "action": "add_block",
+       "target": "nb",
+       "id": "b2",
+       "lane": "hit under miss: B",
+       "start": 1,
+       "end": 2,
+       "label": "B",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But C is a second miss. This cache can track only one miss, so C waits until A returns. Done at 40."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "nb",
+       "id": "c2",
+       "lane": "hit under miss: A, C",
+       "start": 20,
+       "end": 40,
+       "label": "C miss"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Miss under miss: the cache tracks two misses at once. C starts at cycle 2, and both misses overlap. Everything is done by cycle 22."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "nb",
+       "id": "a3",
+       "lane": "miss under miss: A",
+       "start": 0,
+       "end": 20,
+       "label": "A miss"
+      },
+      {
+       "action": "add_block",
+       "target": "nb",
+       "id": "b3",
+       "lane": "miss under miss: B, C",
+       "start": 1,
+       "end": 2,
+       "label": "B",
+       "delay": 0.3
+      },
+      {
+       "action": "add_block",
+       "target": "nb",
+       "id": "c3",
+       "lane": "miss under miss: B, C",
+       "start": 2,
+       "end": 22,
+       "label": "C miss",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "41 cycles, then 40, then 22. The misses still take 20 cycles each, but they now hide behind each other."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "blocking 41 · hit under miss 40 · miss under miss 22"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "How does the cache keep track? With miss status holding registers, MSHRs."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "nb"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "nbx"
+      },
+      {
+       "action": "highlight",
+       "target": "nbx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each outstanding miss gets one: which block is coming, and which loads wait for it. Out-of-order cores need them, since they keep executing past a load that missed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nbx[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "nbx[2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And only the part of a miss that overlaps other work is hidden. So for these cores, the effective miss penalty is the non-overlapped part."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nbx[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "nonblocking: misses overlap · tracked by MSHRs"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "critical",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: critical word first and early restart. The CPU needs one word, but the cache waits for a whole block."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: critical word first, early restart"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "nbx"
+      },
+      {
+       "action": "show",
+       "target": "cw"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Example: memory takes 40 cycles to start, then sends one word per cycle. A block has 8 words, and the CPU wants word 5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cw"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Normally the cache waits for all 8 words. 40 plus 8: the CPU restarts at cycle 48."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "cw",
+       "id": "w1",
+       "lane": "wait for the whole block",
+       "start": 0,
+       "end": 40,
+       "label": "latency 40"
+      },
+      {
+       "action": "add_block",
+       "target": "cw",
+       "id": "w2",
+       "lane": "wait for the whole block",
+       "start": 40,
+       "end": 48,
+       "label": "words 0 to 7",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Early restart: words arrive in order, and word 5 goes to the CPU the moment it arrives. It is the sixth word, so cycle 46."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "cw",
+       "id": "e1",
+       "lane": "early restart",
+       "start": 0,
+       "end": 40,
+       "label": "latency 40"
+      },
+      {
+       "action": "add_block",
+       "target": "cw",
+       "id": "e2",
+       "lane": "early restart",
+       "start": 40,
+       "end": 46,
+       "label": "words 0 to 5",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Critical word first: memory sends the requested word first, then wraps around to the rest. Word 5 arrives at cycle 41."
+     },
+     "do": [
+      {
+       "action": "add_block",
+       "target": "cw",
+       "id": "c1",
+       "lane": "critical word first",
+       "start": 0,
+       "end": 40,
+       "label": "latency 40"
+      },
+      {
+       "action": "add_block",
+       "target": "cw",
+       "id": "c2",
+       "lane": "critical word first",
+       "start": 40,
+       "end": 41,
+       "label": "5",
+       "delay": 0.4
+      },
+      {
+       "action": "add_block",
+       "target": "cw",
+       "id": "c3",
+       "lane": "critical word first",
+       "start": 41,
+       "end": 48,
+       "label": "6, 7, 0 … 4",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "48, 46, 41. The gain grows with bigger blocks. But spatial locality limits it: the next access is often to the same block, and may still wait for its word."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "cwm"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "send the wanted word first · restart the CPU at once"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "merge",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: the merging write buffer. Writes to memory wait in a buffer of four entries. Each entry can hold a block of four 8-byte words."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: merging write buffer"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cw"
+      },
+      {
+       "action": "hide",
+       "target": "cwm"
+      },
+      {
+       "action": "show",
+       "target": "wb"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The program writes four words in a row, to addresses 100, 108, 116 and 124. First, without merging."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wb"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each write takes its own entry, and uses one word of it."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "wb[0][1]",
+       "value": "100"
+      },
+      {
+       "action": "set",
+       "target": "wb[0][2]",
+       "value": "M[100]"
+      },
+      {
+       "action": "set",
+       "target": "wb[1][1]",
+       "value": "108",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "wb[1][2]",
+       "value": "M[108]",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "wb[2][1]",
+       "value": "116",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "wb[2][2]",
+       "value": "M[116]",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "wb[3][1]",
+       "value": "124",
+       "delay": 0.75
+      },
+      {
+       "action": "set",
+       "target": "wb[3][2]",
+       "value": "M[124]",
+       "delay": 0.75
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The buffer is full after four writes. The fifth write stalls the CPU. And memory receives four separate one-word writes."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "wb[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now with merging. The buffer checks whether a new write falls in a block already waiting there. Address 100 starts a new entry."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "wb[0][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "wb[0][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "wb[1][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "wb[1][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "wb[2][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "wb[2][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "wb[3][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "wb[3][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "wb[0][1]",
+       "value": "100",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "wb[0][2]",
+       "value": "M[100]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "108, 116 and 124 are the next words of the same block. They merge into the same entry."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "wb[0][3]",
+       "value": "M[108]"
+      },
+      {
+       "action": "set",
+       "target": "wb[0][4]",
+       "value": "M[116]",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "wb[0][5]",
+       "value": "M[124]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One entry used, three free. And memory gets one 32-byte write, far more efficient than four small ones. Some processors call this write combining."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wb[0]"
+      },
+      {
+       "action": "mark",
+       "target": "wb[1..=3]",
+       "delay": 0.4
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "merge writes to the same block: fewer stalls, fewer memory writes"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "The seven on one table, with what each improves and what it costs. Pipelining is the odd one: more bandwidth, but more cycles per hit."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Summary"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "wb"
+      },
+      {
+       "action": "show",
+       "target": "sumt"
+      },
+      {
+       "action": "highlight",
+       "target": "sumt[2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "sumt"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 4-way L1 with way prediction: right 80 percent of the time for a 1 cycle hit, otherwise 2 cycles. The miss rate is 2 percent, and blocks are 64 bytes. Memory takes 50 cycles, then sends 8 bytes per cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0][0]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[1][0]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "q[2][0]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find the average hit time, the miss penalty with and without critical word first, the AMAT both ways, and the bank of block 1027 with 8 banks. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[1][1]",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "q[2][1]",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "q[3]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: 0.8 times 1 plus 0.2 times 2: 1.2 cycles."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: waiting for the whole block, 50 plus 64 over 8, which is 58 cycles. With critical word first, 50 plus 1: 51 cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 1.2 plus 0.02 times 58 is 2.36. With critical word first, 1.2 plus 0.02 times 51 is 2.22 cycles. d: 1027 mod 8 is 3. Bank 3."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      },
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slips: forgetting that a wrong prediction still hits, just later, and counting the whole block when the CPU restarts as soon as its word arrives."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a mispredicted way is a slow hit, not a miss"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Small, simple L1 caches and way prediction keep the hit fast. Pipelining, banks and nonblocking caches serve more accesses per cycle, and let misses overlap."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[1..=2]"
+      },
+      {
+       "action": "highlight",
+       "target": "stages[3..=4]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Critical word first and the merging write buffer shorten the miss penalty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: part 2. Compiler optimizations, prefetching, and HBM."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: advanced optimizations, part 2"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
