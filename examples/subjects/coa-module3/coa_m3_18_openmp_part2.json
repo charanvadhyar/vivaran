@@ -1,0 +1,1514 @@
+{
+ "version": 1,
+ "title": "OpenMP, part 2",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Why the schedule matters"
+    ],
+    [
+     2,
+     "static, with and without a chunk"
+    ],
+    [
+     3,
+     "dynamic and guided"
+    ],
+    [
+     4,
+     "The four schedules on one loop"
+    ],
+    [
+     5,
+     "critical and atomic"
+    ],
+    [
+     6,
+     "barrier and nowait"
+    ],
+    [
+     7,
+     "reduction"
+    ],
+    [
+     8,
+     "Runtime routines and environment variables"
+    ],
+    [
+     9,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "tri",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "#pragma omp parallel for num_threads(4) schedule(...)",
+    "for (i = 0; i < 16; i++)",
+    "  for (j = i; j < 16; j++)     // iteration i does 16 - i units of work",
+    "    work(i, j);",
+    "// total 136 units: ideal is 136 / 4 = 34 per thread"
+   ]
+  },
+  {
+   "id": "st",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "schedule(static)",
+    "iterations",
+    "work"
+   ],
+   "rows": [
+    [
+     "thread 0",
+     "0, 1, 2, 3",
+     "58"
+    ],
+    [
+     "thread 1",
+     "4, 5, 6, 7",
+     "42"
+    ],
+    [
+     "thread 2",
+     "8, 9, 10, 11",
+     "26"
+    ],
+    [
+     "thread 3",
+     "12, 13, 14, 15",
+     "10"
+    ],
+    [
+     "finish",
+     "",
+     "58: thread 3 waits 48 units"
+    ]
+   ]
+  },
+  {
+   "id": "st1",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "schedule(static, 1)",
+    "iterations",
+    "work"
+   ],
+   "rows": [
+    [
+     "thread 0",
+     "0, 4, 8, 12",
+     "40"
+    ],
+    [
+     "thread 1",
+     "1, 5, 9, 13",
+     "36"
+    ],
+    [
+     "thread 2",
+     "2, 6, 10, 14",
+     "32"
+    ],
+    [
+     "thread 3",
+     "3, 7, 11, 15",
+     "28"
+    ],
+    [
+     "finish",
+     "",
+     "40"
+    ]
+   ]
+  },
+  {
+   "id": "dg",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "schedule",
+    "how chunks are handed out",
+    "cost"
+   ],
+   "rows": [
+    [
+     "static",
+     "fixed in advance",
+     "none"
+    ],
+    [
+     "dynamic, c",
+     "an idle thread grabs the next c (default 1)",
+     "a grab per chunk"
+    ],
+    [
+     "guided, c",
+     "chunk ≈ remaining / threads, at least c",
+     "fewer grabs"
+    ],
+    [
+     "guided: 16, 4 threads",
+     "4, 3, 3, 2, 1, 1, 1, 1",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "cmp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "schedule",
+    "work per thread",
+    "finish",
+    "chunks grabbed"
+   ],
+   "rows": [
+    [
+     "static",
+     "58, 42, 26, 10",
+     "58",
+     "0"
+    ],
+    [
+     "static, 1",
+     "40, 36, 32, 28",
+     "40",
+     "0"
+    ],
+    [
+     "dynamic, 1",
+     "34, 34, 34, 34",
+     "34",
+     "16"
+    ],
+    [
+     "guided",
+     "58, 33, 24, 21",
+     "58",
+     "8"
+    ]
+   ]
+  },
+  {
+   "id": "cr",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "#pragma omp parallel for",
+    "for (i = 0; i < n; i++) {",
+    "  #pragma omp critical",
+    "  { if (a[i] > best) best = a[i]; }   // any block, one thread at a time",
+    "}",
+    "",
+    "#pragma omp parallel for",
+    "for (i = 0; i < n; i++) {",
+    "  #pragma omp atomic",
+    "  count += (a[i] > 0);               // one update of one variable",
+    "}"
+   ]
+  },
+  {
+   "id": "crt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "critical",
+    "atomic"
+   ],
+   "rows": [
+    [
+     "protects",
+     "any block of code",
+     "one simple update: x += e, x++, x = x op e"
+    ],
+    [
+     "how",
+     "a lock: one thread inside at a time",
+     "a hardware atomic instruction"
+    ],
+    [
+     "cost",
+     "high: every thread queues",
+     "lower: one atomic memory operation"
+    ]
+   ]
+  },
+  {
+   "id": "br",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "#pragma omp parallel",
+    "{",
+    "  #pragma omp for nowait",
+    "  for (i = 0; i < n; i++) a[i] = f(i);",
+    "  #pragma omp for nowait",
+    "  for (i = 0; i < n; i++) b[i] = g(i);    // independent of a: nowait is safe",
+    "  #pragma omp barrier",
+    "  #pragma omp for",
+    "  for (i = 0; i < n; i++) c[i] = a[i] + b[n - 1 - i];  // needs all of a and b",
+    "}"
+   ]
+  },
+  {
+   "id": "rd",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "int sum = 0;",
+    "#pragma omp parallel for reduction(+:sum)",
+    "for (i = 0; i < 1000; i++)",
+    "  sum += a[i];"
+   ]
+  },
+  {
+   "id": "rdt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "reduction(op: var)",
+    ""
+   ],
+   "rows": [
+    [
+     "1. each thread",
+     "gets a private copy, set to the identity of op"
+    ],
+    [
+     "2. inside the loop",
+     "each thread updates only its own copy: no race, no lock"
+    ],
+    [
+     "3. at the end",
+     "the copies are combined with op, and with the original value"
+    ],
+    [
+     "identities",
+     "+ and |: 0 · *: 1 · &: all ones · max: smallest value · min: largest"
+    ]
+   ]
+  },
+  {
+   "id": "rt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "runtime routine",
+    "returns or does"
+   ],
+   "rows": [
+    [
+     "omp_get_thread_num()",
+     "this thread's number, 0 to team size − 1"
+    ],
+    [
+     "omp_get_num_threads()",
+     "the team size (1 outside a parallel region)"
+    ],
+    [
+     "omp_set_num_threads(n)",
+     "team size for later regions"
+    ],
+    [
+     "omp_get_max_threads()",
+     "the team size the next region would get"
+    ],
+    [
+     "omp_get_num_procs()",
+     "processors available"
+    ],
+    [
+     "omp_in_parallel()",
+     "nonzero inside an active parallel region"
+    ],
+    [
+     "omp_get_wtime()",
+     "wall-clock seconds: time a region with two calls"
+    ]
+   ]
+  },
+  {
+   "id": "ev",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "environment variable",
+    "sets"
+   ],
+   "rows": [
+    [
+     "OMP_NUM_THREADS=8",
+     "the default team size"
+    ],
+    [
+     "OMP_SCHEDULE=\"dynamic,4\"",
+     "the schedule for loops with schedule(runtime)"
+    ],
+    [
+     "OMP_DYNAMIC=true",
+     "lets the runtime choose fewer threads"
+    ],
+    [
+     "OMP_PROC_BIND, OMP_PLACES",
+     "pin threads to cores"
+    ],
+    [
+     "precedence",
+     "clause > routine > variable > default"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "// a) 10 iterations, 3 threads, schedule(static, 2): which thread runs which?",
+    "// b) 20 iterations, 3 threads, schedule(guided): the chunk sizes?",
+    "// c) what is printed?",
+    "int s = 10;",
+    "#pragma omp parallel for num_threads(4) reduction(+:s)",
+    "for (i = 1; i <= 8; i++) s += i;",
+    "printf(\"%d\\n\", s);"
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "a) chunk",
+    "iterations",
+    "thread"
+   ],
+   "rows": [
+    [
+     "1",
+     "0, 1",
+     "0"
+    ],
+    [
+     "2",
+     "2, 3",
+     "1"
+    ],
+    [
+     "3",
+     "4, 5",
+     "2"
+    ],
+    [
+     "4",
+     "6, 7",
+     "0"
+    ],
+    [
+     "5",
+     "8, 9",
+     "1"
+    ],
+    [
+     "so",
+     "thread 0: 0, 1, 6, 7 · thread 1: 2, 3, 8, 9 · thread 2: 4, 5",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "qb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "b) remaining",
+    "chunk = ⌈remaining / 3⌉"
+   ],
+   "rows": [
+    [
+     "20",
+     "7"
+    ],
+    [
+     "13",
+     "5"
+    ],
+    [
+     "8",
+     "3"
+    ],
+    [
+     "5",
+     "2"
+    ],
+    [
+     "3, 2, 1",
+     "1, 1, 1"
+    ],
+    [
+     "sizes",
+     "7, 5, 3, 2, 1, 1, 1: total 20"
+    ]
+   ]
+  },
+  {
+   "id": "qc",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"c) private copies start at\" 0; quad \"together they add\" 1 + 2 + dots + 8 = 36",
+    "s = 10 + 36 = 46"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Part 1 split loops and scoped variables. Part 2 makes the split fair, makes shared updates safe, and controls the runtime: loop schedules, synchronization, reductions, and the runtime routines and environment variables."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "OpenMP, part 2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the nine stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why the schedule matters, static, dynamic and guided, and all four compared on one loop."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then critical, atomic, barrier, reduction, the runtime routines, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=8]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a loop where iterations are not equal. Iteration i runs the inner loop from i to 16, so it does 16 minus i units of work."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 9: why the schedule matters"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "tri"
+      },
+      {
+       "action": "mark_lines",
+       "target": "tri",
+       "from": 2,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That is 136 units in total. With four threads, the ideal is 34 each."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tri",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The loop finishes only when the slowest thread finishes. So the question is: how evenly does the schedule spread the work?"
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "the slowest thread sets the time"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "static",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: schedule static, with no chunk size. Each thread gets one contiguous block of 4."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 9: static"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tri"
+      },
+      {
+       "action": "show",
+       "target": "st"
+      },
+      {
+       "action": "highlight",
+       "target": "st[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Thread 0 gets the four heaviest iterations: 58 units. Thread 3 gets the lightest: 10."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "st[3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the loop takes 58, and thread 3 sits idle for 48 of them."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now static with a chunk of 1. Chunks are dealt round-robin, like cards: thread 0 gets 0, 4, 8, 12."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "st"
+      },
+      {
+       "action": "show",
+       "target": "st1"
+      },
+      {
+       "action": "highlight",
+       "target": "st1[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each thread now gets a mix of heavy and light iterations. 40, 36, 32, 28. The loop takes 40."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st1[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Static costs nothing at run time: every thread knows its iterations before the loop starts."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st1[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "static: fixed in advance · a chunk deals round-robin"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dyn",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: when we cannot predict the work, hand it out while the loop runs."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 9: dynamic and guided"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "st1"
+      },
+      {
+       "action": "show",
+       "target": "dg"
+      },
+      {
+       "action": "highlight",
+       "target": "dg[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dynamic: a thread that finishes a chunk grabs the next one. The default chunk is 1 iteration. Each grab costs a little synchronization."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dg[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Guided: also on demand, but chunks start big and shrink. Each chunk is about the remaining iterations divided by the number of threads, never smaller than c. Fewer grabs than dynamic."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dg[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For 16 iterations on 4 threads: 4, then 3, 3, 2, and then 1 at a time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dg[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "dynamic: grab as you go · guided: big chunks first"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cmp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: all four on our triangular loop."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 9: the four schedules compared"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "dg"
+      },
+      {
+       "action": "show",
+       "target": "cmp"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Static: 58. Static with chunk 1: 40."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dynamic with chunk 1: a thread that drew a heavy iteration simply grabs fewer. All four end at exactly 34, the ideal. The price is 16 grabs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Guided does badly here: its first, biggest chunk is iterations 0 to 3, the heaviest ones. One thread gets 58 units at once."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So guided suits loops where the work is uneven but not heaviest at the start. There is no universally best schedule; measure."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "cmp[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "uneven work: dynamic · even work: static"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "crit",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: synchronization. Critical: only one thread at a time may run the block. Here it protects a compare-and-update of best."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 9: critical and atomic"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cmp"
+      },
+      {
+       "action": "show",
+       "target": "cr"
+      },
+      {
+       "action": "mark_lines",
+       "target": "cr",
+       "from": 3,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Atomic: one simple update of one memory location, such as count plus equals something."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "cr",
+       "from": 9,
+       "to": 10
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Critical protects any block, using a lock. Atomic allows only a single update statement."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "cr"
+      },
+      {
+       "action": "show",
+       "target": "crt"
+      },
+      {
+       "action": "highlight",
+       "target": "crt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Atomic is done with a hardware atomic instruction, so it is usually much cheaper than a lock."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "crt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But both still serialise every update. In a loop of a million iterations, that is a million turns at the lock. Use them for rare updates."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "crt[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "critical: any block · atomic: one update"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "barrier",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a barrier makes every thread wait until all have arrived. For, sections and single already end with one."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 9: barrier and nowait"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "crt"
+      },
+      {
+       "action": "show",
+       "target": "br"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here the first two loops are independent. nowait lets a thread finish its part of a and go straight on to b."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "br",
+       "from": 3,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But the third loop reads every element of a and b, including ones other threads wrote. So an explicit barrier is needed first."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "br",
+       "from": 7,
+       "to": 9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The rule: drop a barrier only when the next work cannot read what the previous work wrote."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "nowait only when the next work is independent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "red",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: back to our racing sum. The right fix is one clause: reduction, plus, colon, sum."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 9: reduction"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "br"
+      },
+      {
+       "action": "show",
+       "target": "rd"
+      },
+      {
+       "action": "mark_lines",
+       "target": "rd",
+       "from": 2,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each thread gets a private copy of sum, set to the identity of the operator: zero for plus."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rd"
+      },
+      {
+       "action": "show",
+       "target": "rdt"
+      },
+      {
+       "action": "highlight",
+       "target": "rdt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In the loop, each thread adds only into its own copy. No race, and no lock."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rdt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At the end, the copies are combined, once, together with the original value of sum."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rdt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The identities: zero for plus and or; one for times; all ones for and; for max, the smallest possible value, and for min, the largest."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rdt[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "reduction: private partial results, combined once"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rt",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 8: the runtime library. We have met the first two: this thread's number, and the team size."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 8 of 9: runtime routines"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rdt"
+      },
+      {
+       "action": "show",
+       "target": "rt"
+      },
+      {
+       "action": "highlight",
+       "target": "rt[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "omp_set_num_threads sets the team size for later regions, and omp_get_max_threads tells you what the next region would get."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rt[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "omp_get_num_procs counts the processors, and omp_in_parallel tells code whether it is running inside a region."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rt[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And omp_get_wtime returns wall-clock time. Call it before and after a region, subtract, and you have measured your speedup."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rt[6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Environment variables set defaults without recompiling. OMP_NUM_THREADS sets the team size."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rt"
+      },
+      {
+       "action": "show",
+       "target": "ev"
+      },
+      {
+       "action": "highlight",
+       "target": "ev[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "OMP_SCHEDULE sets the schedule of any loop written with schedule runtime. So you can try static, dynamic and guided without rebuilding."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ev[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "OMP_DYNAMIC lets the runtime use fewer threads, and OMP_PROC_BIND and OMP_PLACES pin threads to cores."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ev[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "When they disagree: the num_threads clause wins, then omp_set_num_threads, then the environment variable, then the default."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ev[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "clause > routine > environment > default"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question in three parts."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ev"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part a: 10 iterations, 3 threads, static with chunk 2. Part b: 20 iterations, 3 threads, guided: the chunk sizes. Part c: what does the reduction print? Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 1,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part a. Chunks of 2 are dealt round-robin: 0 and 1 to thread 0, 2 and 3 to thread 1, 4 and 5 to thread 2."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then back to thread 0 for 6 and 7, and thread 1 for 8 and 9. Thread 2 gets only one chunk."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3..=4]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[5]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part b. Each chunk is the remaining count over 3, rounded up. 20 over 3 gives 7, leaving 13. Then 5, leaving 8."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "qb"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then 3, then 2, then three chunks of 1. Sizes 7, 5, 3, 2, 1, 1, 1: twenty in all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qb[2..=4]"
+      },
+      {
+       "action": "mark",
+       "target": "qb[5]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part c. Each private copy starts at zero, and together they add 1 to 8, which is 36."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qb"
+      },
+      {
+       "action": "show",
+       "target": "qc"
+      },
+      {
+       "action": "highlight",
+       "target": "qc[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the original value, 10, is combined in at the end. The program prints 46, not 36."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qc[1]"
+      },
+      {
+       "action": "mark",
+       "target": "qc[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: forgetting that a reduction includes the variable's value from before the loop."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "reduction keeps the original value"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qc"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Static deals iterations in advance; dynamic and guided hand them out as threads become free. On uneven work, dynamic balances best."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Critical and atomic serialise updates; barriers order phases; a reduction gives each thread its own partial result."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the runtime routines and environment variables control the team without changing the code. That completes Module 3: from instruction-level parallelism inside one core, to threads across many."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[7..=8]"
+      },
+      {
+       "action": "mark",
+       "target": "stages[0..=8]",
+       "delay": 0.5
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Module 3 complete"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

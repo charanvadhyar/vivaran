@@ -1,0 +1,1505 @@
+{
+ "version": 1,
+ "title": "Dynamic branch prediction, part 1",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Why predict while running"
+    ],
+    [
+     2,
+     "The branch history table"
+    ],
+    [
+     3,
+     "The 1-bit predictor and its weakness"
+    ],
+    [
+     4,
+     "The 2-bit saturating counter"
+    ],
+    [
+     5,
+     "Tracing both on a loop"
+    ],
+    [
+     6,
+     "The branch target buffer"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "why",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "problem",
+    "why it matters"
+   ],
+   "rows": [
+    [
+     "a branch's behaviour changes with the data",
+     "a fixed guess cannot follow it"
+    ],
+    [
+     "deep pipelines and multiple issue",
+     "a wrong guess throws away many instructions"
+    ],
+    [
+     "Tomasulo needs a steady stream of instructions",
+     "stopping at every branch wastes its window"
+    ]
+   ]
+  },
+  {
+   "id": "bht",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "index",
+    "prediction"
+   ],
+   "rows": [
+    [
+     "000…000",
+     "T"
+    ],
+    [
+     "000…001",
+     "N"
+    ],
+    [
+     "…",
+     "…"
+    ],
+    [
+     "111…111",
+     "T"
+    ]
+   ]
+  },
+  {
+   "id": "bhm",
+   "type": "math",
+   "region": "right",
+   "lines": [
+    "\"index\" = \"low bits of the branch address\"",
+    "4096 \"entries\" = 2^12 : quad \"PC bits\" 13 \"to\" 2",
+    "\"no tag: two branches may share an entry\"",
+    "\"size\" = 4096 times 2 \"bits\" = 1 \"KB\""
+   ]
+  },
+  {
+   "id": "ob",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "1-bit, loop of 10",
+    "what happens"
+   ],
+   "rows": [
+    [
+     "rule",
+     "predict whatever the branch did last time"
+    ],
+    [
+     "last iteration",
+     "predicted T, actually N: wrong"
+    ],
+    [
+     "first iteration of the next run",
+     "predicted N, actually T: wrong again"
+    ],
+    [
+     "result",
+     "2 wrong per 10: only 80% right"
+    ]
+   ]
+  },
+  {
+   "id": "fsm",
+   "type": "diagram",
+   "region": "center",
+   "layout": "layers",
+   "direction": "right",
+   "nodes": [
+    {
+     "id": "s3",
+     "label": "11: strong T"
+    },
+    {
+     "id": "s2",
+     "label": "10: weak T"
+    },
+    {
+     "id": "s1",
+     "label": "01: weak N"
+    },
+    {
+     "id": "s0",
+     "label": "00: strong N"
+    }
+   ],
+   "edges": [
+    {
+     "from": "s3",
+     "to": "s2",
+     "label": "N"
+    },
+    {
+     "from": "s2",
+     "to": "s1",
+     "label": "N"
+    },
+    {
+     "from": "s1",
+     "to": "s0",
+     "label": "N"
+    }
+   ]
+  },
+  {
+   "id": "fsx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "2-bit counter rule",
+    "effect"
+   ],
+   "rows": [
+    [
+     "taken: count up (stop at 11)",
+     "not taken: count down (stop at 00)"
+    ],
+    [
+     "predict taken in 11 and 10",
+     "predict not taken in 01 and 00"
+    ],
+    [
+     "one odd outcome",
+     "moves only to the weak state: the prediction stays"
+    ],
+    [
+     "on the loop of 10",
+     "wrong only at the exit: 90% right"
+    ]
+   ]
+  },
+  {
+   "id": "tr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "branch execution",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+   ],
+   "rows": [
+    [
+     "outcome",
+     "T",
+     "T",
+     "T",
+     "N",
+     "T",
+     "T",
+     "T",
+     "N"
+    ],
+    [
+     "1-bit predicts",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "2-bit state",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "2-bit predicts",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "btb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "BTB entry",
+    "holds"
+   ],
+   "rows": [
+    [
+     "tag",
+     "the full address of a branch (it is a cache: no aliasing)"
+    ],
+    [
+     "predicted target",
+     "where to fetch next if taken"
+    ],
+    [
+     "looked up",
+     "in the fetch stage, with the address of the instruction being fetched"
+    ],
+    [
+     "hit, predicted taken",
+     "fetch from the target in the very next cycle: no penalty"
+    ]
+   ]
+  },
+  {
+   "id": "btp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "in BTB?",
+    "prediction",
+    "actual",
+    "penalty"
+   ],
+   "rows": [
+    [
+     "yes",
+     "taken",
+     "taken",
+     "0"
+    ],
+    [
+     "yes",
+     "taken",
+     "not taken",
+     "2"
+    ],
+    [
+     "no",
+     "–",
+     "taken",
+     "2"
+    ],
+    [
+     "no",
+     "–",
+     "not taken",
+     "0"
+    ]
+   ]
+  },
+  {
+   "id": "btm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"BTB hit rate 90% · its predictions 90% right · 60% of the others taken\"",
+    "\"penalty\" = 0.9 times 0.1 times 2 + 0.1 times 0.6 times 2 = 0.18 + 0.12 = 0.30 \"cycles per branch\""
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "given",
+    "find"
+   ],
+   "rows": [
+    [
+     "one branch's outcomes: T T N T T N T T N",
+     "a) mispredictions, 1-bit starting at N"
+    ],
+    [
+     "",
+     "b) mispredictions, 2-bit starting at 01"
+    ],
+    [
+     "a BHT of 1024 entries, 4-byte instructions",
+     "c) index bits, and the table size"
+    ],
+    [
+     "BTB hit rate 95%, accuracy 90%, 70% of misses taken, penalty 2",
+     "d) penalty per branch"
+    ]
+   ]
+  },
+  {
+   "id": "qt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "execution",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+   ],
+   "rows": [
+    [
+     "outcome",
+     "T",
+     "T",
+     "N",
+     "T",
+     "T",
+     "N",
+     "T",
+     "T",
+     "N"
+    ],
+    [
+     "1-bit predicts",
+     "N",
+     "T",
+     "T",
+     "N",
+     "T",
+     "T",
+     "N",
+     "T",
+     "T"
+    ],
+    [
+     "2-bit state",
+     "01",
+     "10",
+     "11",
+     "10",
+     "11",
+     "11",
+     "10",
+     "11",
+     "11"
+    ],
+    [
+     "2-bit predicts",
+     "N",
+     "T",
+     "T",
+     "T",
+     "T",
+     "T",
+     "T",
+     "T",
+     "T"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad 6 \"of\" 9 \"wrong\" quad \"b)\" quad 4 \"of\" 9 \"wrong, ending in state 10\"",
+    "\"c)\" quad 1024 = 2^10 : quad \"PC bits\" 11 \"to\" 2 quad 1024 times 2 \"bits\" = 256 \"bytes\"",
+    "\"d)\" quad 0.95 times 0.1 times 2 + 0.05 times 0.7 times 2 = 0.19 + 0.07 = 0.26 \"cycles\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Tomasulo's machine can look far ahead, but only if it knows where the program is going. Every branch is a fork. Dynamic predictors learn each branch's habits while the program runs."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Dynamic branch prediction, part 1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why predict at run time, the branch history table, and the 1-bit and 2-bit predictors."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then a trace of both on a loop, the branch target buffer, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: three reasons static prediction is not enough."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: why predict while running"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A branch's behaviour depends on the data. A fixed guess cannot follow a branch that changes its mind."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Deep pipelines that issue several instructions per cycle throw away a lot of work on every wrong guess."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And dynamic scheduling only helps if instructions keep flowing past branches."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "the deeper and wider the machine, the more prediction matters"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bht",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the simplest dynamic predictor is a branch history table, or branch prediction buffer. A small memory, indexed by the low bits of the branch's address."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: the branch history table"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "bht"
+      },
+      {
+       "action": "show",
+       "target": "bhm"
+      },
+      {
+       "action": "highlight",
+       "target": "bhm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each entry holds a prediction. In the fetch stage the hardware reads the entry for this branch, and guesses."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bht[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 4096 entries, the index needs 12 bits. Instructions are 4 bytes, so the lowest 2 address bits are always zero: the index is PC bits 13 down to 2."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bhm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "bhm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "There is no tag. Two branches whose addresses share those bits share an entry, and may spoil each other's prediction. That is called aliasing; with a few thousand entries it is rare."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bhm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "bhm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 2 bits per entry, 4096 entries cost just 1 kilobyte."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bhm[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "bhm[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "BHT: indexed by low PC bits · no tag · tiny"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "onebit",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: the 1-bit predictor. Each entry remembers what the branch did last time, and predicts the same again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: the 1-bit predictor"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bht"
+      },
+      {
+       "action": "hide",
+       "target": "bhm"
+      },
+      {
+       "action": "show",
+       "target": "ob"
+      },
+      {
+       "action": "highlight",
+       "target": "ob[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Take a loop of 10 iterations, run many times. Its branch is taken 9 times, then not taken once to exit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ob[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On the last iteration the entry says taken, but the loop exits. Wrong. And now the entry flips to not taken."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ob[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next time the loop runs, its first branch is predicted not taken. Wrong again."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ob[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two mistakes per 10 executions: 80 percent right, for a branch that is taken 90 percent of the time. One odd outcome costs two mispredictions."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ob[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "1-bit: one exit costs two mistakes"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "twobit",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the fix is a 2-bit saturating counter. Four states, from strongly taken down to strongly not taken."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: the 2-bit counter"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ob"
+      },
+      {
+       "action": "show",
+       "target": "fsm"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A taken branch counts up, stopping at 11. A not-taken branch counts down, stopping at 00."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fsm.s3"
+      },
+      {
+       "action": "highlight",
+       "target": "fsm.s0",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The top two states predict taken; the bottom two, not taken."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fsm.s3"
+      },
+      {
+       "action": "highlight",
+       "target": "fsm.s2",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "fsm.s1",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "fsm.s0",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The key: from strongly taken, one not-taken outcome only drops it to weakly taken. The prediction is still taken. It takes two wrong outcomes in a row to change its mind."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fsm.s3->s2"
+      },
+      {
+       "action": "highlight",
+       "target": "fsm.s2",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The rules in one table."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "fsm"
+      },
+      {
+       "action": "show",
+       "target": "fsx"
+      },
+      {
+       "action": "highlight",
+       "target": "fsx[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So on the loop of 10, the exit is mispredicted, but the counter only drops to weakly taken, and the next run's first branch is predicted right. 90 percent right."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fsx[2..=3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "2-bit: change the prediction only after two misses"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: trace both on an inner loop of 4 iterations, run twice: taken, taken, taken, not taken, and again. Both predictors start warmed up, predicting taken."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: tracing both"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "fsx"
+      },
+      {
+       "action": "show",
+       "target": "tr"
+      },
+      {
+       "action": "highlight",
+       "target": "tr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The 1-bit predictor: taken, taken, taken, taken. The fourth is wrong. It flips to not taken, so execution 5 is wrong too. Then taken again, and execution 8 is wrong."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tr[1][1]",
+       "value": "T"
+      },
+      {
+       "action": "set",
+       "target": "tr[1][2]",
+       "value": "T",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tr[1][3]",
+       "value": "T",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tr[1][4]",
+       "value": "T",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tr[1][5]",
+       "value": "N",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tr[1][6]",
+       "value": "T",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tr[1][7]",
+       "value": "T",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "tr[1][8]",
+       "value": "T",
+       "delay": 0.7
+      },
+      {
+       "action": "highlight",
+       "target": "tr[1][4]",
+       "delay": 0.85
+      },
+      {
+       "action": "highlight",
+       "target": "tr[1][5]",
+       "delay": 0.9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "3 mistakes in 8."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[1][8]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The 2-bit counter starts at 11. The exit drops it only to 10, and the next taken brings it back to 11."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tr[2][1]",
+       "value": "11"
+      },
+      {
+       "action": "set",
+       "target": "tr[2][2]",
+       "value": "11",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tr[2][3]",
+       "value": "11",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tr[2][4]",
+       "value": "11",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tr[2][5]",
+       "value": "10",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tr[2][6]",
+       "value": "11",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tr[2][7]",
+       "value": "11",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "tr[2][8]",
+       "value": "11",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So it predicts taken all eight times, and is wrong only at the two exits. 2 mistakes in 8."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tr[3][1]",
+       "value": "T"
+      },
+      {
+       "action": "set",
+       "target": "tr[3][2]",
+       "value": "T",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tr[3][3]",
+       "value": "T",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tr[3][4]",
+       "value": "T",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tr[3][5]",
+       "value": "T",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tr[3][6]",
+       "value": "T",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tr[3][7]",
+       "value": "T",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "tr[3][8]",
+       "value": "T",
+       "delay": 0.7
+      },
+      {
+       "action": "highlight",
+       "target": "tr[3][4]",
+       "delay": 0.85
+      },
+      {
+       "action": "highlight",
+       "target": "tr[3][8]",
+       "delay": 0.9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In the long run, per run of the loop: 2 mistakes for 1-bit, 1 for 2-bit. Studies found that more than 2 bits per entry hardly helps."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "per loop exit: 1-bit misses twice, 2-bit once"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "btb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a prediction is only half the answer. To fetch from the target, we must also know the target address, and early: in the fetch stage, before the instruction is even decoded."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: the branch target buffer"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tr"
+      },
+      {
+       "action": "show",
+       "target": "btb"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A branch target buffer is a small cache. Each entry has a tag, the full address of a branch, so there is no aliasing."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "btb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And it holds the predicted target address."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "btb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every fetch looks up its own address in the BTB. A hit means: this is a branch, predicted taken, and here is where to go. The next fetch comes from the target, with no penalty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "btb[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "btb[3]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The penalties. In the buffer, predicted taken, and taken: 0. In the buffer but not taken: 2 cycles to recover. Not in the buffer but taken: 2. Not in the buffer, not taken: 0."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "btb"
+      },
+      {
+       "action": "show",
+       "target": "btp"
+      },
+      {
+       "action": "highlight",
+       "target": "btp[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "btp[1]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "btp[2]",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "btp[3]",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The textbook's example. 90 percent of branches hit in the BTB, 90 percent of those predictions are right, and 60 percent of the branches that miss are taken."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "btp"
+      },
+      {
+       "action": "show",
+       "target": "btm"
+      },
+      {
+       "action": "highlight",
+       "target": "btm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Penalty: 0.9 times 0.1 times 2, plus 0.1 times 0.6 times 2. 0.18 plus 0.12: 0.3 cycles per branch."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "btm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "btm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Some BTBs store the target instruction itself, not just its address. Then an unconditional jump can vanish completely: branch folding."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "BTB: a tagged cache of branch → target, read during fetch"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "btm"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One branch goes taken, taken, not taken, three times over. Count the mispredictions for a 1-bit predictor starting at not taken, and a 2-bit counter starting at 01. Then the index bits and size of a 1024-entry table, and the BTB penalty. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0..=1]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[2]",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "q[3]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: the 1-bit predictor always guesses the last outcome. It is wrong on the first taken, on every not taken, and on every taken right after one. 6 of 9."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qt"
+      },
+      {
+       "action": "highlight",
+       "target": "qt[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "qt[1]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: the 2-bit counter starts at 01 and predicts not taken: wrong. Then 10, 11, and it predicts taken from then on. Each not taken only drops it to 10. Wrong at execution 1 and at the three not-takens: 4 of 9."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qt[3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 1024 is 2 to the 10: index bits 11 down to 2. 1024 entries of 2 bits: 256 bytes. d: 0.95 times 0.1 times 2, plus 0.05 times 0.7 times 2: 0.26 cycles per branch."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qt"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      },
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      },
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slips: forgetting that the counter saturates at 11, and multiplying the miss-in-BTB term by the hit rate instead of by 1 minus it."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "saturate at 00 and 11 · misses in the BTB use 1 − hit rate"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A branch history table is indexed by low address bits. A 1-bit entry misses twice per loop exit; a 2-bit counter only once."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A branch target buffer supplies the target in the fetch stage, so a correctly predicted taken branch costs nothing."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: part 2. Correlating predictors, which look at other branches, and tournament predictors, which pick the best of two."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: correlating and tournament predictors"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

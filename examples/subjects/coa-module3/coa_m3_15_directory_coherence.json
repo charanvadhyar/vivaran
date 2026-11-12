@@ -1,0 +1,1711 @@
+{
+ "version": 1,
+ "title": "Directory-based coherence",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Why snooping stops scaling"
+    ],
+    [
+     2,
+     "The directory idea"
+    ],
+    [
+     3,
+     "Where the directory lives: the home node"
+    ],
+    [
+     4,
+     "Directory states and messages"
+    ],
+    [
+     5,
+     "What the home node does"
+    ],
+    [
+     6,
+     "A trace, message by message"
+    ],
+    [
+     7,
+     "Storage overhead, and how to cut it"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "why",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "problem with snooping",
+    "why"
+   ],
+   "rows": [
+    [
+     "every miss is broadcast",
+     "every cache must see every request"
+    ],
+    [
+     "one bus, one request at a time",
+     "bandwidth does not grow with the core count"
+    ],
+    [
+     "every cache checks every request",
+     "tag lookups grow with the core count too"
+    ],
+    [
+     "fine for a few cores",
+     "8 to 16 cores, or one chip with a shared L3"
+    ],
+    [
+     "many sockets, many cores",
+     "need point-to-point messages, sent only where needed"
+    ]
+   ]
+  },
+  {
+   "id": "idea",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the directory",
+    "keeps, for every memory block"
+   ],
+   "rows": [
+    [
+     "state",
+     "uncached, shared, or modified"
+    ],
+    [
+     "sharers",
+     "a bit per processor: which caches hold a copy"
+    ],
+    [
+     "so on a write",
+     "send invalidations only to the caches whose bit is set"
+    ],
+    [
+     "no broadcast",
+     "any network will do: mesh, ring, crossbar"
+    ]
+   ]
+  },
+  {
+   "id": "dg",
+   "type": "diagram",
+   "region": "center",
+   "layout": "layers",
+   "direction": "down",
+   "nodes": [
+    {
+     "id": "c1",
+     "label": "P1 + cache"
+    },
+    {
+     "id": "c2",
+     "label": "P2 + cache"
+    },
+    {
+     "id": "c3",
+     "label": "P3 + cache"
+    },
+    {
+     "id": "m1",
+     "label": "mem + dir 1"
+    },
+    {
+     "id": "m2",
+     "label": "mem + dir 2"
+    },
+    {
+     "id": "m3",
+     "label": "mem + dir 3"
+    },
+    {
+     "id": "net",
+     "label": "network"
+    }
+   ],
+   "edges": [
+    {
+     "from": "c1",
+     "to": "m1"
+    },
+    {
+     "from": "c2",
+     "to": "m2"
+    },
+    {
+     "from": "c3",
+     "to": "m3"
+    },
+    {
+     "from": "m1",
+     "to": "net"
+    },
+    {
+     "from": "m2",
+     "to": "net"
+    },
+    {
+     "from": "m3",
+     "to": "net"
+    }
+   ]
+  },
+  {
+   "id": "nodes",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "node",
+    "role"
+   ],
+   "rows": [
+    [
+     "local node",
+     "the one whose processor made the request"
+    ],
+    [
+     "home node",
+     "the one whose memory, and directory, hold the block: fixed by the address"
+    ],
+    [
+     "remote node",
+     "one that holds a copy: an owner or a sharer"
+    ]
+   ]
+  },
+  {
+   "id": "ds",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "directory state",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "U: uncached",
+     "no cache has it; memory is current"
+    ],
+    [
+     "S: shared",
+     "one or more caches have a clean copy; memory is current"
+    ],
+    [
+     "M: modified",
+     "exactly one cache, the owner, has written it; memory is stale"
+    ]
+   ]
+  },
+  {
+   "id": "msg",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "message",
+    "from → to",
+    "purpose"
+   ],
+   "rows": [
+    [
+     "read miss, write miss",
+     "local → home",
+     "ask for the block"
+    ],
+    [
+     "data reply",
+     "home → local",
+     "send the block"
+    ],
+    [
+     "invalidate",
+     "home → sharer",
+     "drop your copy"
+    ],
+    [
+     "fetch",
+     "home → owner",
+     "send the block back; keep a shared copy"
+    ],
+    [
+     "fetch/invalidate",
+     "home → owner",
+     "send it back and drop it"
+    ],
+    [
+     "data write-back",
+     "owner → home",
+     "the dirty block returns to memory"
+    ]
+   ]
+  },
+  {
+   "id": "hp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "state",
+    "request",
+    "home does",
+    "new state",
+    "messages"
+   ],
+   "rows": [
+    [
+     "U",
+     "read miss",
+     "reply with data",
+     "S {P}",
+     "2"
+    ],
+    [
+     "U",
+     "write miss",
+     "reply with data",
+     "M {P}",
+     "2"
+    ],
+    [
+     "S",
+     "read miss",
+     "reply; add P to sharers",
+     "S + P",
+     "2"
+    ],
+    [
+     "S",
+     "write miss",
+     "invalidate each other sharer; reply",
+     "M {P}",
+     "2 + sharers"
+    ],
+    [
+     "M",
+     "read miss",
+     "fetch from owner; reply",
+     "S {owner, P}",
+     "4"
+    ],
+    [
+     "M",
+     "write miss",
+     "fetch/invalidate owner; reply",
+     "M {P}",
+     "4"
+    ]
+   ]
+  },
+  {
+   "id": "tt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "operation",
+    "directory after",
+    "messages",
+    "count"
+   ],
+   "rows": [
+    [
+     "1",
+     "P1 reads X",
+     "",
+     "",
+     ""
+    ],
+    [
+     "2",
+     "P2 reads X",
+     "",
+     "",
+     ""
+    ],
+    [
+     "3",
+     "P3 reads X",
+     "",
+     "",
+     ""
+    ],
+    [
+     "4",
+     "P4 writes X",
+     "",
+     "",
+     ""
+    ],
+    [
+     "5",
+     "P1 reads X",
+     "",
+     "",
+     ""
+    ],
+    [
+     "6",
+     "P2 writes X",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "ov",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "processors",
+    "bits per 64-byte block",
+    "overhead"
+   ],
+   "rows": [
+    [
+     "64",
+     "64",
+     "64 / 512 = 12.5%"
+    ],
+    [
+     "256",
+     "256",
+     "50%"
+    ],
+    [
+     "1024",
+     "1024",
+     "200%: more than the data"
+    ]
+   ]
+  },
+  {
+   "id": "cut",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "way to cut it",
+    "how"
+   ],
+   "rows": [
+    [
+     "limited pointers",
+     "keep i processor numbers of log₂P bits each, not P bits"
+    ],
+    [
+     "coarse vector",
+     "one bit per group of processors; invalidate the whole group"
+    ],
+    [
+     "sparse directory",
+     "track only blocks that are cached somewhere, like a cache of directory entries"
+    ]
+   ]
+  },
+  {
+   "id": "lp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "64 processors, 64-byte blocks",
+    "bits",
+    "overhead"
+   ],
+   "rows": [
+    [
+     "full bit vector",
+     "64",
+     "12.5%"
+    ],
+    [
+     "4 pointers × 6 bits",
+     "24",
+     "4.7%"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "operation"
+   ],
+   "rows": [
+    [
+     "1",
+     "P1 writes X"
+    ],
+    [
+     "2",
+     "P2 reads X"
+    ],
+    [
+     "3",
+     "P3 reads X"
+    ],
+    [
+     "4",
+     "P1 writes X"
+    ],
+    [
+     "5",
+     "P1 reads X"
+    ],
+    [
+     "6",
+     "P4 writes X"
+    ],
+    [
+     "b",
+     "128 processors, 64-byte blocks: overhead of a full bit vector, and of 4 pointers?"
+    ]
+   ]
+  },
+  {
+   "id": "qt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "operation",
+    "directory after",
+    "messages"
+   ],
+   "rows": [
+    [
+     "1",
+     "P1 writes X",
+     "M {P1}",
+     "2"
+    ],
+    [
+     "2",
+     "P2 reads X",
+     "S {P1,P2}",
+     "4"
+    ],
+    [
+     "3",
+     "P3 reads X",
+     "S {P1,P2,P3}",
+     "2"
+    ],
+    [
+     "4",
+     "P1 writes X",
+     "M {P1}",
+     "4"
+    ],
+    [
+     "5",
+     "P1 reads X",
+     "M {P1}",
+     "0"
+    ],
+    [
+     "6",
+     "P4 writes X",
+     "M {P4}",
+     "4"
+    ],
+    [
+     "",
+     "total",
+     "",
+     "16"
+    ]
+   ]
+  },
+  {
+   "id": "qb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "128 processors, 64-byte blocks",
+    "bits",
+    "overhead"
+   ],
+   "rows": [
+    [
+     "full bit vector",
+     "128",
+     "128 / 512 = 25%"
+    ],
+    [
+     "4 pointers × 7 bits",
+     "28",
+     "28 / 512 ≈ 5.5%"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Snooping works because every cache hears every request on one bus. That stops working once there are dozens of cores, or several sockets. This video shows the alternative used in large machines: a directory."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Directory-based coherence"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why snooping stops scaling, the directory idea, where it lives, and its states and messages."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the protocol at the home node, a full trace counted message by message, the storage cost, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: what goes wrong with snooping? Every miss is broadcast, so every cache must see every request."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: why snooping stops scaling"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      },
+      {
+       "action": "highlight",
+       "target": "why[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A bus carries one request at a time. Add cores, and the traffic grows, but the bus does not."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And every cache must look up its tags for every request, even though it almost never has the block."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For a handful of cores, or one chip whose cores share an L3, that is fine."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For many cores or many sockets, we want point-to-point messages, sent only to the caches that actually hold the block."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "broadcast does not scale"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "idea",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the directory. For every block of memory it keeps two things."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: the directory idea"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "idea"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A state: is the block uncached, shared, or modified?"
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "idea[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And a set of sharers: one bit per processor, set if that processor's cache has a copy."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "idea[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now a write needs no broadcast. The directory knows exactly which caches to invalidate."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "idea[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And because nothing is broadcast, the cores can be joined by any network: a mesh, a ring, a crossbar."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "idea[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "the directory knows who has each block"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "home",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: where does the directory live? One central directory would become the new bottleneck. So it is distributed along with memory."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: the home node"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "idea"
+      },
+      {
+       "action": "show",
+       "target": "dg"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each node has a processor and cache, a slice of main memory, and the directory entries for that slice."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dg.c1"
+      },
+      {
+       "action": "highlight",
+       "target": "dg.m1",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The nodes talk over an interconnection network, not a bus."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dg.net"
+      },
+      {
+       "action": "highlight",
+       "target": "dg.m1->net",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "dg.m2->net",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "dg.m3->net",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This gives three roles for every request."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "dg"
+      },
+      {
+       "action": "show",
+       "target": "nodes"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The local node: the one whose processor missed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nodes[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The home node: the one whose memory holds the block. The address alone decides it, so everyone knows where to ask."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nodes[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And remote nodes: those whose caches hold a copy, as the owner or as sharers. Often a request touches all three."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nodes[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "ask the home node · it knows the sharers"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "states",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the directory states mirror the cache states, but describe the block across all caches."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: states and messages"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "nodes"
+      },
+      {
+       "action": "show",
+       "target": "ds"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Uncached: no cache has it, and memory is current."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ds[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Shared: one or more caches have clean copies, and memory is still current."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ds[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Modified: exactly one cache, the owner, has written it. Memory is stale."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ds[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And these are the messages. The local node sends a read miss or a write miss to the home. The home answers with a data reply."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "ds"
+      },
+      {
+       "action": "show",
+       "target": "msg"
+      },
+      {
+       "action": "highlight",
+       "target": "msg[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To take copies away, the home sends invalidate to a sharer."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "msg[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To recover a dirty block, it sends the owner a fetch, or a fetch and invalidate. The owner answers with a data write-back."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "msg[3..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "request · reply · invalidate · fetch · write-back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "proto",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: what the home node does for each request. Uncached is the easy case: read or write, it just replies with the data. Two messages."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: what the home does"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "msg"
+      },
+      {
+       "action": "show",
+       "target": "hp"
+      },
+      {
+       "action": "highlight",
+       "target": "hp[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Shared, and a read miss: reply, and add the new processor to the sharers. Still two."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Shared, and a write miss: invalidate every other sharer, reply, and the writer becomes the only owner. Two messages plus one per sharer invalidated."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hp[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Modified, and a read miss: memory is stale. Fetch the block from the owner, who writes it back, then reply. Four messages, and the block ends shared by both."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hp[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Modified, and a write miss: fetch and invalidate the owner, then reply. Four messages, and the writer is the new owner."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hp[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Real machines also send acknowledgements for invalidations, so the writer knows when it is safe. Our counts leave those out, as the textbook does."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "U: 2 · S read: 2 · S write: 2 + sharers · M: 4"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a trace. Four processors, one block X, homed on a separate node. The directory starts uncached."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: a trace, message by message"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hp"
+      },
+      {
+       "action": "show",
+       "target": "tt"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1: P1 reads X. Uncached: a read miss, a data reply. Shared by P1. Two messages."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[0][2]",
+       "value": "S {P1}"
+      },
+      {
+       "action": "set",
+       "target": "tt[0][3]",
+       "value": "P1→H RdMiss, H→P1 data",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tt[0][4]",
+       "value": "2",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "tt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2 and 3: P2, then P3, read X. Each is a read miss and a reply, two messages, and joins the sharers."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[1][2]",
+       "value": "S {P1,P2}"
+      },
+      {
+       "action": "set",
+       "target": "tt[1][3]",
+       "value": "P2→H RdMiss, H→P2 data",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tt[1][4]",
+       "value": "2",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "tt[1]"
+      },
+      {
+       "action": "set",
+       "target": "tt[2][2]",
+       "value": "S {P1,P2,P3}"
+      },
+      {
+       "action": "set",
+       "target": "tt[2][3]",
+       "value": "P3→H RdMiss, H→P3 data",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tt[2][4]",
+       "value": "2",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "tt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4: P4 writes X. The block is shared by three caches. A write miss, three invalidations, a reply: five messages. P4 owns it."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[3][2]",
+       "value": "M {P4}"
+      },
+      {
+       "action": "set",
+       "target": "tt[3][3]",
+       "value": "P4→H WrMiss, H→P1 inv, H→P2 inv, H→P3 inv, H→P4 data",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tt[3][4]",
+       "value": "5",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "tt[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5: P1 reads X. P4 holds it modified. Read miss, fetch to P4, write-back to home, reply to P1. Four messages. Now shared by P1 and P4."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[4][2]",
+       "value": "S {P1,P4}"
+      },
+      {
+       "action": "set",
+       "target": "tt[4][3]",
+       "value": "P1→H RdMiss, H→P4 fetch, P4→H WB, H→P1 data",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tt[4][4]",
+       "value": "4",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "tt[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "6: P2 writes X. Two sharers to invalidate: write miss, two invalidations, reply. Four messages."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[5][2]",
+       "value": "M {P2}"
+      },
+      {
+       "action": "set",
+       "target": "tt[5][3]",
+       "value": "P2→H WrMiss, H→P1 inv, H→P4 inv, H→P2 data",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tt[5][4]",
+       "value": "4",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "tt[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Nineteen messages in all, but every one went only where it was needed. A snooping bus would have sent every request to every cache."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tt[0..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "19 messages, none broadcast"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "storage",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: the cost. A full bit vector needs one bit per processor, for every memory block."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: storage overhead"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tt"
+      },
+      {
+       "action": "show",
+       "target": "ov"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 64 processors and 64-byte blocks: 64 bits per 512 bits of data. Twelve and a half percent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ov[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 256 processors, fifty percent. With 1024, the directory is twice the size of memory. The full bit vector does not scale either."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ov[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "ov[2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three ways to cut it. Limited pointers: most blocks have only a few sharers, so store a few processor numbers instead of a bit for everyone."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "ov"
+      },
+      {
+       "action": "show",
+       "target": "cut"
+      },
+      {
+       "action": "highlight",
+       "target": "cut[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A coarse vector: one bit per group of processors. On a write, invalidate the whole group."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cut[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A sparse directory: keep entries only for blocks that are actually cached somewhere."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cut[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Limited pointers, worked out. 64 processors need 6 bits to name one. Four pointers: 24 bits, against 64. The overhead falls from 12.5 to 4.7 percent."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "cut"
+      },
+      {
+       "action": "show",
+       "target": "lp"
+      },
+      {
+       "action": "highlight",
+       "target": "lp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If a fifth sharer arrives, the hardware must evict a sharer, or fall back to broadcast."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "overhead = P bits / block bits"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question. Four processors, one block X, homed elsewhere, starting uncached."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lp"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Give the directory state after every step and the messages each needs. Then part b: with 128 processors and 64-byte blocks, the overhead of a full bit vector, and of four pointers. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1: P1 writes X. Uncached: write miss and reply, two messages. Modified, owned by P1."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qt"
+      },
+      {
+       "action": "highlight",
+       "target": "qt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2: P2 reads. P1 owns it: read miss, fetch, write-back, reply. Four. Shared by P1 and P2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "3: P3 reads: two messages, and joins the sharers."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4: P1 writes. It is a sharer, but must still ask the home, which invalidates P2 and P3. Four messages. P1 owns it again."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5: P1 reads its own modified block: a hit, no messages."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "6: P4 writes. P1 owns it: write miss, fetch and invalidate, write-back, reply. Four. Total: sixteen messages."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[5]"
+      },
+      {
+       "action": "mark",
+       "target": "qt[6]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part b. 128 processors: 128 bits per 512 bits of data, 25 percent."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qt"
+      },
+      {
+       "action": "show",
+       "target": "qb"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Four pointers of 7 bits each, since 2 to the 7 is 128: 28 bits, about 5.5 percent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: counting a hit as messages, or forgetting the write-back from the owner. A modified block always costs four."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "M block: miss, fetch, write-back, reply"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qb"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Broadcast does not scale. A directory, kept at each block's home node, records the state and the sharers, so messages go only where needed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The home replies, invalidates sharers, or fetches from the owner. A full bit vector costs P bits per block; pointers and coarse vectors cut that."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: memory consistency, and how to measure a multicore: speedup, efficiency, Amdahl and Gustafson."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: consistency and multicore metrics"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

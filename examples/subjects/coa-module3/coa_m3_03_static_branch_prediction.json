@@ -1,0 +1,865 @@
+{
+ "version": 1,
+ "title": "Static branch prediction",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Why predict at all"
+    ],
+    [
+     2,
+     "Four static schemes"
+    ],
+    [
+     3,
+     "The delayed branch"
+    ],
+    [
+     4,
+     "Counting mispredictions in nested loops"
+    ],
+    [
+     5,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "why",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"CPI\" = 1 + \"branch frequency\" times \"misprediction rate\" times \"penalty\"",
+    "\"20% branches, penalty 2, every branch wrong:\" quad 1 + 0.2 times 1 times 2 = 1.4",
+    "\"static: the guess is fixed before the program runs\""
+   ]
+  },
+  {
+   "id": "sch",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "scheme",
+    "guess",
+    "good for"
+   ],
+   "rows": [
+    [
+     "not taken",
+     "fetch the next instruction; flush if taken",
+     "simple hardware, ifs"
+    ],
+    [
+     "taken",
+     "fetch from the target",
+     "loops"
+    ],
+    [
+     "BTFN",
+     "backward: taken · forward: not taken",
+     "loops and ifs together"
+    ],
+    [
+     "profile-based",
+     "each branch's usual direction from a test run",
+     "branches that lean one way"
+    ]
+   ]
+  },
+  {
+   "id": "ds",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "fill the delay slot with",
+    "condition",
+    "when it helps"
+   ],
+   "rows": [
+    [
+     "an instruction from before the branch",
+     "the branch must not depend on it",
+     "always"
+    ],
+    [
+     "an instruction from the target",
+     "safe to run when the branch is not taken",
+     "when taken"
+    ],
+    [
+     "an instruction from the fall-through",
+     "safe to run when taken",
+     "when not taken"
+    ]
+   ]
+  },
+  {
+   "id": "dsc",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "before:  DADD R1,R2,R3",
+    "         BEQZ R4,L",
+    "         (empty slot)",
+    "after:   BEQZ R4,L",
+    "         DADD R1,R2,R3   ; in the delay slot"
+   ]
+  },
+  {
+   "id": "nl",
+   "type": "code",
+   "region": "left",
+   "language": "c",
+   "lines": [
+    "for (i = 0; i < 10; i++) {",
+    "  for (j = 0; j < 4; j++) {",
+    "    work();",
+    "  }   // inner branch",
+    "}     // outer branch"
+   ]
+  },
+  {
+   "id": "nlt",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "branch",
+    "taken",
+    "not taken"
+   ],
+   "rows": [
+    [
+     "inner",
+     "",
+     ""
+    ],
+    [
+     "outer",
+     "",
+     ""
+    ],
+    [
+     "total",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "nlm",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "scheme",
+    "mispredictions",
+    "rate",
+    "CPI (20% branches, penalty 2)"
+   ],
+   "rows": [
+    [
+     "predict not taken",
+     "30 + 9 = 39",
+     "78%",
+     "1 + 0.2 × 0.78 × 2 = 1.31"
+    ],
+    [
+     "predict taken",
+     "10 + 1 = 11",
+     "22%",
+     "1 + 0.2 × 0.22 × 2 = 1.09"
+    ],
+    [
+     "BTFN",
+     "11 (both branches are backward)",
+     "22%",
+     "1.09"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "given",
+    "find"
+   ],
+   "rows": [
+    [
+     "loop of 100 iterations, branch at the bottom",
+     "a) mispredictions: not taken, taken, BTFN"
+    ],
+    [
+     "a forward if-branch inside, taken 30 times",
+     "b) misprediction rate of each"
+    ],
+    [
+     "25% branches, penalty 3 cycles",
+     "c) CPI of each"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "scheme",
+    "loop branch",
+    "if-branch",
+    "total of 200",
+    "CPI"
+   ],
+   "rows": [
+    [
+     "not taken",
+     "99 wrong",
+     "30 wrong",
+     "129: 64.5%",
+     "1 + 0.25 × 0.645 × 3 ≈ 1.48"
+    ],
+    [
+     "taken",
+     "1 wrong",
+     "70 wrong",
+     "71: 35.5%",
+     "≈ 1.27"
+    ],
+    [
+     "BTFN",
+     "1 wrong",
+     "30 wrong",
+     "31: 15.5%",
+     "≈ 1.12"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Loop unrolling removed branches. The ones that remain still cost cycles, unless we guess their direction correctly. This short video covers the guesses made before the program runs."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Static branch prediction"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Five stages: why predict, four static schemes, the delayed branch, counting mispredictions in nested loops, and an exam question."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      },
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: every wrong guess costs a penalty of a few cycles, while the pipeline throws away wrongly fetched instructions."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 5: why predict"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      },
+      {
+       "action": "highlight",
+       "target": "why[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the CPI is 1, plus the branch frequency, times the misprediction rate, times the penalty."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "why[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 20 percent branches and a 2-cycle penalty, getting every branch wrong would raise the CPI to 1.4. Every percent of accuracy matters."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "why[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "why[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A static prediction is fixed before the program runs, by the hardware's rule or by the compiler. It never changes while running."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "why[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "why[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "CPI = 1 + f × miss rate × penalty"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "schemes",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: four static schemes."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 5: four static schemes"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "sch"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Predict not taken: keep fetching the next instruction, and flush it if the branch turns out taken. The simplest hardware, which is what our 5-stage pipeline did in Module 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sch[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Predict taken: start fetching from the target. Loops make most branches taken, but the target address must be known early."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sch[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "BTFN: backward taken, forward not taken. A branch jumping backward is usually a loop, so guess taken. A forward branch is usually an if, so guess not taken."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sch[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Profile-based: run the program once on sample input, record which way each branch usually went, and let the compiler mark it with a hint bit. Misprediction rates vary a lot between programs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sch[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "not taken · taken · BTFN · profile"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "delay",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: an older trick, the delayed branch. The instruction right after the branch, its delay slot, always runs, whatever the branch does."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 5: the delayed branch"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sch"
+      },
+      {
+       "action": "show",
+       "target": "ds"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The best filler comes from before the branch, if the branch does not depend on it. Then the slot always does useful work."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ds[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here, the branch tests R4 and the add writes R1, so the add can move into the slot."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "ds"
+      },
+      {
+       "action": "show",
+       "target": "dsc"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Otherwise, take one from the target, which helps when the branch is taken, or from the fall-through, which helps when it is not. Either must be harmless on the other path."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "dsc"
+      },
+      {
+       "action": "show",
+       "target": "ds"
+      },
+      {
+       "action": "highlight",
+       "target": "ds[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "ds[2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Delayed branches suited simple 5-stage pipelines. With deep pipelines and multiple issue, one slot is not enough, so modern processors predict dynamically instead."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "delay slot: always executed · fill from before if possible"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "nested",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: counting. Two nested loops. The outer one runs 10 times, the inner one 4 times per outer iteration. Each loop's branch sits at its bottom, jumping backward."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 5: counting mispredictions"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ds"
+      },
+      {
+       "action": "show",
+       "target": "nl"
+      },
+      {
+       "action": "show",
+       "target": "nlt"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The inner branch runs 4 times per outer pass: taken 3 times, then not taken once, to exit. Over 10 passes: taken 30 times, not taken 10."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "nl",
+       "line": 4
+      },
+      {
+       "action": "set",
+       "target": "nlt[0][1]",
+       "value": "30"
+      },
+      {
+       "action": "set",
+       "target": "nlt[0][2]",
+       "value": "10",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The outer branch runs 10 times: taken 9 times, not taken once."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "nl",
+       "line": 5
+      },
+      {
+       "action": "set",
+       "target": "nlt[1][1]",
+       "value": "9"
+      },
+      {
+       "action": "set",
+       "target": "nlt[1][2]",
+       "value": "1",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In total, 50 branch executions: 39 taken, 11 not taken."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "nlt[2][1]",
+       "value": "39"
+      },
+      {
+       "action": "set",
+       "target": "nlt[2][2]",
+       "value": "11",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "nlt[2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Predict not taken is wrong on every taken branch: 39 of 50, 78 percent. The CPI becomes 1.31."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "nl"
+      },
+      {
+       "action": "hide",
+       "target": "nlt"
+      },
+      {
+       "action": "show",
+       "target": "nlm"
+      },
+      {
+       "action": "highlight",
+       "target": "nlm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Predict taken is wrong only on the 11 exits: 22 percent, a CPI of 1.09."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nlm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And BTFN gives the same here, since both branches jump backward. It differs only when forward branches appear, as in the exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nlm[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "loop branch: wrong once per loop exit when predicted taken"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "nlm"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A loop of 100 iterations with its branch at the bottom. Inside, a forward if-branch, taken 30 times. 25 percent of instructions are branches, and a misprediction costs 3 cycles. Find the mispredictions, the rates, and the CPI under not taken, taken, and BTFN. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[1]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "q[2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Not taken: wrong on the 99 loop-backs and on the 30 taken ifs. 129 of 200 branches, 64.5 percent. CPI: 1 plus 0.25 times 0.645 times 3, about 1.48."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Taken: wrong on the one loop exit, and on the 70 untaken ifs. 71, 35.5 percent, CPI about 1.27."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "BTFN: the backward loop branch is guessed taken, wrong once. The forward if is guessed not taken, wrong 30 times. 31, 15.5 percent, CPI about 1.12. The best of the three."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: forgetting that a loop branch is not taken once, at the exit."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "BTFN wins when loops and ifs mix"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Static prediction fixes each guess in advance: not taken, taken, BTFN, or from a profile. Delay slots hide one cycle more. Next video: scoreboarding, the first step into dynamic scheduling."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      },
+      {
+       "action": "mark",
+       "target": "stages[0..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: scoreboarding"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

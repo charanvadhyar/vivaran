@@ -1,0 +1,1473 @@
+{
+ "version": 1,
+ "title": "Tomasulo's algorithm, part 2",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The timing rules"
+    ],
+    [
+     2,
+     "The example, cycle by cycle"
+    ],
+    [
+     3,
+     "A snapshot at cycle 6"
+    ],
+    [
+     4,
+     "Against the scoreboard"
+    ],
+    [
+     5,
+     "A loop: two iterations in flight"
+    ],
+    [
+     6,
+     "Loads and stores to the same address"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "rules",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "timing rule"
+   ],
+   "rows": [
+    [
+     "issue",
+     "in order, one per cycle, if a station of the right kind is free"
+    ],
+    [
+     "execute",
+     "starts the cycle after the last operand appears on the CDB"
+    ],
+    [
+     "write",
+     "the cycle after execution ends; one result per cycle on the CDB"
+    ],
+    [
+     "stations",
+     "3 load, 3 store, 3 add, 2 multiply/divide"
+    ],
+    [
+     "latencies",
+     "load 1, add 2, multiply 10, divide 40"
+    ]
+   ]
+  },
+  {
+   "id": "code",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "L.D    F6,34(R2)",
+    "L.D    F2,45(R3)",
+    "MUL.D  F0,F2,F4",
+    "SUB.D  F8,F6,F2",
+    "DIV.D  F10,F0,F6",
+    "ADD.D  F6,F8,F2"
+   ]
+  },
+  {
+   "id": "is",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "instruction",
+    "station",
+    "issue",
+    "execute",
+    "write result"
+   ],
+   "rows": [
+    [
+     "L.D    F6,34(R2)",
+     "Load1",
+     "",
+     "",
+     ""
+    ],
+    [
+     "L.D    F2,45(R3)",
+     "Load2",
+     "",
+     "",
+     ""
+    ],
+    [
+     "MUL.D  F0,F2,F4",
+     "Mult1",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SUB.D  F8,F6,F2",
+     "Add1",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DIV.D  F10,F0,F6",
+     "Mult2",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ADD.D  F6,F8,F2",
+     "Add2",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "rs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "station",
+    "busy",
+    "op",
+    "Vj",
+    "Vk",
+    "Qj",
+    "Qk"
+   ],
+   "rows": [
+    [
+     "Load1",
+     "no",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Load2",
+     "no",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Add1",
+     "yes",
+     "SUB.D",
+     "Mem[34+R2]",
+     "Mem[45+R3]",
+     "",
+     ""
+    ],
+    [
+     "Add2",
+     "yes",
+     "ADD.D",
+     "",
+     "Mem[45+R3]",
+     "Add1",
+     ""
+    ],
+    [
+     "Mult1",
+     "yes",
+     "MUL.D",
+     "Mem[45+R3]",
+     "Regs[F4]",
+     "",
+     ""
+    ],
+    [
+     "Mult2",
+     "yes",
+     "DIV.D",
+     "",
+     "Mem[34+R2]",
+     "Mult1",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "rg",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "register",
+    "F0",
+    "F2",
+    "F4",
+    "F6",
+    "F8",
+    "F10"
+   ],
+   "rows": [
+    [
+     "Qi",
+     "Mult1",
+     "",
+     "",
+     "Add2",
+     "Add1",
+     "Mult2"
+    ]
+   ]
+  },
+  {
+   "id": "cmp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "scoreboard",
+    "Tomasulo"
+   ],
+   "rows": [
+    [
+     "SUB.D reads operands",
+     "cycle 9",
+     "starts executing in 5"
+    ],
+    [
+     "ADD.D writes F6",
+     "cycle 22: held by the WAR",
+     "cycle 10: no WAR"
+    ],
+    [
+     "last result (DIV.D)",
+     "cycle 62",
+     "cycle 56"
+    ]
+   ]
+  },
+  {
+   "id": "lp",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "Loop: L.D    F0,0(R1)",
+    "      MUL.D  F4,F0,F2",
+    "      S.D    F4,0(R1)",
+    "      DADDUI R1,R1,#-8",
+    "      BNE    R1,R2,Loop"
+   ]
+  },
+  {
+   "id": "lrs",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "station",
+    "op",
+    "address or operands",
+    "waits for"
+   ],
+   "rows": [
+    [
+     "Load1",
+     "L.D",
+     "R1",
+     ""
+    ],
+    [
+     "Mult1",
+     "MUL.D",
+     "F2",
+     "Load1"
+    ],
+    [
+     "Store1",
+     "S.D",
+     "R1",
+     "Mult1"
+    ],
+    [
+     "Load2",
+     "L.D",
+     "R1 − 8",
+     ""
+    ],
+    [
+     "Mult2",
+     "MUL.D",
+     "F2",
+     "Load2"
+    ],
+    [
+     "Store2",
+     "S.D",
+     "R1 − 8",
+     "Mult2"
+    ]
+   ]
+  },
+  {
+   "id": "lrg",
+   "type": "table",
+   "region": "bottom",
+   "columns": [
+    "register",
+    "F0",
+    "F4"
+   ],
+   "rows": [
+    [
+     "Qi",
+     "Load2",
+     "Mult2"
+    ]
+   ]
+  },
+  {
+   "id": "mem",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "case",
+    "rule"
+   ],
+   "rows": [
+    [
+     "load after store",
+     "same address: the load waits (RAW)"
+    ],
+    [
+     "store after load",
+     "same address: the store waits (WAR)"
+    ],
+    [
+     "store after store",
+     "same address: keep the order (WAW)"
+    ],
+    [
+     "how",
+     "addresses in program order, compared with pending ones"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "L.D    F2,0(R1)",
+    "MUL.D  F4,F2,F0",
+    "L.D    F6,8(R1)",
+    "ADD.D  F8,F4,F6",
+    "SUB.D  F4,F6,F10"
+   ]
+  },
+  {
+   "id": "qt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "instruction",
+    "station",
+    "issue",
+    "execute",
+    "write result"
+   ],
+   "rows": [
+    [
+     "L.D    F2,0(R1)",
+     "Load1",
+     "",
+     "",
+     ""
+    ],
+    [
+     "MUL.D  F4,F2,F0",
+     "Mult1",
+     "",
+     "",
+     ""
+    ],
+    [
+     "L.D    F6,8(R1)",
+     "Load2",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ADD.D  F8,F4,F6",
+     "Add1",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SUB.D  F4,F6,F10",
+     "Add2",
+     "",
+     "",
+     ""
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Last video built Tomasulo's machine. Now we run it: the same six instructions the scoreboard ran, cycle by cycle, then a loop, then memory. Watch the WAR stall vanish."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Tomasulo's algorithm, part 2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The timing rules, the trace, a snapshot of the stations, and the comparison with the scoreboard."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then a loop with two iterations in flight, loads and stores to the same address, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rules",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: the rules. Issue is in order, one instruction per cycle, as long as a station of the right kind is free."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the timing rules"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "rules"
+      },
+      {
+       "action": "highlight",
+       "target": "rules[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Execution starts the cycle after the last operand appears on the common data bus. If both operands are ready at issue, it starts the very next cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rules[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A result is written, on the bus, the cycle after execution ends. Only one result can use the bus each cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rules[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three load buffers, three store buffers, three add stations and two for multiply and divide. And the same latencies as the scoreboard video, so we can compare."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rules[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "issue → execute when operands arrive → write on the CDB"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the six instructions again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: cycle by cycle"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rules"
+      },
+      {
+       "action": "show",
+       "target": "code"
+      },
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 1,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the status table. Each instruction is shown with the station it gets."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "code"
+      },
+      {
+       "action": "show",
+       "target": "is"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The first load: issued in 1, into Load1. It computes its address and reads memory in cycle 2, and writes F6 on the bus in 3."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[0][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "is[0][3]",
+       "value": "2",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "is[0][4]",
+       "value": "3",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The second load: issued in 2. There are three load buffers, so no structural stall this time. It executes in 3, writes F2 in 4."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[1][2]",
+       "value": "2"
+      },
+      {
+       "action": "set",
+       "target": "is[1][3]",
+       "value": "3",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "is[1][4]",
+       "value": "4",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The multiply issues in 3, into Mult1. F4 is ready and copied; F2 comes from Load2, so Qj is Load2. It hears F2 on the bus in cycle 4 and starts in 5."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[2][2]",
+       "value": "3"
+      },
+      {
+       "action": "highlight",
+       "target": "is[1][4]",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "is[2][3]",
+       "value": "5–14",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It runs 10 cycles, 5 to 14, and writes F0 in 15."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[2][4]",
+       "value": "15"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The subtract issues in 4, into Add1. F6 was written in 3, so its value is copied straight away. F2 arrives in 4. It executes in 5 and 6, and writes F8 in 7."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[3][2]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "is[3][3]",
+       "value": "5–6",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "is[3][4]",
+       "value": "7",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The divide issues in 5, into Mult2. F6 is copied at issue: the old F6, from the first load. F0 must come from Mult1, so it waits for cycle 15."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[4][2]",
+       "value": "5"
+      },
+      {
+       "action": "highlight",
+       "target": "is[2][4]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It starts in 16, runs 40 cycles to 55, and writes F10 in 56."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[4][3]",
+       "value": "16–55"
+      },
+      {
+       "action": "set",
+       "target": "is[4][4]",
+       "value": "56",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The add issues in 6, into Add2. F8 comes from Add1 in cycle 7, so it starts in 8, finishes in 9, and writes F6 in 10."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[5][2]",
+       "value": "6"
+      },
+      {
+       "action": "set",
+       "target": "is[5][3]",
+       "value": "8–9",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "is[5][4]",
+       "value": "10",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycle 10, not 22. The add overwrites F6 while the divide still has not started. That is safe, because the divide copied the old F6 at issue, five cycles earlier."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "is[5][4]"
+      },
+      {
+       "action": "highlight",
+       "target": "is[4][3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the whole sequence ends in cycle 56."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "is[4][4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "ADD.D writes in 10: the WAR stall is gone"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "snap",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: the stations at the end of cycle 6, when all six have issued."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: a snapshot at cycle 6"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "is"
+      },
+      {
+       "action": "show",
+       "target": "rs"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Both loads are done: their buffers are free again."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rs[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add1 holds the subtract. Both its operands are values, copied from the loads' broadcasts. It is finishing execution."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rs[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add2 holds the add. F2's value is in Vk; F8 will come from Add1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rs[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Mult1 is executing the multiply. Mult2 holds the divide, with the old F6 value in Vk, waiting for tag Mult1 for F0."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rs[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "rs[5]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the register status: F0 from Mult1, F6 from Add2, F8 from Add1, F10 from Mult2. F6 points at the add, the latest writer, while the divide keeps its own copy of the old value."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rs"
+      },
+      {
+       "action": "show",
+       "target": "rg"
+      },
+      {
+       "action": "highlight",
+       "target": "rg[0][4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "old values live in stations · registers wait for the latest tag"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cmp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: against the scoreboard."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: against the scoreboard"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rg"
+      },
+      {
+       "action": "show",
+       "target": "cmp"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The subtract: the scoreboard read its operands in cycle 9. Tomasulo had them off the bus and was executing in 5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The add's write: cycle 22 with the scoreboard, held by the WAR on F6. Cycle 10 with Tomasulo."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the last result: 62 against 56. Some of that is the extra load buffers, and the bus forwarding results directly; the rest is renaming."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "same code, same latencies: 62 → 56 cycles"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "loop",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the real power shows in loops. This loop multiplies every element by F2."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: two iterations in flight"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cmp"
+      },
+      {
+       "action": "show",
+       "target": "lp"
+      },
+      {
+       "action": "mark_lines",
+       "target": "lp",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Suppose the branch is predicted taken, and two full iterations issue before any floating-point operation finishes."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "lrs"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Iteration 1: the load takes Load1, the multiply Mult1, waiting for Load1, and the store Store1, waiting for Mult1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lrs[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Iteration 2 uses the very same register names, F0 and F4. But it gets different stations: Load2, Mult2 and Store2, with the address R1 minus 8."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lrs[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The register status shows only the latest writers: F0 from Load2, F4 from Mult2. The two iterations never interfere."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "lrg"
+      },
+      {
+       "action": "highlight",
+       "target": "lrg[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This is loop unrolling done by the hardware, while the program runs. Renaming through stations gives each iteration its own registers, with no compiler involved."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "lrg"
+      },
+      {
+       "action": "mark",
+       "target": "lrs[0..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "dynamic unrolling: each iteration gets its own stations"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mem",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: there is one danger left. Two iterations' loads and stores might touch the same address."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: memory ordering"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lp"
+      },
+      {
+       "action": "hide",
+       "target": "lrs"
+      },
+      {
+       "action": "show",
+       "target": "mem"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A load after an earlier store to the same address must wait for the store. That is a RAW hazard through memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mem[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A store after an earlier load to the same address must wait until the load has read, and stores to the same address keep their order. WAR and WAW through memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mem[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "mem[2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The fix: compute effective addresses in program order, and compare each new address against all pending loads and stores before letting it go."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mem[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "registers are renamed · memory addresses must be compared"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: the same five instructions as in the scoreboard exam."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "mem"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Fill the Tomasulo status table, compare the finish with the scoreboard's 25, and say what value F4 ends with. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "q",
+       "line": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The first load: 1, executes in 2, writes F2 in 3. The multiply issues in 2, waits for F2, executes 4 to 13, writes F4 in 14."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qt"
+      },
+      {
+       "action": "set",
+       "target": "qt[0][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qt[0][3]",
+       "value": "2",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "qt[0][4]",
+       "value": "3",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "qt[1][2]",
+       "value": "2",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "qt[1][3]",
+       "value": "4–13",
+       "delay": 0.65
+      },
+      {
+       "action": "set",
+       "target": "qt[1][4]",
+       "value": "14",
+       "delay": 0.9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The second load: issue 3, execute 4, write F6 in 5."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "qt[2][2]",
+       "value": "3"
+      },
+      {
+       "action": "set",
+       "target": "qt[2][3]",
+       "value": "4",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "qt[2][4]",
+       "value": "5",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The add issues in 4. Its F4 comes from Mult1, written in 14. It executes 15 and 16, writes in 17."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "qt[3][2]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "qt[3][3]",
+       "value": "15–16",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "qt[3][4]",
+       "value": "17",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The subtract issues in 5. No WAW stall, and a free add station, Add2. F6 arrives in 5, so it executes 6 and 7, and writes F4 in 8."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "qt[4][2]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "qt[4][3]",
+       "value": "6–7",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "qt[4][4]",
+       "value": "8",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Everything is done by cycle 17, against 25 for the scoreboard."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "qt[3][4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And F4? The subtract issued last, so F4's status points to Add2. In cycle 8 the subtract's value goes into F4. In 14, the multiply broadcasts tag Mult1: the add takes it, but F4 ignores it. F4 ends with the subtract's value, as the program requires."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "qt[1][4]",
+       "delay": 0.5
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "the latest writer wins, even when it finishes first"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qt"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Instructions issue in order, execute when their operands arrive on the bus, and write one per cycle. The WAR stall vanished: 62 cycles became 56."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stations give each loop iteration its own names, and memory addresses are checked to keep loads and stores safe."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: dynamic branch prediction, because none of this pays off if we stop at every branch."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: dynamic branch prediction"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

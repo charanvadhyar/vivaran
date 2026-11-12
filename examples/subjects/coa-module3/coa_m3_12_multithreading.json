@@ -1,0 +1,1437 @@
+{
+ "version": 1,
+ "title": "Multithreading",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Wasted issue slots"
+    ],
+    [
+     2,
+     "Three threads, eight cycles"
+    ],
+    [
+     3,
+     "One thread on a superscalar"
+    ],
+    [
+     4,
+     "Coarse-grained multithreading"
+    ],
+    [
+     5,
+     "Fine-grained multithreading"
+    ],
+    [
+     6,
+     "Simultaneous multithreading"
+    ],
+    [
+     7,
+     "How many threads hide a miss"
+    ],
+    [
+     8,
+     "What each needs, and where it is used"
+    ],
+    [
+     9,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "waste",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "waste",
+    "meaning",
+    "cause"
+   ],
+   "rows": [
+    [
+     "vertical",
+     "a whole cycle issues nothing",
+     "a long stall: a cache miss"
+    ],
+    [
+     "horizontal",
+     "a cycle issues fewer than its width",
+     "too little ILP in this cycle"
+    ],
+    [
+     "the idea",
+     "fill the slots from other threads",
+     "threads are independent: no dependences between them"
+    ]
+   ]
+  },
+  {
+   "id": "rd",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "cycle",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+   ],
+   "rows": [
+    [
+     "thread A ready",
+     "2",
+     "1",
+     "0",
+     "0",
+     "0",
+     "0",
+     "3",
+     "1"
+    ],
+    [
+     "thread B ready",
+     "1",
+     "3",
+     "2",
+     "0",
+     "1",
+     "2",
+     "1",
+     "2"
+    ],
+    [
+     "thread C ready",
+     "3",
+     "0",
+     "1",
+     "2",
+     "2",
+     "0",
+     "2",
+     "1"
+    ]
+   ]
+  },
+  {
+   "id": "sl",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "cycle",
+    "slot 1",
+    "slot 2",
+    "slot 3",
+    "slot 4"
+   ],
+   "rows": [
+    [
+     "1",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "2",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "3",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "4",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "5",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "6",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "7",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "8",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "cmp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "scheme",
+    "slots used of 32",
+    "utilisation",
+    "single-thread speed"
+   ],
+   "rows": [
+    [
+     "superscalar, one thread",
+     "7",
+     "22%",
+     "best"
+    ],
+    [
+     "coarse-grained",
+     "9",
+     "28%",
+     "almost unchanged"
+    ],
+    [
+     "fine-grained",
+     "14",
+     "44%",
+     "slower: shares every cycle"
+    ],
+    [
+     "simultaneous (SMT)",
+     "26",
+     "81%",
+     "slightly slower"
+    ]
+   ]
+  },
+  {
+   "id": "hm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"each thread: 20 cycles of work, then a 100-cycle miss\"",
+    "\"one thread:\" quad 20 / (20 + 100) approx 17% \"busy\"",
+    "N \"threads:\" quad \"busy\" = min(1, N times 20 / 120) quad N = 2 : 33% quad N = 4 : 67%",
+    "\"fully busy when\" quad N >= 1 + 100 / 20 = 6 \"threads\""
+   ]
+  },
+  {
+   "id": "need",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "scheme",
+    "per thread",
+    "used in"
+   ],
+   "rows": [
+    [
+     "coarse-grained",
+     "PC, registers",
+     "IBM AS/400 processors"
+    ],
+    [
+     "fine-grained",
+     "PC, registers",
+     "Sun Niagara: 8 cores × 4 threads · GPUs"
+    ],
+    [
+     "SMT",
+     "PC, rename map, return stack, commit",
+     "Intel Hyper-Threading: 2 · IBM POWER: up to 8"
+    ],
+    [
+     "shared",
+     "units, stations, caches, predictors",
+     "so threads also compete"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "cycle",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+   ],
+   "rows": [
+    [
+     "thread A ready",
+     "3",
+     "0",
+     "0",
+     "0",
+     "2",
+     "1"
+    ],
+    [
+     "thread B ready",
+     "1",
+     "2",
+     "0",
+     "3",
+     "1",
+     "2"
+    ]
+   ]
+  },
+  {
+   "id": "qx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "4-wide core, 6 cycles, 24 slots. Find the slots used by:"
+   ],
+   "rows": [
+    [
+     "a) thread A alone"
+    ],
+    [
+     "b) coarse-grained (switch on a stall of 2+ cycles, losing 1 cycle)"
+    ],
+    [
+     "c) fine-grained (alternate A, B; skip a stalled thread)"
+    ],
+    [
+     "d) SMT (A first, then B)"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "scheme",
+    "cycle by cycle",
+    "slots",
+    "utilisation"
+   ],
+   "rows": [
+    [
+     "A alone",
+     "AAA · – · – · – · AA · A",
+     "6",
+     "25%"
+    ],
+    [
+     "coarse",
+     "AAA · switch · – · BBB · B · BB",
+     "9",
+     "37.5%"
+    ],
+    [
+     "fine",
+     "AAA · BB · – · BBB · AA · BB",
+     "12",
+     "50%"
+    ],
+    [
+     "SMT",
+     "AAAB · BB · – · BBB · AAB · ABB",
+     "15",
+     "62.5%"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "The limits video ended with a 4-wide core sustaining under 2 instructions per cycle. Half its issue slots go empty. Multithreading fills them with work from other threads."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Multithreading"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the nine stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Wasted slots, an example with three threads, and one thread alone."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then coarse-grained, fine-grained and simultaneous multithreading, how many threads it takes, what each needs, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=8]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "waste",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: two kinds of waste. Vertical waste: a whole cycle where nothing issues, usually because of a long stall like a cache miss."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 9: wasted slots"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "waste"
+      },
+      {
+       "action": "highlight",
+       "target": "waste[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Horizontal waste: a cycle that issues fewer instructions than the machine's width, because this thread has too little parallelism right now."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "waste[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Other threads, separate programs or separate parts of one program, are independent of this one. Their instructions can fill those slots with no dependence checks between threads."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "waste[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "vertical waste: empty cycles · horizontal waste: empty slots"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "example",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: a 4-wide core, three threads, eight cycles. This table says how many instructions each thread could issue in each cycle."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 9: three threads"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "waste"
+      },
+      {
+       "action": "show",
+       "target": "rd"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Thread A has a long stall, a cache miss, in cycles 3 to 6."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rd[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Threads B and C each have a short one-cycle stall here and there."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rd[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "rd[2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now we fill a grid of 8 cycles by 4 slots, 32 slots in all, under each scheme."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rd"
+      },
+      {
+       "action": "show",
+       "target": "sl"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ss",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: an ordinary superscalar runs only thread A."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 9: one thread"
+      },
+      {
+       "action": "set",
+       "target": "sl[0][1]",
+       "value": "A"
+      },
+      {
+       "action": "set",
+       "target": "sl[0][2]",
+       "value": "A"
+      },
+      {
+       "action": "set",
+       "target": "sl[1][1]",
+       "value": "A",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "sl[6][1]",
+       "value": "A",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "sl[6][2]",
+       "value": "A",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "sl[6][3]",
+       "value": "A",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "sl[7][1]",
+       "value": "A",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycles 1 and 2 are partly empty: horizontal waste. Cycles 3 to 6 are completely empty: the cache miss, vertical waste."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sl[0..=1]"
+      },
+      {
+       "action": "highlight",
+       "target": "sl[2..=5]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "7 slots used out of 32: 22 percent."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "one thread: 7 of 32 slots"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "coarse",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: coarse-grained multithreading. Run one thread until it hits a long stall, then switch to another."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 9: coarse-grained"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "set",
+       "target": "sl[4][1]",
+       "value": "B",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "sl[5][1]",
+       "value": "B",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "sl[5][2]",
+       "value": "B",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "sl[6][1]",
+       "value": "B",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "sl[6][2]",
+       "value": "",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "sl[6][3]",
+       "value": "",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "sl[7][1]",
+       "value": "B",
+       "delay": 0.7
+      },
+      {
+       "action": "set",
+       "target": "sl[7][2]",
+       "value": "B",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A runs cycles 1 and 2. In cycle 3 its miss is detected and the core switches to B. The switch empties the pipeline, so cycle 3 is lost."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sl[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In cycle 4, B has a one-cycle stall. Too short to switch for, so that cycle is lost too. Then B runs to the end."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sl[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "sl[4..=7]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "9 of 32. It hides long stalls, and costs the running thread almost nothing. But it cannot fill short stalls or horizontal waste."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "coarse: switch on long stalls · 9 of 32"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fine",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: fine-grained multithreading. Switch threads every cycle, in turn, skipping any thread that is stalled."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 9: fine-grained"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "set",
+       "target": "sl[1][1]",
+       "value": "B",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "sl[1][2]",
+       "value": "B",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "sl[1][3]",
+       "value": "B",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "sl[2][1]",
+       "value": "C",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "sl[3][1]",
+       "value": "C",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sl[3][2]",
+       "value": "C",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sl[6][1]",
+       "value": "C",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "sl[6][2]",
+       "value": "C",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "sl[7][1]",
+       "value": "A",
+       "delay": 0.7
+      },
+      {
+       "action": "set",
+       "target": "sl[7][2]",
+       "value": "",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycle 1 goes to A, 2 to B, 3 to C. In cycle 4, A and B are stalled, so C goes again."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sl[0..=2]"
+      },
+      {
+       "action": "highlight",
+       "target": "sl[3]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A's long miss costs nothing: the other threads simply take its turns."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sl[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "14 of 32. Both short and long stalls are hidden. But each cycle still holds one thread, so horizontal waste remains. And any single thread runs slower, because it gets only every third cycle."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "fine: a different thread each cycle · 14 of 32"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "smt",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: simultaneous multithreading, SMT. In every cycle, fill the slots from any threads that have instructions ready. Here A first, then B, then C."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 9: simultaneous multithreading"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "set",
+       "target": "sl[0][3]",
+       "value": "B"
+      },
+      {
+       "action": "set",
+       "target": "sl[0][4]",
+       "value": "C"
+      },
+      {
+       "action": "set",
+       "target": "sl[1][1]",
+       "value": "A",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "sl[1][4]",
+       "value": "B",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "sl[2][1]",
+       "value": "B",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "sl[2][2]",
+       "value": "B",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "sl[2][3]",
+       "value": "C",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "sl[4][2]",
+       "value": "C",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "sl[4][3]",
+       "value": "C",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "sl[6][1]",
+       "value": "A",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "sl[6][2]",
+       "value": "A",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "sl[6][3]",
+       "value": "A",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "sl[6][4]",
+       "value": "B",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "sl[7][2]",
+       "value": "B",
+       "delay": 0.7
+      },
+      {
+       "action": "set",
+       "target": "sl[7][3]",
+       "value": "B",
+       "delay": 0.7
+      },
+      {
+       "action": "set",
+       "target": "sl[7][4]",
+       "value": "C",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cycle 1: A's two, B's one, and C fills the last slot. Cycle 2: A's one and three of B's."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sl[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "sl[1]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Even during A's miss, B and C share the slots."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sl[2..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "26 of 32, 81 percent. SMT attacks both vertical and horizontal waste. It works naturally on a dynamically scheduled core, because the renaming and stations already mix independent instructions."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "SMT: several threads in the same cycle · 26 of 32"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Side by side: 7, 9, 14 and 26 slots. The price is shown in the last column: the more a scheme shares, the more each single thread slows down."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "sl"
+      },
+      {
+       "action": "show",
+       "target": "cmp"
+      },
+      {
+       "action": "highlight",
+       "target": "cmp[0..=3]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "howmany",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: how many threads does it take to hide a miss? Say each thread works for 20 cycles, then waits 100 cycles for memory."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 9: how many threads"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cmp"
+      },
+      {
+       "action": "show",
+       "target": "hm"
+      },
+      {
+       "action": "highlight",
+       "target": "hm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Alone, a thread keeps the core busy 20 cycles out of every 120: about 17 percent."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "hm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With N threads taking turns, the core is busy N times 20 out of 120 cycles, up to 100 percent. Two threads: 33 percent. Four: 67."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "hm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It is fully busy once one thread's 100-cycle wait is covered by the others' work: 1 plus 100 over 20, 6 threads. This is why GPUs, which face long memory latencies, keep so many threads in flight."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hm[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "hm[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "threads needed ≈ 1 + latency ÷ work between misses"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "needs",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 8: what each needs, and where it is used."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 8 of 9: hardware and examples"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hm"
+      },
+      {
+       "action": "show",
+       "target": "need"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Coarse-grained needs a separate program counter and register set per thread, and switches on a long stall. It appeared in IBM's AS/400 line."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "need[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Fine-grained needs the same, but interleaves every cycle. Sun's Niagara ran 4 threads on each of 8 simple cores. GPUs push the idea to thousands of threads."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "need[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "SMT adds a separate rename map, return-address stack and commit per thread on top of an out-of-order core. Intel calls it Hyper-Threading, with 2 threads per core; IBM's POWER processors run up to 8."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "need[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Everything else is shared: units, stations, caches, predictors. So threads also compete, and two memory-hungry threads can slow each other down."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "need[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "SMT = an out-of-order core + per-thread state"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question. A 4-wide core, two threads, six cycles. The table shows how many instructions each could issue."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "need"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Count the slots used by A alone, by coarse-grained switching with a 1-cycle switch cost, by fine-grained alternation, and by SMT. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qx"
+      },
+      {
+       "action": "highlight",
+       "target": "qx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A alone: 3, then three empty cycles, then 2 and 1. 6 of 24."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qx"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Coarse: A runs cycle 1, stalls; the switch loses cycle 2. B is stalled in cycle 3, too briefly to switch again. Then B: 3, 1 and 2. 9 of 24."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Fine: A, then B's 2, nothing in cycle 3 when both stall, B's 3 when A is still stalled, then A's 2 and B's 2. 12."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "SMT: 4, 2, 0, 3, 3, 3. 15 of 24, 62.5 percent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: giving fine-grained more than one thread per cycle. Only SMT mixes threads within one cycle."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "fine: one thread per cycle · SMT: several"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Coarse-grained hides long stalls; fine-grained hides every stall; SMT also fills the empty slots within a cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Enough threads hide even a long miss. SMT rides on the out-of-order machinery, adding a little state per thread, and the threads share everything else."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[6..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: shared-memory multiprocessors, and the cache coherence problem."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=8]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: shared memory and cache coherence"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

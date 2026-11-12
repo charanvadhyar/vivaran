@@ -1,0 +1,1309 @@
+{
+ "version": 1,
+ "title": "Multiple issue with dynamic scheduling",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "From one instruction per cycle to several"
+    ],
+    [
+     2,
+     "What makes wide issue hard"
+    ],
+    [
+     3,
+     "The example: 2-issue, no speculation"
+    ],
+    [
+     4,
+     "The same loop with speculation"
+    ],
+    [
+     5,
+     "Comparing, and the other limits"
+    ],
+    [
+     6,
+     "The static alternative: VLIW"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "kinds",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "machine",
+    "issue",
+    "scheduled by",
+    "example"
+   ],
+   "rows": [
+    [
+     "static superscalar",
+     "2 per cycle, in order",
+     "hardware, in order",
+     "early embedded cores"
+    ],
+    [
+     "VLIW",
+     "one wide packet",
+     "the compiler",
+     "Itanium, DSPs"
+    ],
+    [
+     "dynamic superscalar",
+     "4 to 8 per cycle",
+     "hardware, out of order",
+     "Intel Core, AMD Zen, Apple M"
+    ]
+   ]
+  },
+  {
+   "id": "hard",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "each cycle, for w instructions",
+    "cost"
+   ],
+   "rows": [
+    [
+     "a station and a ROB entry for each",
+     "w allocations"
+    ],
+    [
+     "compare sources with earlier destinations in the group",
+     "w(w − 1) comparisons"
+    ],
+    [
+     "update the register map, in order",
+     "the last writer wins"
+    ]
+   ]
+  },
+  {
+   "id": "hm",
+   "type": "math",
+   "region": "bottom",
+   "lines": [
+    "w = 2 : 2 quad w = 4 : 12 quad w = 8 : 56 \"comparisons, every cycle\""
+   ]
+  },
+  {
+   "id": "lp",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "Loop: LD     R2,0(R1)     ; R2 = array element",
+    "      DADDIU R2,R2,#1     ; add 1",
+    "      SD     R2,0(R1)     ; store it back",
+    "      DADDIU R1,R1,#8     ; next element",
+    "      BNE    R2,R3,Loop   ; stop at the last element"
+   ]
+  },
+  {
+   "id": "asm",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "assume",
+    "value"
+   ],
+   "rows": [
+    [
+     "issue and commit",
+     "2 per cycle, in order"
+    ],
+    [
+     "latency",
+     "load 2 cycles · integer ALU 1 · branch 1"
+    ],
+    [
+     "result buses",
+     "2 per cycle"
+    ],
+    [
+     "without speculation",
+     "nothing after a branch starts executing until the branch has executed"
+    ]
+   ]
+  },
+  {
+   "id": "tn",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "iter",
+    "instruction",
+    "issue",
+    "execute",
+    "write",
+    "commit"
+   ],
+   "rows": [
+    [
+     "1",
+     "LD     R2,0(R1)",
+     "1",
+     "2–3",
+     "4",
+     "5"
+    ],
+    [
+     "1",
+     "DADDIU R2,R2,#1",
+     "1",
+     "5",
+     "6",
+     "7"
+    ],
+    [
+     "1",
+     "SD     R2,0(R1)",
+     "2",
+     "7",
+     "–",
+     "8"
+    ],
+    [
+     "1",
+     "DADDIU R1,R1,#8",
+     "2",
+     "3",
+     "4",
+     "8"
+    ],
+    [
+     "1",
+     "BNE    R2,R3,Loop",
+     "3",
+     "7",
+     "–",
+     "9"
+    ],
+    [
+     "2",
+     "LD     R2,0(R1)",
+     "3",
+     "8–9",
+     "10",
+     "11"
+    ],
+    [
+     "2",
+     "DADDIU R2,R2,#1",
+     "4",
+     "11",
+     "12",
+     "13"
+    ],
+    [
+     "2",
+     "SD     R2,0(R1)",
+     "4",
+     "13",
+     "–",
+     "14"
+    ],
+    [
+     "2",
+     "DADDIU R1,R1,#8",
+     "5",
+     "8",
+     "9",
+     "14"
+    ],
+    [
+     "2",
+     "BNE    R2,R3,Loop",
+     "5",
+     "13",
+     "–",
+     "15"
+    ]
+   ]
+  },
+  {
+   "id": "ts",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "iter",
+    "instruction",
+    "issue",
+    "execute",
+    "write",
+    "commit"
+   ],
+   "rows": [
+    [
+     "1",
+     "LD     R2,0(R1)",
+     "1",
+     "2–3",
+     "4",
+     "5"
+    ],
+    [
+     "1",
+     "DADDIU R2,R2,#1",
+     "1",
+     "5",
+     "6",
+     "7"
+    ],
+    [
+     "1",
+     "SD     R2,0(R1)",
+     "2",
+     "7",
+     "–",
+     "8"
+    ],
+    [
+     "1",
+     "DADDIU R1,R1,#8",
+     "2",
+     "3",
+     "4",
+     "8"
+    ],
+    [
+     "1",
+     "BNE    R2,R3,Loop",
+     "3",
+     "7",
+     "–",
+     "9"
+    ],
+    [
+     "2",
+     "LD     R2,0(R1)",
+     "3",
+     "5–6",
+     "7",
+     "9"
+    ],
+    [
+     "2",
+     "DADDIU R2,R2,#1",
+     "4",
+     "8",
+     "9",
+     "10"
+    ],
+    [
+     "2",
+     "SD     R2,0(R1)",
+     "4",
+     "10",
+     "–",
+     "11"
+    ],
+    [
+     "2",
+     "DADDIU R1,R1,#8",
+     "5",
+     "6",
+     "7",
+     "11"
+    ],
+    [
+     "2",
+     "BNE    R2,R3,Loop",
+     "5",
+     "10",
+     "–",
+     "12"
+    ]
+   ]
+  },
+  {
+   "id": "cm",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "without speculation",
+    "with speculation"
+   ],
+   "rows": [
+    [
+     "iterations end (commit of BNE)",
+     "9, 15, 21",
+     "9, 12, 15"
+    ],
+    [
+     "cycles per iteration",
+     "6",
+     "3 at first, then toward 2.5"
+    ],
+    [
+     "instructions per cycle",
+     "5 / 6 ≈ 0.83",
+     "5 / 3 ≈ 1.67, rising toward 2"
+    ]
+   ]
+  },
+  {
+   "id": "lim",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "what else must widen",
+    "why"
+   ],
+   "rows": [
+    [
+     "fetch and branch prediction",
+     "several instructions, maybe a branch, every cycle"
+    ],
+    [
+     "result buses and register ports",
+     "several results and operands per cycle"
+    ],
+    [
+     "commit width",
+     "otherwise finished work piles up in the ROB"
+    ],
+    [
+     "ROB and stations",
+     "more instructions in flight to find independent ones"
+    ]
+   ]
+  },
+  {
+   "id": "vliw",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "VLIW",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "one instruction",
+     "a packet with slots: e.g. 2 memory, 2 FP, 1 integer or branch"
+    ],
+    [
+     "who schedules",
+     "the compiler, using unrolling; the hardware checks nothing"
+    ],
+    [
+     "the textbook's example",
+     "the x[i] + s loop unrolled 7 times runs in 9 cycles: 1.29 cycles per element"
+    ],
+    [
+     "costs",
+     "empty slots waste code space; binaries are tied to one machine's latencies"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "Loop: LD     R2,0(R1)",
+    "      DADDIU R1,R1,#8",
+    "      DADDU  R4,R4,R2",
+    "      BNE    R1,R3,Loop"
+   ]
+  },
+  {
+   "id": "qx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "same 2-issue machine. Find:"
+   ],
+   "rows": [
+    [
+     "a) the cycle each of three iterations commits its BNE, without speculation"
+    ],
+    [
+     "b) the same, with speculation"
+    ],
+    [
+     "c) cycles per iteration for each, and what limits the faster one"
+    ],
+    [
+     "d) issue-stage comparisons for a 4-wide machine"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "without speculation",
+    "with speculation"
+   ],
+   "rows": [
+    [
+     "BNE commits",
+     "7, 10, 13",
+     "7, 9, 11"
+    ],
+    [
+     "cycles per iteration",
+     "3",
+     "2"
+    ],
+    [
+     "limited by",
+     "waiting for each branch",
+     "issue: 4 instructions ÷ 2 per cycle"
+    ],
+    [
+     "d) 4-wide",
+     "4 × 3 = 12 comparisons",
+     ""
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Everything so far issued one instruction per cycle, so the best CPI was 1. To beat that, issue several per cycle. Combine that with Tomasulo and speculation, and you have the core of every modern laptop and phone processor."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Multiple issue with dynamic scheduling"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The kinds of multiple issue, what makes it hard, and one loop run on a 2-issue machine without speculation."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the same loop with speculation, a comparison, the VLIW alternative, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "kinds",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: Module 1 introduced superscalar and VLIW machines. Here is where they sit now."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: several per cycle"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "kinds"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A statically scheduled superscalar issues a few instructions per cycle, in order. Simple, but one stall stops everything."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A VLIW lets the compiler pack independent operations into one long instruction. We return to it at the end."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A dynamically scheduled superscalar issues several per cycle into Tomasulo-style stations, with a reorder buffer and speculation. Every high-performance core today works this way."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kinds[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "today: wide issue + out of order + speculation"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hard",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the hard part is issue itself. In one cycle, the issue stage must handle a whole group of instructions."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: what makes it hard"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "kinds"
+      },
+      {
+       "action": "show",
+       "target": "hard"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find a free station and a free ROB entry for each of them."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hard[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check whether any instruction in the group needs the result of an earlier one in the same group. Each source must be compared with every earlier destination."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hard[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With w instructions of two sources each, that is w times w minus 1 comparisons. 2 for a 2-wide machine, 12 for 4-wide, 56 for 8-wide. Every cycle."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "hm"
+      },
+      {
+       "action": "highlight",
+       "target": "hm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the register map must be updated for the whole group in order, so the last writer in the group wins. This logic is one reason issue widths have stayed between about 4 and 8."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hard[2]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "nospec",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: an integer loop that adds 1 to every array element."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: 2-issue, no speculation"
+      },
+      {
+       "action": "hide",
+       "target": "hard"
+      },
+      {
+       "action": "hide",
+       "target": "hm"
+      },
+      {
+       "action": "show",
+       "target": "lp"
+      },
+      {
+       "action": "mark_lines",
+       "target": "lp",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The machine: 2 instructions issue and 2 commit per cycle. A load takes 2 cycles, an integer operation 1. Without speculation, nothing after a branch may execute until the branch itself has executed."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "lp"
+      },
+      {
+       "action": "show",
+       "target": "asm"
+      },
+      {
+       "action": "highlight",
+       "target": "asm[0..=2]"
+      },
+      {
+       "action": "highlight",
+       "target": "asm[3]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the first two iterations. The load issues in 1 and executes in 2 and 3. The add must wait for it, executing in 5."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "asm"
+      },
+      {
+       "action": "show",
+       "target": "tn"
+      },
+      {
+       "action": "highlight",
+       "target": "tn[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "tn[1]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The branch depends on the add's R2, so it executes in 7."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tn[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the second iteration's load. It issued back in cycle 3, and its address R1 was ready in 4. But it is behind a branch, so it may not start until cycle 8."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tn[5]"
+      },
+      {
+       "action": "highlight",
+       "target": "tn[4][3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every iteration waits for the previous branch. The branches commit in 9, 15, and 21: 6 cycles per iteration, though the machine could issue an iteration every 2.5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tn[9]"
+      },
+      {
+       "action": "highlight",
+       "target": "tn[4][5]",
+       "delay": 0.4
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "no speculation: each iteration waits for the last branch"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "spec",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the same loop, with speculation. The branch is predicted taken, and later instructions may execute before it resolves."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: with speculation"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tn"
+      },
+      {
+       "action": "show",
+       "target": "ts"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Iteration 1 is unchanged: the load, the add, the store, the branch."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ts[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But iteration 2's load starts in cycle 5, as soon as R1 is ready, instead of 8. Its add, store and branch follow 3 cycles behind iteration 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ts[5]"
+      },
+      {
+       "action": "highlight",
+       "target": "ts[6..=9]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Results finish out of order, but commit still marches in order, 2 per cycle. The branches commit in 9, 12 and 15."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ts[4][5]"
+      },
+      {
+       "action": "highlight",
+       "target": "ts[9][5]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If a prediction had been wrong, the ROB would flush the work behind it, exactly as in the last video. Here every iteration but the last guesses right."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "speculation: the next iteration runs before the branch is known"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cmp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: side by side."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: comparing"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ts"
+      },
+      {
+       "action": "show",
+       "target": "cm"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Without speculation, an iteration every 6 cycles. With it, every 3. Twice as fast, on the same hardware."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cm[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In instructions per cycle: 0.83 against 1.67. Speculation is what lets a wide machine actually use its width."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Can it go faster still? Each iteration has 5 instructions, and only 2 issue per cycle, so an iteration needs at least 2.5 cycles to issue. Run ten iterations and the speculative machine settles close to that limit. The non-speculative one stays at 6."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cm[1][2]"
+      },
+      {
+       "action": "highlight",
+       "target": "cm[2][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And issue is not the only thing that must widen."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "cm"
+      },
+      {
+       "action": "show",
+       "target": "lim"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Fetch must deliver several instructions per cycle, and predict a branch among them. There must be enough result buses and register ports for several results per cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lim[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Commit must keep up, or finished instructions pile up in the ROB. And the ROB and stations must be big enough to hold the instructions in flight."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lim[2..=3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "issue, buses, commit and ROB must all widen together"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vliw",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: the static alternative. A VLIW instruction is a packet with fixed slots, for example 2 memory operations, 2 floating-point operations, and 1 integer or branch."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: VLIW"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lim"
+      },
+      {
+       "action": "show",
+       "target": "vliw"
+      },
+      {
+       "action": "highlight",
+       "target": "vliw[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The compiler fills the slots, mostly by unrolling loops. The hardware performs no dependence checks at all, so it is simple and low power."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vliw[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In the textbook's example, the add-a-scalar loop unrolled 7 times fits in 9 packets: 9 cycles for 7 elements, about 1.29 cycles each."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vliw[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The costs: unfilled slots waste code space, and the schedule is built for one machine's latencies. A cache miss stalls everything. That is why VLIW lives on in DSPs, while general-purpose cores went dynamic."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vliw[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "VLIW: the compiler schedules · superscalar: the hardware does"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: a loop that sums an array into R4, on the same 2-issue machine."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "vliw"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find when each of three iterations commits its branch, without and with speculation, the cycles per iteration, what limits the faster one, and the comparisons a 4-wide issue stage needs. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qx"
+      },
+      {
+       "action": "highlight",
+       "target": "qx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Without speculation: the branch needs the new R1, ready in cycle 3, so it executes in 4. The next iteration waits for that. The branches commit in 7, 10 and 13: 3 cycles per iteration."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qx"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1][1]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With speculation: the next load starts as soon as R1 is ready. The branches commit in 7, 9 and 11: 2 cycles per iteration."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[0][2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why 2? Four instructions at 2 per cycle cannot issue faster. With speculation, the limit is now the issue width itself."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: 4 times 3, 12 comparisons each cycle. The usual slip: forgetting that commit, not execution, marks when an iteration is truly done."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "speculation moves the limit from branches to issue width"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Wide issue needs fast allocation and w times w minus 1 comparisons a cycle. Without speculation, our loop ran an iteration every 6 cycles; with it, every 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "VLIW moves the scheduling to the compiler, trading hardware for code size and flexibility."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: the limits of ILP. How much parallelism is really there to find?"
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: the limits of ILP"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

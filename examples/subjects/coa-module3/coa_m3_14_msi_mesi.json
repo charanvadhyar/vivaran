@@ -1,0 +1,1764 @@
+{
+ "version": 1,
+ "title": "Snooping protocols: MSI and MESI",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Snooping: every cache listens"
+    ],
+    [
+     2,
+     "The MSI states"
+    ],
+    [
+     3,
+     "MSI transitions"
+    ],
+    [
+     4,
+     "An MSI trace, step by step"
+    ],
+    [
+     5,
+     "MESI: the exclusive state"
+    ],
+    [
+     6,
+     "The same trace with MESI"
+    ],
+    [
+     7,
+     "False sharing"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "snoop",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "snooping",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "a shared bus",
+     "every miss, upgrade and write-back is broadcast"
+    ],
+    [
+     "each cache controller",
+     "watches the bus and checks its own tags for that block"
+    ],
+    [
+     "write invalidate",
+     "before writing, a cache gets the only copy"
+    ],
+    [
+     "per block, per cache",
+     "a small state machine: 2 bits beside the tag"
+    ]
+   ]
+  },
+  {
+   "id": "states",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "state",
+    "means",
+    "memory"
+   ],
+   "rows": [
+    [
+     "M: modified",
+     "only this cache has it, and has written it",
+     "stale: this cache must supply it"
+    ],
+    [
+     "S: shared",
+     "this cache, and maybe others, have a clean copy",
+     "up to date"
+    ],
+    [
+     "I: invalid",
+     "no valid copy here",
+     "–"
+    ]
+   ]
+  },
+  {
+   "id": "tr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "state",
+    "event",
+    "next",
+    "bus action"
+   ],
+   "rows": [
+    [
+     "I",
+     "my read",
+     "S",
+     "BusRd: fetch the block"
+    ],
+    [
+     "I",
+     "my write",
+     "M",
+     "BusRdX: fetch and invalidate the others"
+    ],
+    [
+     "S",
+     "my write",
+     "M",
+     "BusUpgr: invalidate the others"
+    ],
+    [
+     "S",
+     "another's BusRdX or BusUpgr",
+     "I",
+     "–"
+    ],
+    [
+     "M",
+     "another's BusRd",
+     "S",
+     "write the block back, supply it"
+    ],
+    [
+     "M",
+     "another's BusRdX",
+     "I",
+     "write the block back, supply it"
+    ],
+    [
+     "S, M",
+     "my read · M: my write",
+     "same",
+     "– : a hit"
+    ]
+   ]
+  },
+  {
+   "id": "tt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "operation",
+    "P1",
+    "P2",
+    "P3",
+    "bus",
+    "data from"
+   ],
+   "rows": [
+    [
+     "1",
+     "P1 reads X",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "2",
+     "P1 writes X",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "3",
+     "P2 reads X",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "4",
+     "P3 writes X",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "5",
+     "P1 reads X",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "6",
+     "P1 writes X",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "ex",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "state",
+    "means"
+   ],
+   "rows": [
+    [
+     "E: exclusive",
+     "only this cache has it, and it is clean (matches memory)"
+    ],
+    [
+     "I + my read, nobody else has it",
+     "go to E, not S"
+    ],
+    [
+     "E + my write",
+     "go to M silently: no bus transaction"
+    ],
+    [
+     "E + another's BusRd",
+     "go to S"
+    ],
+    [
+     "why",
+     "private data, read then written, never touches the bus twice"
+    ]
+   ]
+  },
+  {
+   "id": "fs",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "struct { long a; long b; } c;   // a and b share one 64-byte block",
+    "// thread 1: for (i = 0; i < 1000; i++) c.a++;",
+    "// thread 2: for (i = 0; i < 1000; i++) c.b++;"
+   ]
+  },
+  {
+   "id": "fsx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "false sharing",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "no word is shared",
+     "thread 1 touches only a, thread 2 only b"
+    ],
+    [
+     "but the block is",
+     "every write invalidates the other core's copy"
+    ],
+    [
+     "cost",
+     "up to 2000 coherence misses: the block ping-pongs"
+    ],
+    [
+     "fix",
+     "pad or align, so that a and b sit in different blocks"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "operation"
+   ],
+   "rows": [
+    [
+     "1",
+     "P1 reads X"
+    ],
+    [
+     "2",
+     "P1 writes X"
+    ],
+    [
+     "3",
+     "P2 reads X"
+    ],
+    [
+     "4",
+     "P2 writes X"
+    ],
+    [
+     "5",
+     "P3 reads X"
+    ],
+    [
+     "6",
+     "P1 writes X"
+    ],
+    [
+     "7",
+     "P3 reads X"
+    ],
+    [
+     "8",
+     "P3 writes X"
+    ]
+   ]
+  },
+  {
+   "id": "qt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "operation",
+    "MSI states",
+    "MSI bus",
+    "MESI states",
+    "MESI bus"
+   ],
+   "rows": [
+    [
+     "1",
+     "P1 reads X",
+     "S I I",
+     "BusRd",
+     "E I I",
+     "BusRd"
+    ],
+    [
+     "2",
+     "P1 writes X",
+     "M I I",
+     "BusUpgr",
+     "M I I",
+     "– (E → M, silent)"
+    ],
+    [
+     "3",
+     "P2 reads X",
+     "S S I",
+     "BusRd",
+     "S S I",
+     "BusRd"
+    ],
+    [
+     "4",
+     "P2 writes X",
+     "I M I",
+     "BusUpgr",
+     "I M I",
+     "BusUpgr"
+    ],
+    [
+     "5",
+     "P3 reads X",
+     "I S S",
+     "BusRd",
+     "I S S",
+     "BusRd"
+    ],
+    [
+     "6",
+     "P1 writes X",
+     "M I I",
+     "BusRdX",
+     "M I I",
+     "BusRdX"
+    ],
+    [
+     "7",
+     "P3 reads X",
+     "S I S",
+     "BusRd",
+     "S I S",
+     "BusRd"
+    ],
+    [
+     "8",
+     "P3 writes X",
+     "I I M",
+     "BusUpgr",
+     "I I M",
+     "BusUpgr"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Write invalidate needs every cache to know when another wants to write. On a bus, the simplest way is to listen. This video traces the two classic snooping protocols, MSI and MESI, state by state."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Snooping protocols: MSI and MESI"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Snooping, the MSI states and transitions, and a trace."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then MESI's extra state, the same trace again, false sharing, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "snoop",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: every cache sits on a shared bus. Every miss, every upgrade, every write-back goes out on it, and every cache sees it."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: snooping"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "snoop"
+      },
+      {
+       "action": "highlight",
+       "target": "snoop[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each cache controller watches, or snoops, the bus, and checks its own tags for the block being requested."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "snoop[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With write invalidate, a cache must hold the only copy before it writes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "snoop[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To know what to do, each cache keeps a small state for every block it holds: two bits next to the tag."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "snoop[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "snoop the bus · keep a state per block"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "states",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: MSI has three states."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: the MSI states"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "snoop"
+      },
+      {
+       "action": "show",
+       "target": "states"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Modified: this cache has the only copy, and has written it. Memory is stale, so if anyone else asks, this cache must supply the block."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "states[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Shared: this cache has a clean copy, and others may too. Memory is up to date."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "states[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Invalid: no usable copy here. A block that was never loaded counts as invalid too."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "states[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "M: mine, dirty · S: clean, maybe shared · I: not here"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trans",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: the transitions. First, the ones caused by this cache's own processor."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: MSI transitions"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "states"
+      },
+      {
+       "action": "show",
+       "target": "tr"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Invalid, and my processor reads: put a BusRd on the bus, fetch the block, and go to Shared."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Invalid, and my processor writes: BusRdX, read exclusive. Fetch the block and invalidate everyone else's copy. Go to Modified."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Shared, and my processor writes: I already have the data, so just BusUpgr, an invalidation. Go to Modified."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the ones caused by other caches, seen on the bus. Shared, and someone else wants to write: go to Invalid."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Modified, and someone else reads: I have the only good copy. Write it back and supply it, and drop to Shared."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Modified, and someone else wants to write: write back, supply, and go to Invalid."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And reads in S or M, or writes in M, are simply hits. No bus traffic."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "reads need a copy · writes need the only copy"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "msi",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: a trace. Three cores, one block X, six operations. All caches start Invalid."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: an MSI trace"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tr"
+      },
+      {
+       "action": "show",
+       "target": "tt"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1: P1 reads X. A miss: BusRd, data from memory. P1 goes to Shared."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[0][2]",
+       "value": "S"
+      },
+      {
+       "action": "set",
+       "target": "tt[0][3]",
+       "value": "I",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tt[0][4]",
+       "value": "I",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[0][5]",
+       "value": "BusRd",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[0][6]",
+       "value": "memory",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2: P1 writes X. It is in Shared, so it must invalidate the others: BusUpgr, even though nobody else has a copy. P1 goes to Modified."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[1][2]",
+       "value": "M"
+      },
+      {
+       "action": "set",
+       "target": "tt[1][3]",
+       "value": "I",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tt[1][4]",
+       "value": "I",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[1][5]",
+       "value": "BusUpgr",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[1][6]",
+       "value": "–",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "3: P2 reads X. A miss: BusRd. P1 snoops it, holds the block Modified, so it writes back and supplies it. Both end Shared."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[2][2]",
+       "value": "S"
+      },
+      {
+       "action": "set",
+       "target": "tt[2][3]",
+       "value": "S",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tt[2][4]",
+       "value": "I",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[2][5]",
+       "value": "BusRd",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[2][6]",
+       "value": "P1 (writes back)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4: P3 writes X. A miss: BusRdX. P1 and P2 snoop it and invalidate. P3 is Modified. Memory is up to date from step 3, so it supplies the data."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[3][2]",
+       "value": "I"
+      },
+      {
+       "action": "set",
+       "target": "tt[3][3]",
+       "value": "I",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tt[3][4]",
+       "value": "M",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[3][5]",
+       "value": "BusRdX",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[3][6]",
+       "value": "memory",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5: P1 reads X again. A miss: P3 writes back and supplies it. P1 and P3 are Shared."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[4][2]",
+       "value": "S"
+      },
+      {
+       "action": "set",
+       "target": "tt[4][3]",
+       "value": "I",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tt[4][4]",
+       "value": "S",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[4][5]",
+       "value": "BusRd",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[4][6]",
+       "value": "P3 (writes back)",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "6: P1 writes X: BusUpgr. P3 is invalidated, and P1 is Modified."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[5][2]",
+       "value": "M"
+      },
+      {
+       "action": "set",
+       "target": "tt[5][3]",
+       "value": "I",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tt[5][4]",
+       "value": "I",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[5][5]",
+       "value": "BusUpgr",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[5][6]",
+       "value": "–",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Six operations, six bus transactions. And step 2 was a waste: P1 broadcast an invalidation when it was the only holder."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tt[1]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "MSI: 6 bus transactions"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mesi",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: MESI fixes that waste with a fourth state, Exclusive."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: MESI"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tt"
+      },
+      {
+       "action": "show",
+       "target": "ex"
+      },
+      {
+       "action": "highlight",
+       "target": "ex[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Exclusive means: only this cache has the block, and it is clean."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "ex[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "When a read miss finds that no other cache has the block, the bus tells it so, and the block goes to Exclusive instead of Shared."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ex[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A write in Exclusive then goes to Modified silently. No bus transaction at all, because there is nobody to invalidate."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ex[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If another cache reads the block, Exclusive drops to Shared."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ex[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This matters because most data is private: one thread reads it, then writes it. MESI makes that cost one bus transaction instead of two."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ex[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "E: mine and clean · a write is silent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mesitrace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: the same six operations, with MESI."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: the same trace with MESI"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ex"
+      },
+      {
+       "action": "show",
+       "target": "tt"
+      },
+      {
+       "action": "set",
+       "target": "tt[0][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[0][3]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[0][4]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[0][5]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[0][6]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[1][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[1][3]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[1][4]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[1][5]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[1][6]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[2][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[2][3]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[2][4]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[2][5]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[2][6]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[3][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[3][3]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[3][4]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[3][5]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[3][6]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[4][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[4][3]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[4][4]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[4][5]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[4][6]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[5][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[5][3]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[5][4]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[5][5]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "tt[5][6]",
+       "value": ""
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1: P1 reads X, and no one else has it. Exclusive."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[0][2]",
+       "value": "E"
+      },
+      {
+       "action": "set",
+       "target": "tt[0][3]",
+       "value": "I",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tt[0][4]",
+       "value": "I",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[0][5]",
+       "value": "BusRd",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[0][6]",
+       "value": "memory",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2: P1 writes X. Exclusive to Modified, silently. No bus transaction."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[1][2]",
+       "value": "M"
+      },
+      {
+       "action": "set",
+       "target": "tt[1][3]",
+       "value": "I",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tt[1][4]",
+       "value": "I",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[1][5]",
+       "value": "– (E → M, silent)",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[1][6]",
+       "value": "–",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "From step 3 on, the trace is the same as MSI: the block is now shared between cores, and E never appears again."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[2][2]",
+       "value": "S"
+      },
+      {
+       "action": "set",
+       "target": "tt[2][3]",
+       "value": "S",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tt[2][4]",
+       "value": "I",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[2][5]",
+       "value": "BusRd",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[2][6]",
+       "value": "P1 (writes back)",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tt[3][2]",
+       "value": "I"
+      },
+      {
+       "action": "set",
+       "target": "tt[3][3]",
+       "value": "I",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tt[3][4]",
+       "value": "M",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[3][5]",
+       "value": "BusRdX",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[3][6]",
+       "value": "memory",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tt[4][2]",
+       "value": "S"
+      },
+      {
+       "action": "set",
+       "target": "tt[4][3]",
+       "value": "I",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tt[4][4]",
+       "value": "S",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[4][5]",
+       "value": "BusRd",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[4][6]",
+       "value": "P3 (writes back)",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tt[5][2]",
+       "value": "M"
+      },
+      {
+       "action": "set",
+       "target": "tt[5][3]",
+       "value": "I",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tt[5][4]",
+       "value": "I",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[5][5]",
+       "value": "BusUpgr",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[5][6]",
+       "value": "–",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Five bus transactions instead of six. Real protocols go further: AMD's MOESI adds an Owned state, letting a dirty block be shared without writing it back; Intel's MESIF adds Forward, choosing one sharer to answer requests."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tt[1]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "MESI: 5 bus transactions"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "false",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: a trap. Two threads, two separate counters. Thread 1 increments a, thread 2 increments b. No data is shared."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: false sharing"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tt"
+      },
+      {
+       "action": "show",
+       "target": "fs"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But a and b sit in the same 64-byte block, and coherence works on blocks, not words."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "fs"
+      },
+      {
+       "action": "show",
+       "target": "fsx"
+      },
+      {
+       "action": "highlight",
+       "target": "fsx[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every write by thread 1 invalidates thread 2's copy, and the other way round. The block bounces between the caches: up to 2000 coherence misses for 2000 increments."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fsx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The fix is to pad or align the data so that a and b live in different blocks. The program does not change; it just runs many times faster."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fsx[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "false sharing: different words, same block"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question. Three cores, one block, eight operations. All caches start Invalid."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "fsx"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Give each cache's state after every step, and the bus transactions, under MSI and under MESI. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Steps 1 and 2: under MSI, P1 reads, goes Shared, then needs a BusUpgr to write. Under MESI, P1 goes Exclusive, and the write is silent."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qt"
+      },
+      {
+       "action": "highlight",
+       "target": "qt[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Steps 3 and 4: P2 reads; P1 writes back and both are Shared. P2 writes: BusUpgr, P1 invalid."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Steps 5 and 6: P3 reads; P2 supplies the block and both are Shared. Then P1 writes: it is Invalid, so BusRdX, and both others are invalidated."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Steps 7 and 8: P3 reads; P1 writes back. P3 writes: BusUpgr. In total: MSI 8 bus transactions, MESI 7."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[6..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: giving a write in Shared a BusRdX. The cache already has the data; it only needs to invalidate the others."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "S + write: BusUpgr · I + write: BusRdX"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qt"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every cache snoops the bus. MSI keeps each block Modified, Shared or Invalid: reads need a copy, writes need the only copy."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "MESI's Exclusive state makes private read-then-write data free. And false sharing reminds us that coherence works on whole blocks."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: directory-based coherence, for when a bus is not enough."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: directory-based coherence"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

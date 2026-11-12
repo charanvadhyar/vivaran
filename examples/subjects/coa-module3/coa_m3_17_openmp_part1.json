@@ -1,0 +1,1760 @@
+{
+ "version": 1,
+ "title": "OpenMP, part 1",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The fork-join model"
+    ],
+    [
+     2,
+     "The parallel region"
+    ],
+    [
+     3,
+     "Sharing a loop: omp for"
+    ],
+    [
+     4,
+     "sections and single"
+    ],
+    [
+     5,
+     "Who owns a variable: shared and private"
+    ],
+    [
+     6,
+     "firstprivate and lastprivate"
+    ],
+    [
+     7,
+     "A race, and a wrong fix"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "fj",
+   "type": "diagram",
+   "region": "center",
+   "layout": "layers",
+   "direction": "down",
+   "nodes": [
+    {
+     "id": "m0",
+     "label": "master"
+    },
+    {
+     "id": "t0",
+     "label": "thread 0"
+    },
+    {
+     "id": "t1",
+     "label": "thread 1"
+    },
+    {
+     "id": "t2",
+     "label": "thread 2"
+    },
+    {
+     "id": "t3",
+     "label": "thread 3"
+    },
+    {
+     "id": "j",
+     "label": "join"
+    },
+    {
+     "id": "m1",
+     "label": "master"
+    }
+   ],
+   "edges": [
+    {
+     "from": "m0",
+     "to": "t0"
+    },
+    {
+     "from": "m0",
+     "to": "t1"
+    },
+    {
+     "from": "m0",
+     "to": "t2"
+    },
+    {
+     "from": "m0",
+     "to": "t3"
+    },
+    {
+     "from": "t0",
+     "to": "j"
+    },
+    {
+     "from": "t1",
+     "to": "j"
+    },
+    {
+     "from": "t2",
+     "to": "j"
+    },
+    {
+     "from": "t3",
+     "to": "j"
+    },
+    {
+     "from": "j",
+     "to": "m1"
+    }
+   ]
+  },
+  {
+   "id": "hello",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "#include <omp.h>",
+    "int main(void) {",
+    "  #pragma omp parallel num_threads(4)",
+    "  {",
+    "    int id = omp_get_thread_num();",
+    "    printf(\"hello from %d of %d\\n\", id, omp_get_num_threads());",
+    "  }",
+    "  return 0;",
+    "}"
+   ]
+  },
+  {
+   "id": "par",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the parallel region",
+    ""
+   ],
+   "rows": [
+    [
+     "#pragma omp parallel",
+     "every thread in the team runs the whole block"
+    ],
+    [
+     "number of threads",
+     "num_threads clause, else OMP_NUM_THREADS, else the core count"
+    ],
+    [
+     "output order",
+     "any order: the four lines may come out shuffled"
+    ],
+    [
+     "compile",
+     "gcc -fopenmp hello.c"
+    ]
+   ]
+  },
+  {
+   "id": "for",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "#pragma omp parallel num_threads(4)",
+    "{",
+    "  #pragma omp for",
+    "  for (i = 0; i < 8; i++)",
+    "    c[i] = a[i] + b[i];",
+    "}",
+    "// short form:  #pragma omp parallel for"
+   ]
+  },
+  {
+   "id": "fort",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "thread",
+    "iterations, schedule(static)"
+   ],
+   "rows": [
+    [
+     "0",
+     "0, 1"
+    ],
+    [
+     "1",
+     "2, 3"
+    ],
+    [
+     "2",
+     "4, 5"
+    ],
+    [
+     "3",
+     "6, 7"
+    ],
+    [
+     "rules",
+     "iterations must be independent; the count must be known at entry"
+    ],
+    [
+     "at the end",
+     "an implicit barrier, unless nowait"
+    ]
+   ]
+  },
+  {
+   "id": "sec",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "#pragma omp parallel",
+    "{",
+    "  #pragma omp sections",
+    "  {",
+    "    #pragma omp section",
+    "    load_images();",
+    "    #pragma omp section",
+    "    load_sounds();",
+    "  }",
+    "  #pragma omp single",
+    "  printf(\"loaded\\n\");",
+    "}"
+   ]
+  },
+  {
+   "id": "sect",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "construct",
+    "who runs it",
+    "barrier at end"
+   ],
+   "rows": [
+    [
+     "for",
+     "the iterations are split across the team",
+     "yes"
+    ],
+    [
+     "sections",
+     "each section goes to one thread: different tasks",
+     "yes"
+    ],
+    [
+     "single",
+     "exactly one thread, any one",
+     "yes"
+    ],
+    [
+     "master (masked)",
+     "thread 0 only",
+     "no"
+    ]
+   ]
+  },
+  {
+   "id": "sc",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "default rule",
+    "scope"
+   ],
+   "rows": [
+    [
+     "declared before the region",
+     "shared: one copy, all threads see it"
+    ],
+    [
+     "declared inside the region",
+     "private: one copy per thread"
+    ],
+    [
+     "the index of an omp for loop",
+     "private"
+    ],
+    [
+     "clauses override",
+     "shared(a), private(t), default(none)"
+    ],
+    [
+     "default(none)",
+     "the compiler makes you scope every variable: catches mistakes"
+    ]
+   ]
+  },
+  {
+   "id": "cl",
+   "type": "code",
+   "region": "left",
+   "language": "c",
+   "lines": [
+    "int n = 8, t;",
+    "#pragma omp parallel for private(t)",
+    "for (i = 0; i < n; i++) {",
+    "  int k = 2 * i;",
+    "  t = a[i] + k;",
+    "  b[i] = t;",
+    "}"
+   ]
+  },
+  {
+   "id": "clt",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "variable",
+    "scope",
+    "why"
+   ],
+   "rows": [
+    [
+     "n",
+     "shared",
+     "declared before"
+    ],
+    [
+     "a, b",
+     "shared",
+     "each i touches its own element"
+    ],
+    [
+     "i",
+     "private",
+     "omp for index"
+    ],
+    [
+     "t",
+     "private",
+     "the clause"
+    ],
+    [
+     "k",
+     "private",
+     "declared inside"
+    ]
+   ]
+  },
+  {
+   "id": "fp",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "int t = 10, last;",
+    "#pragma omp parallel for num_threads(2) schedule(static) \\",
+    "        firstprivate(t) lastprivate(last)",
+    "for (i = 0; i < 4; i++) { t = t + i; last = t; }",
+    "printf(\"%d %d\\n\", t, last);"
+   ]
+  },
+  {
+   "id": "fpt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "thread 0: i = 0, 1",
+    "thread 1: i = 2, 3"
+   ],
+   "rows": [
+    [
+     "private t starts at",
+     "10 (firstprivate copies it in)",
+     "10"
+    ],
+    [
+     "after its iterations",
+     "10, then 11",
+     "12, then 15"
+    ],
+    [
+     "last iteration, i = 3",
+     "",
+     "last = 15"
+    ],
+    [
+     "after the loop",
+     "t is still 10 · last = 15",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "fpk",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "clause",
+    "on entry",
+    "on exit"
+   ],
+   "rows": [
+    [
+     "private",
+     "uninitialised",
+     "discarded"
+    ],
+    [
+     "firstprivate",
+     "copy of the original",
+     "discarded"
+    ],
+    [
+     "lastprivate",
+     "uninitialised",
+     "value from the last iteration copied out"
+    ]
+   ]
+  },
+  {
+   "id": "race",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "int sum = 0;",
+    "#pragma omp parallel for",
+    "for (i = 0; i < 1000; i++)",
+    "  sum += a[i];          // sum is shared: a race",
+    "",
+    "#pragma omp parallel for private(sum)",
+    "for (i = 0; i < 1000; i++)",
+    "  sum += a[i];          // each copy starts undefined, and is thrown away"
+   ]
+  },
+  {
+   "id": "racet",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "thread 0",
+    "thread 1",
+    "sum"
+   ],
+   "rows": [
+    [
+     "load sum: 5",
+     "",
+     "5"
+    ],
+    [
+     "",
+     "load sum: 5",
+     "5"
+    ],
+    [
+     "add 3, store 8",
+     "",
+     "8"
+    ],
+    [
+     "",
+     "add 4, store 9",
+     "9: thread 0's update is lost"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "// a) what is printed?",
+    "int x = 5, y = 0;",
+    "#pragma omp parallel for num_threads(4) schedule(static) \\",
+    "        firstprivate(x) lastprivate(y)",
+    "for (i = 0; i < 8; i++) { x += i; y = x; }",
+    "printf(\"%d %d\\n\", x, y);"
+   ]
+  },
+  {
+   "id": "q2",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "// b) how many A, B and C are printed?",
+    "#pragma omp parallel num_threads(3)",
+    "{",
+    "  printf(\"A\");",
+    "  #pragma omp single",
+    "  printf(\"B\");",
+    "  #pragma omp for",
+    "  for (i = 0; i < 6; i++) printf(\"C\");",
+    "}"
+   ]
+  },
+  {
+   "id": "f10",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "thread",
+    "10 iterations, 4 threads, schedule(static)"
+   ],
+   "rows": [
+    [
+     "0",
+     "0, 1, 2"
+    ],
+    [
+     "1",
+     "3, 4, 5"
+    ],
+    [
+     "2",
+     "6, 7"
+    ],
+    [
+     "3",
+     "8, 9"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part a",
+    "answer"
+   ],
+   "rows": [
+    [
+     "iterations of thread 3",
+     "6 and 7: the last ones"
+    ],
+    [
+     "thread 3's private x",
+     "starts 5, then 11, then 18"
+    ],
+    [
+     "y, copied out from i = 7",
+     "18"
+    ],
+    [
+     "x after the loop",
+     "5: firstprivate never copies back"
+    ],
+    [
+     "printed",
+     "5 18"
+    ]
+   ]
+  },
+  {
+   "id": "qb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part b",
+    "count",
+    "why"
+   ],
+   "rows": [
+    [
+     "A",
+     "3",
+     "every thread runs the region"
+    ],
+    [
+     "B",
+     "1",
+     "single: one thread"
+    ],
+    [
+     "C",
+     "6",
+     "omp for splits the 6 iterations; it does not repeat them"
+    ],
+    [
+     "total",
+     "10",
+     ""
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "We have seen the hardware: cores, caches, coherence. Now the software that uses it. OpenMP is the standard way to parallelise C, C++ and Fortran on a shared-memory machine, with a few compiler directives."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "OpenMP, part 1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The fork-join model, the parallel region, sharing a loop, and sections and single."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the part students most often get wrong: who owns each variable. Shared, private, firstprivate, lastprivate, a race, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fj",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: an OpenMP program starts as one thread, the master, running serial code."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: fork-join"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "fj"
+      },
+      {
+       "action": "highlight",
+       "target": "fj.m0"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At a parallel region it forks: a team of threads is created, and the master becomes thread 0 of the team."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fj.t0"
+      },
+      {
+       "action": "highlight",
+       "target": "fj.t1",
+       "delay": 0.15
+      },
+      {
+       "action": "highlight",
+       "target": "fj.t2",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "fj.t3",
+       "delay": 0.45
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At the end of the region, every thread waits at an implicit barrier. That is the join."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fj.j"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then only the master continues. A program may fork and join many times."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fj.m1"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "fork at a region · join at its end"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "par",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the parallel region. The directive pragma omp parallel, with four threads."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: the parallel region"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "fj"
+      },
+      {
+       "action": "show",
+       "target": "hello"
+      },
+      {
+       "action": "mark_lines",
+       "target": "hello",
+       "from": 3,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every thread runs the whole block. omp_get_thread_num gives each its number, 0 to 3, and omp_get_num_threads gives the team size."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "hello",
+       "from": 5,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the message is printed four times."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "hello"
+      },
+      {
+       "action": "show",
+       "target": "par"
+      },
+      {
+       "action": "highlight",
+       "target": "par[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "How many threads? The num_threads clause if present; otherwise the environment variable OMP_NUM_THREADS; otherwise usually one per core."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "par[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The four lines can appear in any order: the threads run at the same time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "par[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the code is compiled with the fopenmp flag. Without it, the pragmas are ignored and the program is simply serial."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "par[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "parallel: every thread runs the block"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "for",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: running the same code on every thread is rarely what we want. Usually we want to split a loop."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: omp for"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "par"
+      },
+      {
+       "action": "show",
+       "target": "for"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "pragma omp for, inside a parallel region, divides the loop's iterations among the team. No iteration runs twice."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "for",
+       "from": 3,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Parallel and for are so often used together that they combine into one directive: pragma omp parallel for."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "for",
+       "from": 7,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With a static schedule, eight iterations and four threads, each thread gets a contiguous block of two."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "for"
+      },
+      {
+       "action": "show",
+       "target": "fort"
+      },
+      {
+       "action": "highlight",
+       "target": "fort[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If the count does not divide evenly, the first threads get one extra. Ten iterations on four threads: blocks of 3, 3, 2 and 2."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "fort"
+      },
+      {
+       "action": "show",
+       "target": "f10"
+      },
+      {
+       "action": "highlight",
+       "target": "f10[0..=1]"
+      },
+      {
+       "action": "highlight",
+       "target": "f10[2..=3]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two rules. The iterations must be independent, and the loop count must be known when the loop starts: no break."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "f10"
+      },
+      {
+       "action": "show",
+       "target": "fort"
+      },
+      {
+       "action": "highlight",
+       "target": "fort[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the loop ends with an implicit barrier. A nowait clause removes it, when the next work does not depend on this loop."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fort[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "omp for splits iterations, never repeats them"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sec",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: not all parallelism is a loop. Sections run different pieces of code at the same time."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: sections and single"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "fort"
+      },
+      {
+       "action": "show",
+       "target": "sec"
+      },
+      {
+       "action": "mark_lines",
+       "target": "sec",
+       "from": 3,
+       "to": 9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each section goes to one thread. Here one thread loads images while another loads sounds."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "sec",
+       "from": 5,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Single: exactly one thread, whichever arrives first, runs the block. The others wait at its end."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "sec",
+       "from": 10,
+       "to": 11
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Comparing them. For splits iterations; sections hand out different tasks; single picks one thread. All three end with a barrier."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "sec"
+      },
+      {
+       "action": "show",
+       "target": "sect"
+      },
+      {
+       "action": "highlight",
+       "target": "sect[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Master, renamed masked in newer versions, is like single, but always thread 0, and with no barrier at all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sect[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "for: split · sections: different work · single: one thread"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "scope",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the most important question in OpenMP. For each variable, is there one copy, or one per thread?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: shared and private"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sect"
+      },
+      {
+       "action": "show",
+       "target": "sc"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A variable declared before the region is shared by default: one copy, which every thread reads and writes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sc[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A variable declared inside the region is private: each thread has its own."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sc[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The index of an omp for loop is made private automatically. Otherwise the threads would fight over i."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sc[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Clauses override the defaults: shared, private, and default."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sc[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "default none is the safe habit. The compiler then refuses any variable whose scope you did not state."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sc[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "before the region: shared · inside: private"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Try it on this loop. Classify n, a, b, i, t and k."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sc"
+      },
+      {
+       "action": "show",
+       "target": "cl"
+      },
+      {
+       "action": "mark_lines",
+       "target": "cl",
+       "from": 1,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "n, a and b were declared before the region: shared. Sharing the arrays is safe, because each iteration touches its own element."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "clt"
+      },
+      {
+       "action": "highlight",
+       "target": "clt[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "i is the loop index, so it is private. t is private because of the clause. Without it, t would be shared, and threads would overwrite each other's t between two lines."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "clt[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And k is declared inside the loop body: private automatically."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "clt[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "shared arrays are fine · shared temporaries are not"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a private variable has a weakness. It starts uninitialised, and it vanishes at the end. Two clauses fix that."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: firstprivate and lastprivate"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cl"
+      },
+      {
+       "action": "hide",
+       "target": "clt"
+      },
+      {
+       "action": "show",
+       "target": "fpk"
+      },
+      {
+       "action": "highlight",
+       "target": "fpk[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "firstprivate initialises each thread's copy from the original value."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fpk[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "lastprivate copies out the value from the sequentially last iteration."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fpk[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An example: t starts at 10. Two threads, four iterations; each adds i to t and stores it in last."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "fpk"
+      },
+      {
+       "action": "show",
+       "target": "fp"
+      },
+      {
+       "action": "mark_lines",
+       "target": "fp",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Both private copies of t start at 10, thanks to firstprivate."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "fp"
+      },
+      {
+       "action": "show",
+       "target": "fpt"
+      },
+      {
+       "action": "highlight",
+       "target": "fpt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Thread 0 runs i equal to 0 and 1: t becomes 10, then 11. Thread 1 runs 2 and 3: 12, then 15."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fpt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Iteration 3 is the last, so last gets thread 1's value, 15."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fpt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And after the loop, the original t is still 10: firstprivate copies in, never out. The program prints 10 15."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fpt[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "firstprivate: copy in · lastprivate: copy out"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "race",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: the classic bug. Sum an array in parallel, with sum shared."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: a race, and a wrong fix"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "fpt"
+      },
+      {
+       "action": "show",
+       "target": "race"
+      },
+      {
+       "action": "mark_lines",
+       "target": "race",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "sum plus equals a of i is three steps: load, add, store. Two threads can interleave them."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "race"
+      },
+      {
+       "action": "show",
+       "target": "racet"
+      },
+      {
+       "action": "highlight",
+       "target": "racet[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Both load 5. One stores 8, the other stores 9. One update is lost, and the answer changes from run to run."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "racet[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A tempting fix: make sum private. Now each thread adds into its own copy, which starts undefined and is thrown away at the end. The shared sum stays 0."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "racet"
+      },
+      {
+       "action": "show",
+       "target": "race"
+      },
+      {
+       "action": "mark_lines",
+       "target": "race",
+       "from": 6,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The right fixes are a critical section, an atomic, or best of all a reduction. They are the subject of the next video."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "shared accumulator: a race · private: lost result"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question in two parts."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "race"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part a: x starts at 5, y at 0. Four threads, static schedule, eight iterations, x firstprivate and y lastprivate. What is printed? Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 2,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With a static schedule, thread 3 gets iterations 6 and 7, the last two."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Its private x starts at 5. Adding 6 gives 11, adding 7 gives 18."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "y is lastprivate, so it takes the value from iteration 7: 18."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And x is printed from the original variable, which firstprivate never changes: 5. The output is 5 18."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[4]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part b: three threads. How many A's, B's and C's are printed? Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "q2"
+      },
+      {
+       "action": "mark_lines",
+       "target": "q2",
+       "from": 2,
+       "to": 9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A is printed by every thread: 3 times."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q2"
+      },
+      {
+       "action": "show",
+       "target": "qb"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "B is inside single: once."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "C is inside omp for, which splits the six iterations among the threads: 6 times, not 18. Ten characters in all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qb[2]"
+      },
+      {
+       "action": "mark",
+       "target": "qb[3]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: thinking omp for repeats the loop on every thread. That is what a plain for inside a parallel region would do."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "omp for divides · a plain for repeats"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qb"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Fork-join: a team at each parallel region. omp for splits a loop; sections run different tasks; single runs once."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Variables before the region are shared, inside it private. firstprivate copies in, lastprivate copies out. And a shared accumulator is a race."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: OpenMP, part 2. Loop schedules, synchronization, reductions, and the runtime routines."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: OpenMP, part 2"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

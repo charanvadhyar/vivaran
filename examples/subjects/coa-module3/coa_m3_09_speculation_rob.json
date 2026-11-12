@@ -1,0 +1,1361 @@
+{
+ "version": 1,
+ "title": "Hardware speculation and the reorder buffer",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Why speculate, and what can go wrong"
+    ],
+    [
+     2,
+     "The reorder buffer"
+    ],
+    [
+     3,
+     "Four steps: issue, execute, write, commit"
+    ],
+    [
+     4,
+     "Our example with a commit column"
+    ],
+    [
+     5,
+     "A snapshot: finished, but not committed"
+    ],
+    [
+     6,
+     "A mispredicted branch: flushing"
+    ],
+    [
+     7,
+     "Precise exceptions, and stores"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "why",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "idea",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "speculate",
+     "run past a predicted branch before it is decided"
+    ],
+    [
+     "the danger",
+     "a wrong guess must leave no trace"
+    ],
+    [
+     "also",
+     "exceptions must be precise"
+    ],
+    [
+     "the fix",
+     "finish out of order, commit in order"
+    ]
+   ]
+  },
+  {
+   "id": "rob",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "reorder buffer field",
+    "holds"
+   ],
+   "rows": [
+    [
+     "instruction type",
+     "branch, store, or a register operation"
+    ],
+    [
+     "destination",
+     "the register number, or the memory address for a store"
+    ],
+    [
+     "value",
+     "the result, once it has been computed"
+    ],
+    [
+     "ready",
+     "whether the value is there yet"
+    ]
+   ]
+  },
+  {
+   "id": "robx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "change from Tomasulo",
+    "why"
+   ],
+   "rows": [
+    [
+     "results go to the ROB",
+     "registers hold only committed values"
+    ],
+    [
+     "tags are ROB numbers",
+     "operands can come from uncommitted entries"
+    ],
+    [
+     "a circular queue",
+     "enter at the tail, leave from the head, in order"
+    ]
+   ]
+  },
+  {
+   "id": "st4",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "what happens"
+   ],
+   "rows": [
+    [
+     "1 Issue",
+     "needs a free station and a free ROB entry; operands from registers, the ROB, or tags"
+    ],
+    [
+     "2 Execute",
+     "when both operands are present"
+    ],
+    [
+     "3 Write result",
+     "broadcast on the CDB with the ROB tag; into the ROB entry and waiting stations"
+    ],
+    [
+     "4 Commit",
+     "when the entry at the head is ready: update the register or memory, free the entry"
+    ]
+   ]
+  },
+  {
+   "id": "is",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "instruction",
+    "ROB",
+    "write result",
+    "commit"
+   ],
+   "rows": [
+    [
+     "L.D    F6,34(R2)",
+     "#1",
+     "3",
+     ""
+    ],
+    [
+     "L.D    F2,45(R3)",
+     "#2",
+     "4",
+     ""
+    ],
+    [
+     "MUL.D  F0,F2,F4",
+     "#3",
+     "15",
+     ""
+    ],
+    [
+     "SUB.D  F8,F6,F2",
+     "#4",
+     "7",
+     ""
+    ],
+    [
+     "DIV.D  F10,F0,F6",
+     "#5",
+     "56",
+     ""
+    ],
+    [
+     "ADD.D  F6,F8,F2",
+     "#6",
+     "10",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "snap",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "ROB entry",
+    "instruction",
+    "destination",
+    "value",
+    "state at cycle 15"
+   ],
+   "rows": [
+    [
+     "#1",
+     "L.D",
+     "F6",
+     "Mem[34+R2]",
+     "committed"
+    ],
+    [
+     "#2",
+     "L.D",
+     "F2",
+     "Mem[45+R3]",
+     "committed"
+    ],
+    [
+     "#3 ← head",
+     "MUL.D",
+     "F0",
+     "#2 × F4",
+     "written: commits next"
+    ],
+    [
+     "#4",
+     "SUB.D",
+     "F8",
+     "#1 − #2",
+     "written, waiting for #3"
+    ],
+    [
+     "#5",
+     "DIV.D",
+     "F10",
+     "",
+     "waiting for #3"
+    ],
+    [
+     "#6",
+     "ADD.D",
+     "F6",
+     "#4 + #2",
+     "written, waiting"
+    ]
+   ]
+  },
+  {
+   "id": "mp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "ROB entry",
+    "instruction",
+    "state"
+   ],
+   "rows": [
+    [
+     "#1",
+     "L.D    F0,0(R1)",
+     "committed"
+    ],
+    [
+     "#2",
+     "MUL.D  F4,F0,F2",
+     "committed"
+    ],
+    [
+     "#3",
+     "S.D    F4,0(R1)",
+     "committed"
+    ],
+    [
+     "#4",
+     "DADDUI R1,R1,#-8",
+     "committed"
+    ],
+    [
+     "#5 ← head",
+     "BNE  (predicted taken)",
+     "ready: actually not taken"
+    ],
+    [
+     "#6",
+     "L.D    F0,0(R1)",
+     "written"
+    ],
+    [
+     "#7",
+     "MUL.D  F4,F0,F2",
+     "executing"
+    ],
+    [
+     "#8",
+     "S.D    F4,0(R1)",
+     "waiting"
+    ]
+   ]
+  },
+  {
+   "id": "pe",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "case",
+    "rule"
+   ],
+   "rows": [
+    [
+     "an instruction faults",
+     "record it in its ROB entry only"
+    ],
+    [
+     "it reaches the head",
+     "raise it, flush everything behind"
+    ],
+    [
+     "it was on a wrong path",
+     "flushed first: no exception"
+    ],
+    [
+     "a store",
+     "writes memory only at commit"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "instruction",
+    "ROB",
+    "result ready"
+   ],
+   "rows": [
+    [
+     "L.D    F2,0(R1)",
+     "#1",
+     "3"
+    ],
+    [
+     "MUL.D  F4,F2,F6",
+     "#2",
+     "14"
+    ],
+    [
+     "ADD.D  F8,F2,F10",
+     "#3",
+     "6"
+    ],
+    [
+     "BEQ    (predicted not taken; actually taken)",
+     "#4",
+     "7"
+    ],
+    [
+     "SUB.D  F12,F8,F14",
+     "#5",
+     "9"
+    ],
+    [
+     "L.D    F14,8(R1)",
+     "#6",
+     "8"
+    ]
+   ]
+  },
+  {
+   "id": "qx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "one commit per cycle, in order. Find:"
+   ],
+   "rows": [
+    [
+     "a) the commit cycles of #1 to #4"
+    ],
+    [
+     "b) what happens to #5 and #6, and to F12 and F14"
+    ],
+    [
+     "c) what if the MUL.D had raised an exception instead"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "instruction",
+    "ROB",
+    "result ready",
+    "commit"
+   ],
+   "rows": [
+    [
+     "L.D    F2,0(R1)",
+     "#1",
+     "3",
+     "4"
+    ],
+    [
+     "MUL.D  F4,F2,F6",
+     "#2",
+     "14",
+     "15"
+    ],
+    [
+     "ADD.D  F8,F2,F10",
+     "#3",
+     "6",
+     "16"
+    ],
+    [
+     "BEQ    (mispredicted)",
+     "#4",
+     "7",
+     "17: flush"
+    ],
+    [
+     "SUB.D  F12,F8,F14",
+     "#5",
+     "9",
+     "flushed"
+    ],
+    [
+     "L.D    F14,8(R1)",
+     "#6",
+     "8",
+     "flushed"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A good predictor is right most of the time. To profit, the machine must act on its guesses: fetch, issue and even execute instructions beyond a branch before the branch is decided. That is speculation, and it needs one more structure."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Hardware speculation and the reorder buffer"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why speculate, the reorder buffer, the four steps, and our example with a commit column."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then a snapshot, a mispredicted branch, precise exceptions and stores, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: to speculate is to execute instructions past a predicted branch, before knowing whether the prediction is right."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: why speculate"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      },
+      {
+       "action": "highlight",
+       "target": "why[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The danger: if the guess was wrong, those instructions must leave no trace. Not in the registers, not in memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And exceptions must be precise: if an instruction faults, every earlier instruction has finished and no later one has changed anything. Plain Tomasulo cannot promise that, since it writes registers out of order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The fix: let instructions finish out of order, but make their results official in program order. That final step is called commit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "execute out of order · commit in order"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rob",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the reorder buffer, or ROB, holds every instruction between issue and commit. Each entry has four fields."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: the reorder buffer"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "rob"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The instruction type: a branch, a store, or an operation that writes a register."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rob[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The destination: the register number, or for a store, the memory address."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rob[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The value, once computed, and a ready flag."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rob[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What changes from Tomasulo? Results go into the ROB, not the register file. The registers hold only committed values."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rob"
+      },
+      {
+       "action": "show",
+       "target": "robx"
+      },
+      {
+       "action": "highlight",
+       "target": "robx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Tags are now ROB entry numbers. A waiting instruction can take its operand from a finished entry that has not yet committed. So the ROB does the renaming, and supplies values too."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "robx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the ROB is a circular queue: instructions enter at the tail in program order and leave from the head in the same order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "robx[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "the ROB: results wait here until they commit"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "steps",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: now there are four steps."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: four steps"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "robx"
+      },
+      {
+       "action": "show",
+       "target": "st4"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Issue needs a free reservation station and a free ROB entry. Operands come from the registers, from a finished ROB entry, or as a tag to wait for."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st4[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Execute, when both operands are present, exactly as before."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st4[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write result: broadcast on the CDB, labelled with the ROB number. The value goes into the ROB entry and to any waiting stations."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st4[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Commit: when the instruction at the head of the ROB is ready, its value is copied to the register, or a store writes memory, and the entry is freed. One commit at a time, always from the head."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st4[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "issue → execute → write → commit"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "example",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: our six instructions, with the write cycles from the Tomasulo trace. Each gets a ROB entry, 1 to 6."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: adding a commit column"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "st4"
+      },
+      {
+       "action": "show",
+       "target": "is"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The first load wrote in 3, so it commits in 4. The second wrote in 4 and commits in 5."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[0][3]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "is[1][3]",
+       "value": "5",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The multiply wrote in 15: commit in 16."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[2][3]",
+       "value": "16"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The subtract finished long ago, in cycle 7. But it must wait for the multiply ahead of it. It commits in 17."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "is[3][2]"
+      },
+      {
+       "action": "set",
+       "target": "is[3][3]",
+       "value": "17",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The divide writes in 56 and commits in 57. And the add, ready since cycle 10, commits last, in 58."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[4][3]",
+       "value": "57"
+      },
+      {
+       "action": "set",
+       "target": "is[5][3]",
+       "value": "58",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Finish order: 3, 4, 7, 10, 15, 56. Commit order: strictly 1 to 6. The registers change in program order, exactly as if the machine were sequential."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "is[0..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "finish in any order · commit in program order"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "snap",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the ROB at the end of cycle 15, the moment the multiply has written its result."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: a snapshot at cycle 15"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "is"
+      },
+      {
+       "action": "show",
+       "target": "snap"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Both loads have committed and left. The head is entry 3, the multiply, now ready."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "snap[0..=1]"
+      },
+      {
+       "action": "highlight",
+       "target": "snap[2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Entries 4 and 6, the subtract and the add, already hold their values. But F8 and F6 in the register file still have their old contents."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "snap[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "snap[5]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Entry 5, the divide, has just received the multiply's value from the bus and begins executing."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "snap[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If anything went wrong now, the hardware would simply throw away entries 4 to 6. Nothing they computed has reached the registers."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "snap[3..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "finished is not committed"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "flush",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a mispredicted branch. A loop, with its branch predicted taken, so the next iteration has already issued behind it."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: flushing a wrong path"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "snap"
+      },
+      {
+       "action": "show",
+       "target": "mp"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Entries 1 to 4, the current iteration, have committed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mp[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The branch reaches the head, and its outcome is known: not taken. The loop should have exited."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mp[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So every entry behind it, 6, 7 and 8, is on the wrong path. They are flushed: removed from the ROB and the stations, whatever stage they were in. Fetching restarts at the correct address."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "mp[5][2]",
+       "value": "flushed"
+      },
+      {
+       "action": "set",
+       "target": "mp[6][2]",
+       "value": "flushed",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "mp[7][2]",
+       "value": "flushed",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "mp[5..=7]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The load in entry 6 had even finished. It does not matter: it never committed, so no register changed. Speculation was undone completely."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mp[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a wrong guess: flush everything behind the branch"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exc",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: exceptions use the same mechanism."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: precise exceptions and stores"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "mp"
+      },
+      {
+       "action": "show",
+       "target": "pe"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If an instruction faults, say a page fault on a load, the fault is only recorded in its ROB entry."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pe[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "When that entry reaches the head, the exception is raised and everything behind it is flushed. Every earlier instruction has committed; no later one has. A precise exception."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pe[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And if the faulting instruction was on a wrong path, it is flushed before it ever reaches the head. The exception never happens, as it should not."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pe[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stores write memory only when they commit. So a speculative store can never change memory. Loads can still take a value straight from an earlier store's ROB entry, when the addresses match."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pe[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "exceptions and stores both wait for commit"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pe"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Six instructions with the cycle each result is ready. The branch was predicted not taken, but is actually taken. One commit per cycle, in order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find the commit cycles of the first four, what happens to entries 5 and 6, and what would change if the multiply had raised an exception. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qx"
+      },
+      {
+       "action": "highlight",
+       "target": "qx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: the load commits in 4. The multiply is ready in 14: commit 15. The add was ready in 6, but must follow the multiply: 16. The branch, ready in 7, commits in 17."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qx"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: at commit, the branch is found mispredicted. Entries 5 and 6 are flushed, though both had finished. F12 and F14 keep their old values."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: an exception in the multiply would be raised when it reaches the head, in cycle 15. The load before it has committed; the add, the branch and everything after are flushed. F4 and F8 stay unchanged, and the handler sees a precise state."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: committing an instruction as soon as it is ready. It must also be at the head."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "commit = ready AND at the head"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Speculation executes past predicted branches. The reorder buffer holds results until they commit, in program order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A wrong guess or an exception flushes everything behind the instruction at the head, leaving a precise state."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: multiple issue with dynamic scheduling. Putting several of these instructions through every stage, each cycle."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: multiple issue with speculation"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

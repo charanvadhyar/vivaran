@@ -1,0 +1,1435 @@
+{
+ "version": 1,
+ "title": "Dynamic branch prediction, part 2",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Branches that depend on other branches"
+    ],
+    [
+     2,
+     "The correlating (m, n) predictor"
+    ],
+    [
+     3,
+     "Tracing a (1, 1) predictor"
+    ],
+    [
+     4,
+     "Counting bits"
+    ],
+    [
+     5,
+     "Tournament predictors"
+    ],
+    [
+     6,
+     "A real one: the Alpha 21264"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "cc",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "if (aa == 2)  aa = 0;   // b1",
+    "if (bb == 2)  bb = 0;   // b2",
+    "if (aa != bb) { ... }   // b3"
+   ]
+  },
+  {
+   "id": "ccx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "if",
+    "then"
+   ],
+   "rows": [
+    [
+     "b1 and b2 both set their variable to 0",
+     "aa = bb = 0, so b3's test is false: certain"
+    ],
+    [
+     "a predictor that sees only b3's own past",
+     "can never learn this"
+    ]
+   ]
+  },
+  {
+   "id": "mn",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "(m, n) predictor",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "global history",
+     "an m-bit shift register: the outcomes of the last m branches, any branch"
+    ],
+    [
+     "per entry",
+     "2^m separate n-bit counters"
+    ],
+    [
+     "prediction",
+     "the branch address picks the entry; the history picks the counter inside it"
+    ],
+    [
+     "(0, 2)",
+     "no history: the plain 2-bit table from part 1"
+    ]
+   ]
+  },
+  {
+   "id": "dc",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "if (d == 0) d = 1;   // b1: taken when d != 0",
+    "if (d == 1) ...      // b2: taken when d != 1"
+   ]
+  },
+  {
+   "id": "dx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "d",
+    "b1",
+    "d after b1",
+    "b2"
+   ],
+   "rows": [
+    [
+     "2",
+     "T",
+     "2",
+     "T"
+    ],
+    [
+     "0",
+     "N",
+     "1",
+     "N"
+    ]
+   ]
+  },
+  {
+   "id": "tr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "execution",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+   ],
+   "rows": [
+    [
+     "branch",
+     "b1",
+     "b2",
+     "b1",
+     "b2",
+     "b1",
+     "b2",
+     "b1",
+     "b2"
+    ],
+    [
+     "outcome",
+     "T",
+     "T",
+     "N",
+     "N",
+     "T",
+     "T",
+     "N",
+     "N"
+    ],
+    [
+     "1-bit predicts",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "last outcome (history)",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "(1,1) predicts",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "bits",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"bits\" = 2^m times n times \"entries\"",
+    "(0, 2) \"with 4K entries:\" quad 2^0 times 2 times 4096 = 8 \"K bits\"",
+    "(2, 2) \"with the same 8K bits:\" quad 8192 / (2^2 times 2) = 1024 \"entries\"",
+    "\"gshare: index with branch address XOR global history, to spread entries\""
+   ]
+  },
+  {
+   "id": "tn",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "role"
+   ],
+   "rows": [
+    [
+     "local predictor",
+     "each branch's own recent history: good for loops"
+    ],
+    [
+     "global predictor",
+     "the last few branches' outcomes: good for correlated branches"
+    ],
+    [
+     "selector",
+     "a 2-bit counter per entry: which of the two to believe"
+    ],
+    [
+     "selector update",
+     "one right and one wrong: move toward the right one · both equal: no change"
+    ]
+   ]
+  },
+  {
+   "id": "alpha",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "Alpha 21264 part",
+    "size",
+    "bits"
+   ],
+   "rows": [
+    [
+     "selector",
+     "4K × 2-bit counters, indexed by 12 bits of global history",
+     "8K"
+    ],
+    [
+     "global predictor",
+     "4K × 2-bit counters, same index",
+     "8K"
+    ],
+    [
+     "local histories",
+     "1K × 10-bit, indexed by branch address",
+     "10K"
+    ],
+    [
+     "local predictor",
+     "1K × 3-bit counters, indexed by the local history",
+     "3K"
+    ],
+    [
+     "total",
+     "",
+     "29K bits"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "given",
+    "find"
+   ],
+   "rows": [
+    [
+     "a (2, 2) predictor with 1K entries",
+     "a) its size in bits"
+    ],
+    [
+     "the same bit budget, m = 3, n = 2",
+     "b) how many entries"
+    ],
+    [
+     "b1, b2: T T · N N · N N · T T (history starts N, all counters N)",
+     "c) mispredictions: 1-bit, and (1, 1)"
+    ]
+   ]
+  },
+  {
+   "id": "qt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "execution",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+   ],
+   "rows": [
+    [
+     "branch",
+     "b1",
+     "b2",
+     "b1",
+     "b2",
+     "b1",
+     "b2",
+     "b1",
+     "b2"
+    ],
+    [
+     "outcome",
+     "T",
+     "T",
+     "N",
+     "N",
+     "N",
+     "N",
+     "T",
+     "T"
+    ],
+    [
+     "1-bit predicts",
+     "N",
+     "N",
+     "T",
+     "T",
+     "N",
+     "N",
+     "N",
+     "N"
+    ],
+    [
+     "history",
+     "N",
+     "T",
+     "T",
+     "N",
+     "N",
+     "N",
+     "N",
+     "T"
+    ],
+    [
+     "(1,1) predicts",
+     "N",
+     "N",
+     "N",
+     "N",
+     "T",
+     "N",
+     "N",
+     "T"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad 2^2 times 2 times 1024 = 8192 \"bits\" = 8 \"K bits\"",
+    "\"b)\" quad 8192 / (2^3 times 2) = 512 \"entries\"",
+    "\"c)\" quad \"1-bit: 6 wrong of 8\" quad \"(1, 1): 4 wrong of 8\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A 2-bit counter only looks at one branch's own past. But branches talk to each other: what one branch did often decides what the next will do. This video teaches the predictor to listen."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Dynamic branch prediction, part 2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Correlated branches, the (m, n) predictor, a trace, and counting its bits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then tournament predictors, a real one from the Alpha 21264, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "corr",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a fragment of real code, from the textbook. Three branches."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: correlated branches"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "cc"
+      },
+      {
+       "action": "goto_line",
+       "target": "cc",
+       "line": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If the first two both set their variable to 0, then aa equals bb, and the third test must be false. Its outcome is certain, given the first two."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "cc",
+       "line": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Put as a rule, in a table."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "cc"
+      },
+      {
+       "action": "show",
+       "target": "ccx"
+      },
+      {
+       "action": "highlight",
+       "target": "ccx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A predictor that looks only at the third branch's own history can never learn that. It has to see the other branches."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ccx[1]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a branch's outcome can depend on earlier branches"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mn",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the correlating, or two-level, predictor. It keeps a global history: the outcomes of the last m branches, whichever branches they were, in a shift register."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: the (m, n) predictor"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ccx"
+      },
+      {
+       "action": "show",
+       "target": "mn"
+      },
+      {
+       "action": "highlight",
+       "target": "mn[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each table entry holds not one counter, but 2 to the m counters, each n bits wide."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mn[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To predict, the branch address picks the entry, and the global history picks the counter inside it. So the same branch gets a different prediction depending on what just happened."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mn[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In this notation the plain 2-bit table from part 1 is a (0, 2) predictor: no history at all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mn[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "address picks the entry · history picks the counter"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: a trace. Two branches. b1 is taken when d is not 0, and b2 is taken when d is not 1."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: tracing a (1, 1) predictor"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "mn"
+      },
+      {
+       "action": "show",
+       "target": "dc"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If d is 2: b1 is taken, d stays 2, and b2 is taken too. If d is 0: b1 falls through and sets d to 1, so b2 falls through as well. Let d alternate 2, 0, 2, 0."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "dc"
+      },
+      {
+       "action": "show",
+       "target": "dx"
+      },
+      {
+       "action": "highlight",
+       "target": "dx[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "dx[1]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the outcomes go: b1 taken, b2 taken, b1 not, b2 not, and so on. Every branch flips each time it runs."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "dx"
+      },
+      {
+       "action": "show",
+       "target": "tr"
+      },
+      {
+       "action": "highlight",
+       "target": "tr[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 1-bit predictor per branch, starting at not taken, predicts the last outcome of that same branch, and is wrong every single time. 8 out of 8."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tr[2][1]",
+       "value": "N"
+      },
+      {
+       "action": "set",
+       "target": "tr[2][2]",
+       "value": "N",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tr[2][3]",
+       "value": "T",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tr[2][4]",
+       "value": "T",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tr[2][5]",
+       "value": "N",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tr[2][6]",
+       "value": "N",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tr[2][7]",
+       "value": "T",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "tr[2][8]",
+       "value": "T",
+       "delay": 0.7
+      },
+      {
+       "action": "highlight",
+       "target": "tr[2]",
+       "delay": 0.9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now a (1, 1) predictor. One bit of global history: the outcome of the last branch, any branch. Each branch has two 1-bit predictors, one for when that history was not taken, one for when it was taken."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tr[3][1]",
+       "value": "N"
+      },
+      {
+       "action": "set",
+       "target": "tr[3][2]",
+       "value": "T",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tr[3][3]",
+       "value": "T",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tr[3][4]",
+       "value": "N",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tr[3][5]",
+       "value": "N",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tr[3][6]",
+       "value": "T",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tr[3][7]",
+       "value": "T",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "tr[3][8]",
+       "value": "N",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The first two executions are wrong, while the predictors warm up. b1 learns: after a not taken, I am taken. b2 learns: after a taken, I am taken."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tr[4][1]",
+       "value": "N"
+      },
+      {
+       "action": "set",
+       "target": "tr[4][2]",
+       "value": "N",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "tr[4][1]",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "tr[4][2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "From then on, every prediction is right. b2 simply copies what b1 just did, and the history bit tells it."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tr[4][3]",
+       "value": "N"
+      },
+      {
+       "action": "set",
+       "target": "tr[4][4]",
+       "value": "N",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "tr[4][5]",
+       "value": "T",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tr[4][6]",
+       "value": "T",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tr[4][7]",
+       "value": "N",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tr[4][8]",
+       "value": "N",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "tr[4][3]",
+       "delay": 0.7
+      },
+      {
+       "action": "mark",
+       "target": "tr[4][8]",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2 wrong out of 8, against 8 out of 8. And in the long run, none."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "one bit of global history turned 100% wrong into 0%"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bits",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: what does it cost? Each entry has 2 to the m counters of n bits."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: counting bits"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tr"
+      },
+      {
+       "action": "show",
+       "target": "bits"
+      },
+      {
+       "action": "highlight",
+       "target": "bits[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The plain 2-bit table with 4K entries: 1, times 2, times 4096. 8K bits."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bits[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "bits[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A (2, 2) predictor with the same 8K bits: each entry needs 4 times 2 bits, so only 1024 entries. The textbook's studies found it still beats the bigger plain table."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bits[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "bits[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A popular variation, gshare, combines the branch address and the global history with an XOR to form one index, which spreads the entries more evenly."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bits[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "bits[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "bits = 2^m × n × entries"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tour",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: some branches are best predicted from their own past, like loops. Others from the global past, like correlated ifs. Why not use both?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: tournament predictors"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bits"
+      },
+      {
+       "action": "show",
+       "target": "tn"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A tournament predictor runs a local predictor, built on each branch's own history."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tn[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And a global predictor, built on the recent outcomes of all branches."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tn[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A selector, one more 2-bit counter per entry, decides which of the two to believe for this branch."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tn[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "After the outcome is known: if one predictor was right and the other wrong, the selector moves one step toward the right one. If both were right or both wrong, it stays. So each branch drifts to the predictor that suits it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tn[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An example. A selector at 10 leans toward the global predictor. On a branch where global is wrong and local is right, it drops to 01, now leaning local. If both are right next time, it stays at 01."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "tn[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A second local win takes it to 00, strongly local. It would take two global wins in a row to swing it back. The same saturating trick as the 2-bit counter, applied to the choice."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "tn[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "tournament: local + global + a selector"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "alpha",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a real one, from the Alpha 21264 of 1998."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: the Alpha 21264"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tn"
+      },
+      {
+       "action": "show",
+       "target": "alpha"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The selector: 4K 2-bit counters, indexed by the last 12 branch outcomes. 8K bits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "alpha[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The global predictor: another 4K 2-bit counters, with the same index. 8K bits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "alpha[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The local side has two levels. 1K entries of 10-bit history, one per branch address. Each history then indexes 1K 3-bit counters."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "alpha[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "alpha[3]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "29K bits in all, and much more accurate than any single predictor of the same size. Modern processors go further, with tagged predictors that use several history lengths at once, but the idea is the same."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "alpha[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "8K + 8K + 10K + 3K = 29K bits"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "alpha"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The size of a (2, 2) predictor with 1K entries. How many entries a (3, 2) predictor gets in the same budget. And mispredictions for a 1-bit and a (1, 1) predictor on this sequence. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "q[1]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "q[2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: 4 counters of 2 bits per entry, times 1024: 8K bits. b: 8 counters of 2 bits is 16 bits per entry, and 8192 over 16 is 512 entries."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      },
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: the 1-bit predictors, starting at not taken, follow each branch's own last outcome."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "qt"
+      },
+      {
+       "action": "highlight",
+       "target": "qt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "They are wrong at executions 1 to 4, right at 5 and 6, and wrong again at 7 and 8. 6 of 8."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[2][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qt[2][2]",
+       "delay": 0.1
+      },
+      {
+       "action": "highlight",
+       "target": "qt[2][3]",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "qt[2][4]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "qt[2][7]",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "qt[2][8]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The (1, 1) predictor is wrong at 1 and 2 while it warms up, then right at 3 and 4. At 5, b1 after a not taken uses the entry trained to taken: wrong. b2 at 6 gets it right. At 7, b1 after not taken again: the entry now says not taken, wrong. b2 at 8, right. 4 of 8."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt[4][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qt[4][2]",
+       "delay": 0.1
+      },
+      {
+       "action": "highlight",
+       "target": "qt[4][5]",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "qt[4][7]",
+       "delay": 0.7
+      },
+      {
+       "action": "mark",
+       "target": "qt[4][6]",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "qt[4][8]",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Notice that b2 is always right once warmed up: it just copies b1. b1 has no pattern to learn. The usual slip: using the branch's own last outcome as the history, instead of the last outcome of any branch."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "global history = the last branches, whichever they were"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qt"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Branches correlate. An (m, n) predictor lets the last m outcomes pick among 2 to the m counters per entry, at 2 to the m, times n, times entries bits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Tournament predictors run a local and a global predictor, and a selector learns which to trust for each branch."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: hardware speculation and the reorder buffer, which lets the machine act on these predictions before it knows they are right."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: speculation and the reorder buffer"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

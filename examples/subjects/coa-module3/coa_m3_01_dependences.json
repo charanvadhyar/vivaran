@@ -1,0 +1,1595 @@
+{
+ "version": 1,
+ "title": "Dependences and hazards",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "What ILP is, and why it is hard"
+    ],
+    [
+     2,
+     "Data dependences"
+    ],
+    [
+     3,
+     "Name dependences: anti and output"
+    ],
+    [
+     4,
+     "Control dependences"
+    ],
+    [
+     5,
+     "From dependences to RAW, WAR and WAW"
+    ],
+    [
+     6,
+     "Register renaming by hand"
+    ],
+    [
+     7,
+     "A full analysis"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "ilp",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"pipeline CPI\" = \"ideal CPI\" + \"structural stalls\" + \"data stalls\" + \"control stalls\"",
+    "\"branches: 15 to 20% of all instructions\"",
+    "\"basic block\" approx 1 / 0.2 = 5 \"to\" 1 / 0.15 approx 7 \"instructions\"",
+    "\"so ILP must be found across branches: in loops\""
+   ]
+  },
+  {
+   "id": "loop",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "Loop: L.D    F0,0(R1)",
+    "      ADD.D  F4,F0,F2",
+    "      S.D    F4,0(R1)",
+    "      DADDUI R1,R1,#-8",
+    "      BNE    R1,R2,Loop"
+   ]
+  },
+  {
+   "id": "dd",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "producer",
+    "consumer",
+    "through"
+   ],
+   "rows": [
+    [
+     "L.D",
+     "ADD.D",
+     ""
+    ],
+    [
+     "ADD.D",
+     "S.D",
+     ""
+    ],
+    [
+     "DADDUI",
+     "BNE",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "ddx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "a data dependence",
+    "means"
+   ],
+   "rows": [
+    [
+     "is a property of the program",
+     "the value must flow from producer to consumer"
+    ],
+    [
+     "may or may not cause a stall",
+     "that depends on the pipeline: forwarding, latencies"
+    ],
+    [
+     "limits ILP",
+     "dependent instructions cannot overlap completely"
+    ],
+    [
+     "through memory too",
+     "does 100(R4) equal 20(R6)? hard to tell before run time"
+    ]
+   ]
+  },
+  {
+   "id": "nd",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "I1: ADD.D F6,F0,F8",
+    "I2: SUB.D F8,F10,F14",
+    "I3: MUL.D F6,F10,F12"
+   ]
+  },
+  {
+   "id": "ndx",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "kind",
+    "between",
+    "name"
+   ],
+   "rows": [
+    [
+     "antidependence",
+     "I1 reads, I2 writes",
+     "F8"
+    ],
+    [
+     "output dependence",
+     "I1 writes, I3 writes",
+     "F6"
+    ]
+   ]
+  },
+  {
+   "id": "cd",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "      DADDU R2,R3,R4",
+    "      BEQZ  R2,L1",
+    "      LW    R1,0(R2)",
+    "L1:   ..."
+   ]
+  },
+  {
+   "id": "cdx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "rule",
+    "why"
+   ],
+   "rows": [
+    [
+     "not above its branch",
+     "it would run when it should not"
+    ],
+    [
+     "not below, into the branch's shadow",
+     "it might be skipped"
+    ],
+    [
+     "keep exceptions",
+     "LW must not fault if R2 = 0"
+    ],
+    [
+     "keep data flow",
+     "each read sees its true writer"
+    ]
+   ]
+  },
+  {
+   "id": "hz",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "dependence",
+    "hazard",
+    "the danger",
+    "in a 5-stage in-order pipeline?"
+   ],
+   "rows": [
+    [
+     "true (data)",
+     "RAW: read after write",
+     "j reads before i writes",
+     "yes: forwarding and stalls"
+    ],
+    [
+     "anti",
+     "WAR: write after read",
+     "j writes before i reads",
+     "no: reads happen early, in ID"
+    ],
+    [
+     "output",
+     "WAW: write after write",
+     "j writes before i: wrong final value",
+     "no: writes happen in order, in WB"
+    ],
+    [
+     "(read after read)",
+     "none",
+     "nothing changes",
+     "never a hazard"
+    ]
+   ]
+  },
+  {
+   "id": "rn",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "1: DIV.D F0,F2,F4",
+    "2: ADD.D F6,F0,F8",
+    "3: S.D   F6,0(R1)",
+    "4: SUB.D F8,F10,F14",
+    "5: MUL.D F6,F10,F8"
+   ]
+  },
+  {
+   "id": "rnx",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "kind",
+    "pair",
+    "name"
+   ],
+   "rows": [
+    [
+     "true",
+     "1 → 2",
+     "F0"
+    ],
+    [
+     "true",
+     "2 → 3",
+     "F6"
+    ],
+    [
+     "true",
+     "4 → 5",
+     "F8"
+    ],
+    [
+     "anti",
+     "2 → 4",
+     "F8"
+    ],
+    [
+     "anti",
+     "3 → 5",
+     "F6"
+    ],
+    [
+     "output",
+     "2 → 5",
+     "F6"
+    ]
+   ]
+  },
+  {
+   "id": "rn2",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "1: DIV.D F0,F2,F4",
+    "2: ADD.D S,F0,F8",
+    "3: S.D   S,0(R1)",
+    "4: SUB.D T,F10,F14",
+    "5: MUL.D F6,F10,T"
+   ]
+  },
+  {
+   "id": "ex",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "I1: MUL.D F2,F4,F6",
+    "I2: ADD.D F8,F2,F10",
+    "I3: SUB.D F4,F12,F14",
+    "I4: S.D   F8,0(R1)",
+    "I5: ADD.D F8,F4,F16",
+    "I6: L.D   F2,8(R1)"
+   ]
+  },
+  {
+   "id": "exa",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "kind",
+    "pairs"
+   ],
+   "rows": [
+    [
+     "true (RAW)",
+     "I1→I2 F2 · I2→I4 F8 · I3→I5 F4"
+    ],
+    [
+     "anti (WAR)",
+     "I1→I3 F4 · I2→I6 F2 · I4→I5 F8"
+    ],
+    [
+     "output (WAW)",
+     "I1→I6 F2 · I2→I5 F8"
+    ]
+   ]
+  },
+  {
+   "id": "exr",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "I1: MUL.D F2,F4,F6",
+    "I2: ADD.D F8,F2,F10",
+    "I3: SUB.D S,F12,F14",
+    "I4: S.D   F8,0(R1)",
+    "I5: ADD.D T,S,F16",
+    "I6: L.D   U,8(R1)"
+   ]
+  },
+  {
+   "id": "q",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "I1: L.D   F2,0(R1)",
+    "I2: MUL.D F4,F2,F6",
+    "I3: ADD.D F2,F8,F10",
+    "I4: S.D   F4,0(R1)",
+    "I5: SUB.D F4,F2,F12",
+    "I6: ADD.D F6,F4,F2"
+   ]
+  },
+  {
+   "id": "qx",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "find"
+   ],
+   "rows": [
+    [
+     "a) every true dependence"
+    ],
+    [
+     "b) every antidependence"
+    ],
+    [
+     "c) every output dependence"
+    ],
+    [
+     "d) a renaming that leaves only true ones"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "answer",
+    "pairs"
+   ],
+   "rows": [
+    [
+     "a) true",
+     "I1→I2 F2 · I2→I4 F4 · I3→I5 F2 · I3→I6 F2 · I5→I6 F4"
+    ],
+    [
+     "b) anti",
+     "I2→I3 F2 · I2→I6 F6 · I4→I5 F4"
+    ],
+    [
+     "c) output",
+     "I1→I3 F2 · I2→I5 F4"
+    ],
+    [
+     "d) rename",
+     "I3 writes S · I5 writes T, reads S · I6 writes U, reads T and S"
+    ]
+   ]
+  },
+  {
+   "id": "qr",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "I1: L.D   F2,0(R1)",
+    "I2: MUL.D F4,F2,F6",
+    "I3: ADD.D S,F8,F10",
+    "I4: S.D   F4,0(R1)",
+    "I5: SUB.D T,S,F12",
+    "I6: ADD.D U,T,S"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Module 3 is about doing more than one thing at once. First inside one thread, by overlapping instructions. Then across threads and cores. It all starts with one question: which instructions depend on which?"
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Dependences and hazards"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What ILP is, then the three kinds of dependence: data, name, and control."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "How they become the hazards from Module 1, register renaming by hand, a full analysis, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ilp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: instruction-level parallelism, ILP, is overlap between the instructions of one program. A pipeline is the first way to get it."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: what ILP is"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "ilp"
+      },
+      {
+       "action": "highlight",
+       "target": "ilp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The pipeline CPI is the ideal CPI plus every kind of stall. All the techniques in this module attack one of those stall terms."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "ilp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The trouble: branches are 15 to 20 percent of instructions. So a basic block, the straight-line code between two branches, is only about 5 to 7 instructions long. Not much to overlap."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ilp[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "ilp[1]"
+      },
+      {
+       "action": "reveal",
+       "target": "ilp[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "ilp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So we must find parallelism across branches, and the richest source is loops, where every iteration does similar, often independent, work."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ilp[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "ilp[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "ILP = overlap inside one thread · limited by dependences"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "data",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: data dependences. Here is a loop that adds a scalar in F2 to every element of an array."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: data dependences"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ilp"
+      },
+      {
+       "action": "show",
+       "target": "loop"
+      },
+      {
+       "action": "mark_lines",
+       "target": "loop",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Instruction j is data dependent on instruction i if i produces a result that j uses, or through a chain of such steps."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "dd"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The load writes F0, and the add reads F0. A data dependence."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "loop",
+       "line": 2
+      },
+      {
+       "action": "set",
+       "target": "dd[0][2]",
+       "value": "F0"
+      },
+      {
+       "action": "highlight",
+       "target": "dd[0]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The add writes F4, and the store reads F4."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "loop",
+       "line": 3
+      },
+      {
+       "action": "set",
+       "target": "dd[1][2]",
+       "value": "F4"
+      },
+      {
+       "action": "highlight",
+       "target": "dd[1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the decrement writes R1, which the branch reads."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "loop",
+       "line": 5
+      },
+      {
+       "action": "set",
+       "target": "dd[2][2]",
+       "value": "R1"
+      },
+      {
+       "action": "highlight",
+       "target": "dd[2]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Load, add, store is a chain: each must wait for the one before. Those three cannot fully overlap."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "dd[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Four facts to keep straight. A dependence is a property of the program. A hazard is a property of the pipeline."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "loop"
+      },
+      {
+       "action": "hide",
+       "target": "dd"
+      },
+      {
+       "action": "show",
+       "target": "ddx"
+      },
+      {
+       "action": "highlight",
+       "target": "ddx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So a dependence may or may not cause a stall. With forwarding, and short latencies, often it does not."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ddx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But it always limits ILP: the dependent instruction cannot finish before its producer."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ddx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And dependences flow through memory too. Does 100 off R4 name the same address as 20 off R6? Often nobody can tell until the program runs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ddx[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "data dependence: a value flows from producer to consumer"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "name",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: name dependences. Two instructions use the same register or memory location, but no value flows between them."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: name dependences"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ddx"
+      },
+      {
+       "action": "show",
+       "target": "nd"
+      },
+      {
+       "action": "mark_lines",
+       "target": "nd",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I1 reads F8. Later, I2 writes F8. If I2 ran first, I1 would read the wrong value. This is an antidependence."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "nd",
+       "line": 2
+      },
+      {
+       "action": "show",
+       "target": "ndx"
+      },
+      {
+       "action": "highlight",
+       "target": "ndx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I1 writes F6, and I3 writes F6 too. If they finished in the wrong order, F6 would end with I1's value. This is an output dependence."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "nd",
+       "line": 3
+      },
+      {
+       "action": "highlight",
+       "target": "ndx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The key point: no value flows. I2 does not need anything from I1. They just happen to share a name."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "ndx[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So if we give I2 and I3 different registers, the conflicts vanish. That is register renaming, done by the compiler or by the hardware."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "name dependence: shared name, no value flow · remove by renaming"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "control",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: control dependences. Every instruction, except those in the very first block, depends on some branch deciding whether it runs."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: control dependences"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "nd"
+      },
+      {
+       "action": "hide",
+       "target": "ndx"
+      },
+      {
+       "action": "show",
+       "target": "cd"
+      },
+      {
+       "action": "mark_lines",
+       "target": "cd",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here the load runs only if R2 is not zero. It is control dependent on the branch."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "cd",
+       "line": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Rule one: an instruction controlled by a branch cannot simply be moved above it. Then it would run even when the branch says no."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "cd"
+      },
+      {
+       "action": "show",
+       "target": "cdx"
+      },
+      {
+       "action": "highlight",
+       "target": "cdx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Rule two: an instruction not controlled by the branch cannot be moved below it, into its shadow. Then it might be skipped."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cdx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What really matters are two properties. Exception behaviour: if we hoisted this load above the branch, and R2 were 0, it could fault, and that fault should never happen."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cdx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And data flow: every instruction must read the value from the writer it would have seen in order. Hardware speculation, later in this module, breaks these rules safely."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cdx[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "control dependence: keep exceptions and data flow correct"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hazards",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: how dependences become hazards. Take an instruction i, followed by a later instruction j."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: RAW, WAR and WAW"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cdx"
+      },
+      {
+       "action": "show",
+       "target": "hz"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A true dependence risks a RAW hazard, read after write: j tries to read before i has written. In our 5-stage pipeline, forwarding and stalls handle it, as in Module 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hz[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An antidependence risks a WAR hazard, write after read: j writes before i has read. Impossible in the 5-stage pipeline, because every instruction reads its registers early, in decode."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hz[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An output dependence risks a WAW hazard: j writes before i, leaving the wrong final value. Also impossible in order, since every write happens in the same stage, write back."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hz[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And read after read is never a hazard: reading does not change anything."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hz[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So WAR and WAW only appear once instructions can finish out of order: long floating-point units, or dynamic scheduling. That is exactly where this module is going."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "hz[1..=2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "true → RAW · anti → WAR · output → WAW"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rename",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: register renaming by hand, on the textbook's example."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: register renaming"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hz"
+      },
+      {
+       "action": "show",
+       "target": "rn"
+      },
+      {
+       "action": "mark_lines",
+       "target": "rn",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "First the true dependences. 1 writes F0, which 2 reads. 2 writes F6, which the store reads. 4 writes F8, which 5 reads."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "rnx"
+      },
+      {
+       "action": "highlight",
+       "target": "rnx[0..=2]"
+      },
+      {
+       "action": "goto_line",
+       "target": "rn",
+       "line": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Antidependences. 2 reads F8, then 4 writes it. The store reads F6, then 5 writes it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rnx[3..=4]"
+      },
+      {
+       "action": "goto_line",
+       "target": "rn",
+       "line": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And one output dependence: 2 and 5 both write F6."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rnx[5]"
+      },
+      {
+       "action": "goto_line",
+       "target": "rn",
+       "line": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now rename, using two spare registers, S and T. Instruction 2 writes S instead of F6, and the store reads S."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rn"
+      },
+      {
+       "action": "show",
+       "target": "rn2"
+      },
+      {
+       "action": "mark_lines",
+       "target": "rn2",
+       "from": 2,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Instruction 4 writes T instead of F8, and 5 reads T."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rn2",
+       "from": 4,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 still writes F6, so the final value of F6 is unchanged. Only the true dependences remain, and 4 and 5 can now run before, or alongside, 1 to 3."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "rnx[0..=2]"
+      },
+      {
+       "action": "highlight",
+       "target": "rnx[3..=5]",
+       "delay": 0.4
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "rename the later writer · keep the true dependences"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "full",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: a full analysis, step by step. Six instructions."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: a full analysis"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rn2"
+      },
+      {
+       "action": "hide",
+       "target": "rnx"
+      },
+      {
+       "action": "show",
+       "target": "ex"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ex",
+       "from": 1,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The method: for each instruction, look at what it reads, and find the latest earlier writer. Each one is a true dependence."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "exa"
+      },
+      {
+       "action": "highlight",
+       "target": "exa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "I2 reads F2 from I1. I4 reads F8 from I2. I5 reads F4 from I3. Three true dependences."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "ex",
+       "line": 2
+      },
+      {
+       "action": "goto_line",
+       "target": "ex",
+       "line": 4
+      },
+      {
+       "action": "goto_line",
+       "target": "ex",
+       "line": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then, for each write, look back for earlier reads of the same register. I3 writes F4, which I1 read. I6 writes F2, which I2 read. I5 writes F8, which the store read. Three antidependences."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "exa[1]"
+      },
+      {
+       "action": "goto_line",
+       "target": "ex",
+       "line": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Finally, earlier writes of the same register. I6 and I1 both write F2. I5 and I2 both write F8. Two output dependences."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "exa[2]"
+      },
+      {
+       "action": "goto_line",
+       "target": "ex",
+       "line": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Rename the later writers: I3 writes S, so I5 reads S. I5 writes T, and I6 writes U. Later code reads T for F8, and U for F2."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "ex"
+      },
+      {
+       "action": "show",
+       "target": "exr"
+      },
+      {
+       "action": "mark_lines",
+       "target": "exr",
+       "from": 3,
+       "to": 3
+      },
+      {
+       "action": "mark_lines",
+       "target": "exr",
+       "from": 5,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Only the three true dependences are left."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "exa[0]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "method: last writer of each read · earlier reads and writes of each write"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "exr"
+      },
+      {
+       "action": "hide",
+       "target": "exa"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Six instructions. Find every true dependence, every antidependence, every output dependence, and a renaming that leaves only the true ones. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 1,
+       "to": 6
+      },
+      {
+       "action": "highlight",
+       "target": "qx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: I2 reads F2 from I1. I4 reads F4 from I2. I5 reads F2 from I3, not from I1. I6 reads F4 from I5 and F2 from I3. Five true dependences."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qx"
+      },
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: I3 writes F2, which I2 read. I6 writes F6, which I2 read. I5 writes F4, which the store read. Three antidependences."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: I3 rewrites F2 after I1. I5 rewrites F4 after I2. Two output dependences."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: I3 writes S, I5 reads S and writes T, I6 reads T and S, and writes U. Now only true dependences remain."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here is the renamed code. The usual slip: pairing a read with the first writer instead of the latest one. I5 reads F2 from I3, not I1, so it now reads S."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "qr"
+      },
+      {
+       "action": "goto_line",
+       "target": "qr",
+       "line": 5
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "always the latest earlier writer"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qr"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "ILP is overlap within one thread, and basic blocks are short. Data dependences carry values; name dependences share a name; control dependences decide what runs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "They become RAW, WAR and WAW hazards. Renaming removes the name dependences, leaving only the true ones."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: loop unrolling and instruction scheduling, exposing ILP with the compiler."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: loop unrolling and scheduling"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

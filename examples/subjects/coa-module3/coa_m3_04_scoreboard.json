@@ -1,0 +1,1630 @@
+{
+ "version": 1,
+ "title": "Scoreboarding",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Why execute out of order"
+    ],
+    [
+     2,
+     "The scoreboard's four steps"
+    ],
+    [
+     3,
+     "Functional units and the three tables"
+    ],
+    [
+     4,
+     "The example, cycle by cycle"
+    ],
+    [
+     5,
+     "A snapshot of the tables"
+    ],
+    [
+     6,
+     "The WAR stall at the end"
+    ],
+    [
+     7,
+     "What the scoreboard cannot do"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "why",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "DIV.D F0,F2,F4     ; 40 cycles",
+    "ADD.D F10,F0,F8    ; needs F0",
+    "SUB.D F12,F8,F14   ; needs nothing new"
+   ]
+  },
+  {
+   "id": "whyx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "in order",
+    "out of order"
+   ],
+   "rows": [
+    [
+     "SUB.D",
+     "waits behind ADD.D",
+     "starts at once"
+    ],
+    [
+     "new risk",
+     "none",
+     "WAR and WAW hazards"
+    ]
+   ]
+  },
+  {
+   "id": "steps",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "waits until",
+    "checks for"
+   ],
+   "rows": [
+    [
+     "1 Issue",
+     "its unit is free, and no active writer of its destination",
+     "structural, WAW"
+    ],
+    [
+     "2 Read operands",
+     "every source has been written",
+     "RAW"
+    ],
+    [
+     "3 Execute",
+     "the latency has passed",
+     "–"
+    ],
+    [
+     "4 Write result",
+     "no earlier instruction still has to read it",
+     "WAR"
+    ]
+   ]
+  },
+  {
+   "id": "fu",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "functional unit",
+    "how many",
+    "execution cycles"
+   ],
+   "rows": [
+    [
+     "integer (loads and stores)",
+     "1",
+     "1"
+    ],
+    [
+     "FP multiplier",
+     "2",
+     "10"
+    ],
+    [
+     "FP adder (add and subtract)",
+     "1",
+     "2"
+    ],
+    [
+     "FP divider",
+     "1",
+     "40"
+    ]
+   ]
+  },
+  {
+   "id": "tabs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "table",
+    "holds"
+   ],
+   "rows": [
+    [
+     "instruction status",
+     "the cycle each instruction finishes each step"
+    ],
+    [
+     "functional unit status",
+     "per unit: busy, op, Fi, Fj, Fk, Qj, Qk, Rj, Rk"
+    ],
+    [
+     "register result status",
+     "per register: which unit will write it next"
+    ]
+   ]
+  },
+  {
+   "id": "code",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "L.D    F6,34(R2)",
+    "L.D    F2,45(R3)",
+    "MUL.D  F0,F2,F4",
+    "SUB.D  F8,F6,F2",
+    "DIV.D  F10,F0,F6",
+    "ADD.D  F6,F8,F2"
+   ]
+  },
+  {
+   "id": "is",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "instruction",
+    "issue",
+    "read operands",
+    "execution complete",
+    "write result"
+   ],
+   "rows": [
+    [
+     "L.D    F6,34(R2)",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "L.D    F2,45(R3)",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "MUL.D  F0,F2,F4",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SUB.D  F8,F6,F2",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "DIV.D  F10,F0,F6",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ADD.D  F6,F8,F2",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "fs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "unit",
+    "busy",
+    "op",
+    "Fi",
+    "Fj",
+    "Fk",
+    "Qj",
+    "Qk",
+    "Rj",
+    "Rk"
+   ],
+   "rows": [
+    [
+     "Integer",
+     "no",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Mult1",
+     "yes",
+     "MUL.D",
+     "F0",
+     "F2",
+     "F4",
+     "",
+     "",
+     "no",
+     "no"
+    ],
+    [
+     "Mult2",
+     "no",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Add",
+     "no",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Divide",
+     "yes",
+     "DIV.D",
+     "F10",
+     "F0",
+     "F6",
+     "Mult1",
+     "",
+     "no",
+     "yes"
+    ]
+   ]
+  },
+  {
+   "id": "rs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "register",
+    "F0",
+    "F2",
+    "F4",
+    "F6",
+    "F8",
+    "F10"
+   ],
+   "rows": [
+    [
+     "written by",
+     "Mult1",
+     "",
+     "",
+     "",
+     "",
+     "Divide"
+    ]
+   ]
+  },
+  {
+   "id": "lim",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "limit",
+    "in our example"
+   ],
+   "rows": [
+    [
+     "no forwarding",
+     "read only the cycle after the write"
+    ],
+    [
+     "WAW stalls issue",
+     "a second writer cannot even start"
+    ],
+    [
+     "WAR stalls write",
+     "ADD.D done in 16, written in 22"
+    ],
+    [
+     "few units",
+     "the second load waited to issue"
+    ],
+    [
+     "in-order issue",
+     "one blocked issue stops all behind it"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "L.D    F2,0(R1)",
+    "MUL.D  F4,F2,F0",
+    "L.D    F6,8(R1)",
+    "ADD.D  F8,F4,F6",
+    "SUB.D  F4,F6,F10"
+   ]
+  },
+  {
+   "id": "qt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "instruction",
+    "issue",
+    "read operands",
+    "execution complete",
+    "write result"
+   ],
+   "rows": [
+    [
+     "L.D    F2,0(R1)",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "MUL.D  F4,F2,F0",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "L.D    F6,8(R1)",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "ADD.D  F8,F4,F6",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "SUB.D  F4,F6,F10",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "So far the compiler arranged the instructions. Now the hardware does it, while the program runs, letting instructions start as soon as their operands are ready. The first such design was the scoreboard, in the CDC 6600 of 1964."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Scoreboarding"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why execute out of order, the scoreboard's four steps, and its units and tables."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the textbook example cycle by cycle, a snapshot of the tables, the WAR stall, the limits, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a divide takes 40 cycles. The add needs its result, so the add must wait."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: why out of order"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      },
+      {
+       "action": "goto_line",
+       "target": "why",
+       "line": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But the subtract needs nothing from either. In an in-order pipeline it is stuck behind the add anyway, for 40 cycles."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "why",
+       "line": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Compare the two ways of running it."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "whyx"
+      },
+      {
+       "action": "highlight",
+       "target": "whyx[0][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dynamic scheduling lets the subtract go ahead. Instructions issue in order, but execute as soon as their operands are ready."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "whyx[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The price: once instructions finish out of order, WAR and WAW hazards become real. If the subtract wrote F8 before the add had read it, the add would get the wrong value."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "whyx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the hardware must track every instruction in flight. That bookkeeping is the scoreboard."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "issue in order · execute out of order · watch for RAW, WAR and WAW"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "steps",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the scoreboard splits the decode stage in two, and every instruction passes through four steps."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: four steps"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "whyx"
+      },
+      {
+       "action": "show",
+       "target": "steps"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Issue: the instruction waits until its functional unit is free, and until no active instruction is going to write the same destination. That check stops structural and WAW hazards."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "steps[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Read operands: it waits until every source register has been written by its producer. That is where RAW hazards are resolved, and why instructions can now start out of order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "steps[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Execute: the unit takes its latency, then tells the scoreboard it has finished."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "steps[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write result: before writing, it waits until no earlier instruction still needs to read the old value of that register. That check stops WAR hazards."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "steps[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "issue: structural, WAW · read: RAW · write: WAR"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "units",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: our machine has one integer unit for loads, two FP multipliers, one FP adder, and one FP divider."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: units and tables"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "steps"
+      },
+      {
+       "action": "show",
+       "target": "fu"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A load takes 1 execution cycle, an add 2, a multiply 10, and a divide 40."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fu[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The scoreboard keeps three tables. Instruction status records when each instruction completes each step."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "fu"
+      },
+      {
+       "action": "show",
+       "target": "tabs"
+      },
+      {
+       "action": "highlight",
+       "target": "tabs[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Functional unit status has a row per unit: whether it is busy, its operation, its destination Fi, its sources Fj and Fk, the units Qj and Qk that will produce those sources, and flags Rj and Rk saying whether they are ready."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tabs[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And register result status records, for each register, which unit will write it next. Blank means the value in the register file is current."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tabs[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "three tables: instructions, units, registers"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the textbook's example. Two loads, a multiply, a subtract, a divide and an add."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: the example"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tabs"
+      },
+      {
+       "action": "show",
+       "target": "code"
+      },
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 1,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Look at the dependences: the multiply and subtract need F2 from the second load. The divide needs F0 from the multiply. And the add writes F6, which the subtract and divide read: a WAR waiting to happen."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "code",
+       "line": 3
+      },
+      {
+       "action": "goto_line",
+       "target": "code",
+       "line": 5
+      },
+      {
+       "action": "goto_line",
+       "target": "code",
+       "line": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the instruction status table. Cycles 1 to 4: the first load issues, reads R2, executes and writes F6."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "code"
+      },
+      {
+       "action": "show",
+       "target": "is"
+      },
+      {
+       "action": "set",
+       "target": "is[0][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "is[0][2]",
+       "value": "2",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "is[0][3]",
+       "value": "3",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "is[0][4]",
+       "value": "4",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The second load cannot issue in cycle 2: the one integer unit is busy. A structural stall. It issues in 5, after the first load frees the unit, and writes F2 in 8."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "is[1]"
+      },
+      {
+       "action": "set",
+       "target": "is[1][1]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "is[1][2]",
+       "value": "6",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "is[1][3]",
+       "value": "7",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "is[1][4]",
+       "value": "8",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The multiply issues in 6, to a free multiplier. The subtract issues in 7, the divide in 8. Each has a free unit, so issue keeps flowing."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[2][1]",
+       "value": "6"
+      },
+      {
+       "action": "set",
+       "target": "is[3][1]",
+       "value": "7",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "is[4][1]",
+       "value": "8",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But the multiply and the subtract both need F2, written in cycle 8. So both read their operands in cycle 9."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[2][2]",
+       "value": "9"
+      },
+      {
+       "action": "set",
+       "target": "is[3][2]",
+       "value": "9",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "is[1][4]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The subtract takes 2 cycles: done in 11, and it writes F8 in 12."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[3][3]",
+       "value": "11"
+      },
+      {
+       "action": "set",
+       "target": "is[3][4]",
+       "value": "12",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The add needs the adder, so it could not issue until the subtract freed it. It issues in 13, reads in 14, and finishes executing in 16."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[5][1]",
+       "value": "13"
+      },
+      {
+       "action": "set",
+       "target": "is[5][2]",
+       "value": "14",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "is[5][3]",
+       "value": "16",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Notice: the add has finished, while the multiply issued before it is still executing. Out-of-order completion."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "is[5][3]"
+      },
+      {
+       "action": "highlight",
+       "target": "is[2]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The multiply takes 10 cycles from 9: complete in 19, written in 20."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[2][3]",
+       "value": "19"
+      },
+      {
+       "action": "set",
+       "target": "is[2][4]",
+       "value": "20",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The divide has been waiting for F0 since cycle 8. It reads in 21, executes for 40 cycles to 61, and writes in 62."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[4][2]",
+       "value": "21"
+      },
+      {
+       "action": "set",
+       "target": "is[4][3]",
+       "value": "61",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "is[4][4]",
+       "value": "62",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One cell is left: when does the add write F6? It finished in 16, so why not 17? The next stage answers that."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "is[5][4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "every instruction: issue → read → execute → write"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "snap",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: a snapshot of the other two tables, at the end of cycle 12."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: a snapshot at cycle 12"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "is"
+      },
+      {
+       "action": "show",
+       "target": "fs"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The integer unit is free: both loads are done. The adder is free too: the subtract wrote in 12."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fs[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "fs[3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Mult1 holds the multiply: destination F0, sources F2 and F4. It has already read them, so Rj and Rk are reset to no, and it is executing."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fs[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The divider holds the divide: destination F10, sources F0 and F6. F6 is ready, Rk yes. But F0 will come from Mult1, so Qj says Mult1, and Rj is no. It waits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fs[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the register result status: F0 will be written by Mult1, and F10 by the divider. Every other register holds its current value."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "fs"
+      },
+      {
+       "action": "show",
+       "target": "rs"
+      },
+      {
+       "action": "highlight",
+       "target": "rs[0][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "rs[0][6]",
+       "delay": 0.4
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Qj, Qk: who will produce my operands · Rj, Rk: are they ready"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "war",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: the add finished in 16, and wants to write F6. But the divide still has to read the old F6, and it does not read its operands until cycle 21."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: the WAR stall"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rs"
+      },
+      {
+       "action": "show",
+       "target": "is"
+      },
+      {
+       "action": "highlight",
+       "target": "is[4][2]"
+      },
+      {
+       "action": "highlight",
+       "target": "is[5][3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If the add wrote in 17, the divide would later read the add's new F6, which is wrong. So the scoreboard holds the add's write until cycle 22, the cycle after the divide reads."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "is[5][4]",
+       "value": "22"
+      },
+      {
+       "action": "mark",
+       "target": "is[5][4]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The complete table: the divide ends the sequence in 62. Out of order, but every value is correct."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "is"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "WAR: hold the write until earlier readers have read"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "limits",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: what the scoreboard cannot do."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: the limits"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "is"
+      },
+      {
+       "action": "show",
+       "target": "lim"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "There is no forwarding. A result goes into the register file, and a waiting instruction reads it the next cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lim[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "WAW hazards stall issue, and WAR hazards stall the write: the add sat idle from 16 to 22."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lim[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "lim[2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Structural limits: with one integer unit, the second load waited 3 cycles to issue."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lim[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And issue is in order. Once one instruction cannot issue, nothing behind it can either, however independent. All these name stalls disappear with register renaming, which is Tomasulo's idea, next video."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lim[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "the scoreboard detects WAR and WAW, but only by stalling"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lim"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Same units and latencies. Fill the instruction status table for these five instructions, and explain why the subtract issues so late. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "goto_line",
+       "target": "q",
+       "line": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The first load: 1, 2, 3, 4. The multiply issues in 2, but needs F2 from the load, written in 4. It reads in 5, completes in 15, writes in 16."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qt"
+      },
+      {
+       "action": "set",
+       "target": "qt[0][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "qt[0][2]",
+       "value": "2",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "qt[0][3]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qt[0][4]",
+       "value": "4",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "qt[1][1]",
+       "value": "2",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "qt[1][2]",
+       "value": "5",
+       "delay": 0.62
+      },
+      {
+       "action": "set",
+       "target": "qt[1][3]",
+       "value": "15",
+       "delay": 0.74
+      },
+      {
+       "action": "set",
+       "target": "qt[1][4]",
+       "value": "16",
+       "delay": 0.86
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The second load waits for the integer unit: issue 5, then 6, 7, 8."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "qt[2][1]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "qt[2][2]",
+       "value": "6",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "qt[2][3]",
+       "value": "7",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "qt[2][4]",
+       "value": "8",
+       "delay": 0.44999999999999996
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The add issues in 6, but needs F4 from the multiply, written in 16. It reads in 17, completes in 19, writes in 20."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "qt[3][1]",
+       "value": "6"
+      },
+      {
+       "action": "set",
+       "target": "qt[3][2]",
+       "value": "17",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "qt[3][3]",
+       "value": "19",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "qt[3][4]",
+       "value": "20",
+       "delay": 0.44999999999999996
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The subtract writes F4, like the multiply: a WAW hazard. That alone would let it issue in 17, after the multiply writes. But it also needs the only adder, held by the add until cycle 20. So it issues in 21, reads in 22, completes in 24, and writes in 25."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "qt[4][1]",
+       "value": "21"
+      },
+      {
+       "action": "set",
+       "target": "qt[4][2]",
+       "value": "22",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qt[4][3]",
+       "value": "24",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "qt[4][4]",
+       "value": "25",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "qt[4]",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Its write is safe: the add, the only earlier reader of F4, read it in 17. The usual slip: checking only one reason for a stall. Here both WAW and the busy adder hold the subtract back."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a stall can have several causes: check every one"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qt"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The scoreboard issues in order, reads operands when they are ready, and executes out of order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Its tables track units and registers. It handles WAR and WAW correctly, but only by stalling."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: Tomasulo's algorithm, which removes those stalls by renaming registers in hardware."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: Tomasulo's algorithm"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

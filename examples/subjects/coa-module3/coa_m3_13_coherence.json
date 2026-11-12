@@ -1,0 +1,1371 @@
+{
+ "version": 1,
+ "title": "Shared memory and cache coherence",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Thread-level parallelism on shared memory"
+    ],
+    [
+     2,
+     "Two organizations: UMA and NUMA"
+    ],
+    [
+     3,
+     "Caching shared data"
+    ],
+    [
+     4,
+     "The coherence problem, step by step"
+    ],
+    [
+     5,
+     "What coherence means exactly"
+    ],
+    [
+     6,
+     "Invalidate or update"
+    ],
+    [
+     7,
+     "How it is enforced: snooping or directories"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "tlp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "idea",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "thread-level parallelism",
+     "threads with their own instruction streams, on separate cores"
+    ],
+    [
+     "shared memory",
+     "one address space: communicate by loads and stores"
+    ],
+    [
+     "the catch",
+     "each core caches its own copies of shared data"
+    ]
+   ]
+  },
+  {
+   "id": "uma",
+   "type": "diagram",
+   "region": "center",
+   "layout": "layers",
+   "direction": "down",
+   "nodes": [
+    {
+     "id": "p1",
+     "label": "core + caches"
+    },
+    {
+     "id": "p2",
+     "label": "core + caches"
+    },
+    {
+     "id": "p3",
+     "label": "core + caches"
+    },
+    {
+     "id": "p4",
+     "label": "core + caches"
+    },
+    {
+     "id": "bus",
+     "label": "bus"
+    },
+    {
+     "id": "mem",
+     "label": "memory"
+    }
+   ],
+   "edges": [
+    {
+     "from": "p1",
+     "to": "bus"
+    },
+    {
+     "from": "p2",
+     "to": "bus"
+    },
+    {
+     "from": "p3",
+     "to": "bus"
+    },
+    {
+     "from": "p4",
+     "to": "bus"
+    },
+    {
+     "from": "bus",
+     "to": "mem"
+    }
+   ]
+  },
+  {
+   "id": "org",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "UMA: centralized shared memory (SMP)",
+    "NUMA: distributed shared memory (DSM)"
+   ],
+   "rows": [
+    [
+     "memory",
+     "one memory, shared by all cores",
+     "a slice of memory beside each node"
+    ],
+    [
+     "latency",
+     "the same for every address",
+     "local memory fast, remote memory slower"
+    ],
+    [
+     "scales to",
+     "a few to a few dozen cores",
+     "hundreds of cores"
+    ],
+    [
+     "example",
+     "a typical single-socket multicore chip",
+     "multi-socket servers"
+    ]
+   ]
+  },
+  {
+   "id": "numa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"NUMA: 80% of misses local at 100 ns, 20% remote at 300 ns\"",
+    "\"average\" = 0.8 times 100 + 0.2 times 300 = 140 \"ns\" quad \"so place data near the thread that uses it\""
+   ]
+  },
+  {
+   "id": "cache",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "data",
+    "caching it"
+   ],
+   "rows": [
+    [
+     "private: used by one thread",
+     "no problem: exactly like a uniprocessor"
+    ],
+    [
+     "shared: used by several",
+     "copies in several caches: faster, less traffic"
+    ],
+    [
+     "but",
+     "if one core writes its copy, the others now hold a stale value"
+    ]
+   ]
+  },
+  {
+   "id": "pb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "time",
+    "event",
+    "cache of A",
+    "cache of B",
+    "memory X"
+   ],
+   "rows": [
+    [
+     "0",
+     "start",
+     "",
+     "",
+     "1"
+    ],
+    [
+     "1",
+     "A reads X",
+     "",
+     "",
+     "1"
+    ],
+    [
+     "2",
+     "B reads X",
+     "",
+     "",
+     "1"
+    ],
+    [
+     "3",
+     "A writes 0 to X (write-through)",
+     "",
+     "",
+     ""
+    ],
+    [
+     "4",
+     "B reads X",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "def",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "coherent if",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "1 program order",
+     "my read after my write returns my value"
+    ],
+    [
+     "2 writes become visible",
+     "others eventually see my write"
+    ],
+    [
+     "3 write serialization",
+     "everyone sees writes to X in one order"
+    ],
+    [
+     "not to confuse",
+     "consistency: order across different addresses"
+    ]
+   ]
+  },
+  {
+   "id": "iv",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "time",
+    "event",
+    "cache of A",
+    "cache of B",
+    "memory X"
+   ],
+   "rows": [
+    [
+     "1",
+     "A reads X",
+     "1",
+     "",
+     "1"
+    ],
+    [
+     "2",
+     "B reads X",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "3",
+     "A writes 0: invalidate the other copies",
+     "0",
+     "invalid",
+     "0"
+    ],
+    [
+     "4",
+     "B reads X: a miss",
+     "0",
+     "0",
+     "0"
+    ]
+   ]
+  },
+  {
+   "id": "vs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "write invalidate",
+    "write update (broadcast)"
+   ],
+   "rows": [
+    [
+     "on a write",
+     "other copies are invalidated",
+     "other copies get the new value"
+    ],
+    [
+     "A writes X 5 times, then B reads",
+     "1 invalidation + 1 miss",
+     "5 broadcasts"
+    ],
+    [
+     "writes to several words of a block",
+     "one invalidation for the block",
+     "one broadcast per word"
+    ],
+    [
+     "used by",
+     "almost every modern multicore",
+     "rarely"
+    ]
+   ]
+  },
+  {
+   "id": "how",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "scheme",
+    "how",
+    "scales to"
+   ],
+   "rows": [
+    [
+     "snooping",
+     "every cache watches a shared bus",
+     "a few dozen cores"
+    ],
+    [
+     "directory",
+     "a table lists each block's sharers",
+     "hundreds of cores"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "event (X = 7 at first; write-back caches)"
+   ],
+   "rows": [
+    [
+     "1",
+     "A reads X"
+    ],
+    [
+     "2",
+     "B reads X"
+    ],
+    [
+     "3",
+     "A writes 5 to X"
+    ],
+    [
+     "4",
+     "B reads X"
+    ],
+    [
+     "5",
+     "C reads X"
+    ]
+   ]
+  },
+  {
+   "id": "qx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "find"
+   ],
+   "rows": [
+    [
+     "a) what steps 4 and 5 return with no coherence"
+    ],
+    [
+     "b) what they return with write invalidate"
+    ],
+    [
+     "c) bus transactions: invalidate against update"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "no coherence",
+    "write invalidate",
+    "write update"
+   ],
+   "rows": [
+    [
+     "step 4: B reads",
+     "7 (its stale copy)",
+     "5 (miss; A supplies it)",
+     "5 (hit: updated)"
+    ],
+    [
+     "step 5: C reads",
+     "7 (memory is stale)",
+     "5",
+     "5"
+    ],
+    [
+     "bus transactions",
+     "–",
+     "5: miss, miss, invalidate, miss, miss",
+     "4: miss, miss, update, miss"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "One core finds only so much parallelism. Put several cores on one chip, let them share memory, and run a thread on each. But every core keeps its own cache, and that creates a problem every multicore must solve."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Shared memory and cache coherence"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Thread-level parallelism, the two ways to organise shared memory, and caching shared data."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the coherence problem step by step, its exact definition, the two fixes, how they are enforced, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tlp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: thread-level parallelism. Several threads, each with its own instruction stream, run on separate cores at the same time."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: shared-memory TLP"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "tlp"
+      },
+      {
+       "action": "highlight",
+       "target": "tlp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In a shared-memory multiprocessor, every core sees one address space. Threads communicate simply by loading and storing the same addresses."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tlp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The catch: each core has its own caches, and those caches hold their own copies of shared data."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tlp[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "one address space · many private caches"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "org",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the simplest organisation. A few cores, each with its caches, share one memory through a bus or a switch."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: UMA and NUMA"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tlp"
+      },
+      {
+       "action": "show",
+       "target": "uma"
+      },
+      {
+       "action": "highlight",
+       "target": "uma.bus"
+      },
+      {
+       "action": "highlight",
+       "target": "uma.mem",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every address takes the same time to reach from every core. That is uniform memory access, UMA, also called a symmetric multiprocessor, SMP."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "uma"
+      },
+      {
+       "action": "show",
+       "target": "org"
+      },
+      {
+       "action": "highlight",
+       "target": "org[0][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "org[1][1]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With many cores, one memory becomes a bottleneck. So memory is split up, with a slice beside each node. A core reaches its own slice quickly, and others' slices over a network, more slowly. Non-uniform memory access, NUMA, or distributed shared memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "org[0][2]"
+      },
+      {
+       "action": "highlight",
+       "target": "org[1][2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "UMA suits a few to a few dozen cores, like one multicore chip. NUMA scales to hundreds, like multi-socket servers. Either way, the programmer sees one shared memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "org[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On NUMA, where data lives matters. If 80 percent of a thread's misses go to its local memory at 100 nanoseconds, and 20 percent to a remote node at 300, the average is 140. Operating systems try to place each page near the thread that uses it."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "org"
+      },
+      {
+       "action": "show",
+       "target": "numa"
+      },
+      {
+       "action": "highlight",
+       "target": "numa[0]"
+      },
+      {
+       "action": "reveal",
+       "target": "numa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "numa[1]",
+       "delay": 0.5
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "UMA: one memory, equal latency · NUMA: memory per node"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "caching",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: caches hold two kinds of data."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: caching shared data"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "numa"
+      },
+      {
+       "action": "show",
+       "target": "cache"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Private data, used by one thread, is cached exactly as on a single core. No problem at all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cache[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Shared data can be copied into several caches at once. That is good: each core reads its own copy quickly, without crowding the bus."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cache[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But when one core writes its copy, the other copies are suddenly out of date."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cache[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "replication speeds reads · and creates stale copies"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "problem",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the problem, step by step. Two cores, A and B, with write-through caches. Memory location X holds 1."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: the coherence problem"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cache"
+      },
+      {
+       "action": "show",
+       "target": "pb"
+      },
+      {
+       "action": "highlight",
+       "target": "pb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A reads X. A miss: its cache now holds 1."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "pb[1][2]",
+       "value": "1"
+      },
+      {
+       "action": "highlight",
+       "target": "pb[1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "B reads X. Its cache also holds 1. Two copies, both correct."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "pb[2][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "pb[2][3]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "pb[2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A writes 0 to X. Write-through updates A's cache and memory."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "pb[3][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "pb[3][3]",
+       "value": "1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "pb[3][4]",
+       "value": "0",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "pb[3]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But B's cache still says 1. Nothing told it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[3][3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "B reads X again. A hit, in its own cache: it gets 1. The wrong value, even though memory and A both say 0."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "pb[4][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "pb[4][3]",
+       "value": "1: stale!",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "pb[4][4]",
+       "value": "0",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "pb[4][3]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With write-back caches it is even worse: memory itself would still say 1."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "two caches, two values: the coherence problem"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "def",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: what exactly must hold? A memory system is coherent if three things are true."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: what coherence means"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pb"
+      },
+      {
+       "action": "show",
+       "target": "def"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One: program order. A core that writes X, and later reads X, gets back its own value, as long as no one else wrote in between."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "def[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two: writes become visible. A write by one core is eventually seen by reads on the others, if the reads come long enough afterwards. Our example broke this rule."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "def[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three: write serialization. Two writes to the same location are seen by every core in the same order. Nobody may see 1 then 2, while someone else sees 2 then 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "def[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Coherence is about one location. Consistency, a different question, is about when writes to different locations become visible relative to each other. That comes in a later video."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "def[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "coherence: one address, one agreed history of writes"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fix",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: the most common fix is write invalidate. Before a core writes, it makes sure it holds the only copy, by invalidating all the others."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: invalidate or update"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "def"
+      },
+      {
+       "action": "show",
+       "target": "iv"
+      },
+      {
+       "action": "highlight",
+       "target": "iv[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A writes 0. B's copy is invalidated."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "iv[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "iv[2][3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now when B reads X, it misses, and fetches the current value, 0. Correct."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "iv[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The alternative is write update, or broadcast: on every write, send the new value to every cache holding a copy."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "iv"
+      },
+      {
+       "action": "show",
+       "target": "vs"
+      },
+      {
+       "action": "highlight",
+       "target": "vs[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If A writes X five times before B reads it, invalidate costs one invalidation and one later miss. Update costs five broadcasts."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And writes to several words of the same block cost one invalidation, but one broadcast per word. Bus bandwidth is precious, so almost every multicore today invalidates."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[2..=3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "write invalidate: only one writer holds a copy"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "how",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: who keeps track of the copies? Two answers."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: snooping or directories"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "vs"
+      },
+      {
+       "action": "show",
+       "target": "how"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Snooping: every cache controller watches a shared bus, sees every other cache's misses and invalidations, and reacts. Simple, but every message reaches everyone, so it scales to a few dozen cores."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "how[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Directories: a table records, for every block, which caches hold it. Messages go only to those caches. It scales to hundreds of cores. The next two videos cover each in detail."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "how[1]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "snooping: broadcast · directory: point to point"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question. X starts at 7. The caches are write-back. A reads X, B reads X, A writes 5, then B reads X, then C reads X."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "how"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What do steps 4 and 5 return with no coherence, and with write invalidate? And how many bus transactions does invalidate need, against update? Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qx"
+      },
+      {
+       "action": "highlight",
+       "target": "qx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "No coherence: B hits on its stale copy, 7. C misses, but memory is stale too, because A's 5 sits only in A's write-back cache. Also 7. Both wrong."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qx"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1][1]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write invalidate: A's write invalidates B's copy. B then misses, and A supplies the dirty block: 5. C misses and also gets 5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[0][2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1][2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Transactions with invalidate: two read misses, one invalidation, then B's miss and C's miss. 5. With update: two misses, one broadcast of 5, which makes B's read a hit, then C's miss. 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So here update wins, by one. But had A written 5 times, update would send 5 broadcasts. The usual slip: forgetting that with write-back caches, memory itself goes stale."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "write-back caches: the newest value may live only in one cache"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cores share one address space, in UMA or NUMA organisations, but cache private copies. One write can leave other copies stale."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Coherence demands program order, visible writes and serialized writes. Write invalidate is the usual fix, enforced by snooping or by directories."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: snooping protocols, MSI and MESI, state by state."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: MSI and MESI snooping"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
