@@ -1,0 +1,1291 @@
+{
+ "version": 1,
+ "title": "CUDA programming 1",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "A whole CUDA program"
+    ],
+    [
+     2,
+     "Kernels and the launch"
+    ],
+    [
+     3,
+     "How many blocks?"
+    ],
+    [
+     4,
+     "The grid-stride loop"
+    ],
+    [
+     5,
+     "Explicit memory"
+    ],
+    [
+     6,
+     "What the copies cost"
+    ],
+    [
+     7,
+     "Unified memory"
+    ],
+    [
+     8,
+     "Checking for errors"
+    ],
+    [
+     9,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "prog",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "__global__ void add(int n, const float *x, const float *y, float *z) {",
+    "    int i = blockIdx.x * blockDim.x + threadIdx.x;",
+    "    if (i < n) z[i] = x[i] + y[i];",
+    "}",
+    "",
+    "int main() {",
+    "    int n = 1000000;",
+    "    ...                                  // allocate and fill x, y on the GPU",
+    "    add<<<(n + 255) / 256, 256>>>(n, x, y, z);",
+    "    cudaDeviceSynchronize();             // wait for the GPU",
+    "    ...                                  // use z, free memory",
+    "}"
+   ]
+  },
+  {
+   "id": "kq",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "CUDA",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "__global__",
+     "a kernel: runs on the GPU, called from the host"
+    ],
+    [
+     "__device__",
+     "runs on the GPU, called only from GPU code"
+    ],
+    [
+     "__host__",
+     "ordinary CPU code (the default)"
+    ],
+    [
+     "kernel<<<blocks, threads>>>(…)",
+     "launch: blocks × threads copies of the kernel"
+    ],
+    [
+     "the launch returns at once",
+     "the CPU continues; the GPU works in the background"
+    ],
+    [
+     "cudaDeviceSynchronize()",
+     "the CPU waits until the GPU has finished"
+    ]
+   ]
+  },
+  {
+   "id": "nb",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"blocks\" = ceil(n / T) = (n + T - 1) / T \"in integer arithmetic\"",
+    "n = 1000000, T = 256: quad (1000000 + 255) / 256 = 3907",
+    "3907 times 256 = 1000192: quad 192 \"threads have no element\"",
+    "\"so every kernel tests\" i < n",
+    "T: \"a multiple of 32, at most 1024; 128 to 512 is usual\""
+   ]
+  },
+  {
+   "id": "gs",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "__global__ void add(int n, const float *x, const float *y, float *z) {",
+    "    int stride = blockDim.x * gridDim.x;      // threads in the whole grid",
+    "    for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < n; i += stride)",
+    "        z[i] = x[i] + y[i];",
+    "}",
+    "add<<<80, 256>>>(n, x, y, z);    // 20,480 threads for 1,000,000 elements",
+    "// thread 0: elements 0, 20480, 40960, …  49 of them",
+    "// thread 20479: 48 of them"
+   ]
+  },
+  {
+   "id": "ex",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "float *h_x = (float *) malloc(bytes);       // host copy",
+    "float *d_x;  cudaMalloc(&d_x, bytes);       // device copy",
+    "cudaMemcpy(d_x, h_x, bytes, cudaMemcpyHostToDevice);    // in",
+    "",
+    "add<<<blocks, 256>>>(n, d_x, d_y, d_z);",
+    "",
+    "cudaMemcpy(h_z, d_z, bytes, cudaMemcpyDeviceToHost);    // out: waits",
+    "cudaFree(d_x);  free(h_x);"
+   ]
+  },
+  {
+   "id": "cost",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"moved:\" 3 times 1000000 times 4 \"bytes\" = 12 \"MB (2 arrays in, 1 out)\"",
+    "\"PCIe at about 12 GB/s:\" quad \"12 MB ÷ 12 GB/s\" = 1 \"ms\"",
+    "\"the kernel, at 224 GB/s:\" quad \"12 MB ÷ 224 GB/s\" approx 0.054 \"ms\"",
+    "\"the copies take about 19 times longer than the work\""
+   ]
+  },
+  {
+   "id": "um",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "float *x;",
+    "cudaMallocManaged(&x, bytes);    // one pointer, valid on CPU and GPU",
+    "for (i = 0; i < n; i++) x[i] = 1.0f;          // CPU writes",
+    "add<<<blocks, 256>>>(n, x, y, z);             // pages move to the GPU on demand",
+    "cudaDeviceSynchronize();                      // needed before the CPU reads",
+    "printf(\"%f\", z[0]);                         // pages move back on demand",
+    "cudaFree(x);",
+    "// optional: cudaMemPrefetchAsync(x, bytes, device) avoids the page faults"
+   ]
+  },
+  {
+   "id": "umc",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "explicit",
+    "unified"
+   ],
+   "rows": [
+    [
+     "pointers",
+     "two per array: h_x and d_x",
+     "one"
+    ],
+    [
+     "copies",
+     "cudaMemcpy, written by you",
+     "pages migrate on first touch"
+    ],
+    [
+     "control",
+     "you decide when data moves",
+     "the driver decides"
+    ],
+    [
+     "speed",
+     "best when tuned",
+     "page faults, unless prefetched"
+    ],
+    [
+     "good for",
+     "production code",
+     "learning, prototypes, complex data"
+    ]
+   ]
+  },
+  {
+   "id": "er",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "add<<<blocks, 2048>>>(n, x, y, z);        // more than 1024 threads per block",
+    "cudaError_t e = cudaGetLastError();       // the launch failed silently",
+    "if (e != cudaSuccess)",
+    "    printf(\"%s\\n\", cudaGetErrorString(e)); // invalid configuration argument",
+    "",
+    "e = cudaDeviceSynchronize();              // errors while the kernel ran"
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "n = 10,000 floats, 256 threads per block"
+   ],
+   "rows": [
+    [
+     "a) how many blocks, and how many threads are idle?"
+    ],
+    [
+     "b) which element does block 17, thread 45 handle?"
+    ],
+    [
+     "c) a grid-stride loop with 8 blocks: which elements does thread 100 handle? how many does thread 2000?"
+    ],
+    [
+     "d) add<<<5, 2048>>> prints nothing and z stays 0. Why, and how would you find out?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a",
+     "⌈10,000 / 256⌉ = 40 blocks; 40 × 256 = 10,240: 240 idle"
+    ],
+    [
+     "b",
+     "17 × 256 + 45 = 4397"
+    ],
+    [
+     "c",
+     "stride 8 × 256 = 2048: 100, 2148, 4196, 6244, 8292"
+    ],
+    [
+     "c",
+     "thread 2000: 2000, 4048, 6096, 8144: 4 elements"
+    ],
+    [
+     "d",
+     "2048 > 1024 threads per block: the launch fails; cudaGetLastError"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "We have seen what a GPU is made of. Now we write programs for it. This video covers the parts of CUDA every program needs: launching a kernel, finding each thread's element, and moving data between the CPU and the GPU."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "CUDA programming, part 1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the nine stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A whole program, kernels and the launch, choosing the number of blocks, and the grid-stride loop."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then explicit memory and its cost, unified memory, checking for errors, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=8]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "prog",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a complete program that adds two vectors of a million floats. First the kernel: the code one thread runs."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 9: a whole program"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "prog"
+      },
+      {
+       "action": "mark_lines",
+       "target": "prog",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each thread computes its global index, checks it is inside the array, and adds one pair of elements."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "prog",
+       "from": 2,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The host program allocates the arrays, launches the kernel with enough blocks of 256 threads to cover a million elements, and waits for the GPU."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "prog",
+       "from": 6,
+       "to": 10
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then it uses the result and frees the memory. Every CUDA program has this shape: prepare data, launch, wait, collect."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "prog",
+       "from": 11,
+       "to": 12
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "prepare · launch · wait · collect"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "kern",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: double-underscore global marks a kernel: it runs on the GPU and is called from the host."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 9: kernels and the launch"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "prog"
+      },
+      {
+       "action": "show",
+       "target": "kq"
+      },
+      {
+       "action": "highlight",
+       "target": "kq[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Device functions run on the GPU and can be called only from GPU code. Host functions are ordinary CPU code, the default."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kq[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The triple angle brackets launch the kernel: blocks times threads copies of it, each with its own block and thread index."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kq[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The launch returns at once. The CPU carries on while the GPU works."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kq[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So before the CPU uses results, it must wait, with cudaDeviceSynchronize, or with a copy back, which waits by itself."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kq[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "launches are asynchronous"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "blocks",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: how many blocks? With n elements and T threads per block, we need the ceiling of n over T. In integer arithmetic, n plus T minus 1, divided by T."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 9: how many blocks?"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "kq"
+      },
+      {
+       "action": "show",
+       "target": "nb"
+      },
+      {
+       "action": "highlight",
+       "target": "nb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A million elements, 256 per block: 3907 blocks."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "nb[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "nb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That is 1,000,192 threads: 192 have no element."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "nb[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "nb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That is why every kernel tests i less than n. Without the test, those 192 threads write past the end of the array."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "nb[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "nb[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And T: a multiple of 32, so no warp is half empty, and at most 1024. 128 to 512 is the usual choice."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "nb[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "nb[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "blocks = (n + T − 1) / T, and test i < n"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gs",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: another style, the grid-stride loop. Each thread handles several elements, stepping by the number of threads in the whole grid."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 9: the grid-stride loop"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "nb"
+      },
+      {
+       "action": "show",
+       "target": "gs"
+      },
+      {
+       "action": "mark_lines",
+       "target": "gs",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The stride is block size times the number of blocks."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "gs",
+       "from": 2,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The loop starts at the thread's own index, and adds the stride until it passes n."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "gs",
+       "from": 3,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the grid can be any size. 80 blocks of 256 is 20,480 threads for a million elements."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "gs",
+       "from": 6,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Thread 0 handles elements 0, 20,480, 40,960, and so on: 49 of them. The last thread handles 48. Consecutive threads still touch consecutive elements, so every access stays coalesced."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "gs",
+       "from": 7,
+       "to": 8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "grid-stride: any grid size, still coalesced"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "expl",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: where do x and y live? The GPU has its own memory. In the explicit style there are two copies of each array: one on the host, from malloc, one on the device, from cudaMalloc."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 9: explicit memory"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "gs"
+      },
+      {
+       "action": "show",
+       "target": "ex"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ex",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "cudaMemcpy with host-to-device copies the input over."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ex",
+       "from": 3,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The kernel is given the device pointers. Passing a host pointer to a kernel is a common crash."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ex",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "cudaMemcpy device-to-host brings the result back. It waits for the kernel first, so no separate synchronise is needed."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ex",
+       "from": 7,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And both copies are freed: cudaFree on the device, free on the host."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ex",
+       "from": 8,
+       "to": 8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "malloc + cudaMalloc · copy in · launch · copy out"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cost",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: those copies are not free. Adding two arrays of a million floats moves 12 megabytes: two arrays in, one out."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 9: what the copies cost"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ex"
+      },
+      {
+       "action": "show",
+       "target": "cost"
+      },
+      {
+       "action": "highlight",
+       "target": "cost[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Over PCI Express at about 12 gigabytes per second, that is 1 millisecond."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cost[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "cost[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The kernel itself reads and writes the same 12 megabytes from GPU memory at 224 gigabytes per second: about 0.054 milliseconds."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cost[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "cost[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The copies take 19 times longer than the work. So keep data on the GPU across many kernels, and copy only at the start and the end."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cost[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "cost[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "copies can cost more than the kernel"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "um",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: unified memory. cudaMallocManaged returns one pointer that works on both the CPU and the GPU."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 9: unified memory"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cost"
+      },
+      {
+       "action": "show",
+       "target": "um"
+      },
+      {
+       "action": "mark_lines",
+       "target": "um",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The CPU writes the array. When the kernel touches it, the pages migrate to the GPU on demand."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "um",
+       "from": 3,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Synchronise before the CPU reads the result. Then the pages migrate back."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "um",
+       "from": 5,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each first touch is a page fault, which is slow. A prefetch call moves the data ahead of time."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "um",
+       "from": 8,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Comparing them: explicit memory needs two pointers per array and copies written by you; unified memory needs one pointer and no copies."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "um"
+      },
+      {
+       "action": "show",
+       "target": "umc"
+      },
+      {
+       "action": "highlight",
+       "target": "umc[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Explicit gives you control, and is fastest when tuned. Unified is simpler, but pays for page faults unless prefetched."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "umc[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Unified memory is good for learning, prototypes, and data with pointers inside it. Production code often moves data explicitly."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "umc[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "unified: simpler · explicit: more control"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "err",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 8: CUDA calls report errors through return values, and a kernel launch does not return one at all. This launch asks for 2048 threads per block, more than the limit of 1024."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 8 of 9: checking for errors"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "umc"
+      },
+      {
+       "action": "show",
+       "target": "er"
+      },
+      {
+       "action": "mark_lines",
+       "target": "er",
+       "from": 1,
+       "to": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Nothing crashes. The kernel simply never runs. cudaGetLastError right after the launch reports it."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "er",
+       "from": 2,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Errors during the kernel's run, like reading outside an array, appear later, from the next synchronising call."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "er",
+       "from": 6,
+       "to": 6
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "check after the launch and after the sync"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: 10,000 floats, 256 threads per block."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "er"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find the blocks and idle threads, one thread's element, the elements of two threads in a grid-stride loop of 8 blocks, and why a launch with 2048 threads does nothing. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: 10,000 over 256, rounded up, is 40 blocks. 40 times 256 is 10,240, so 240 threads are idle."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: block 17 times 256, plus 45: 4397."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 8 blocks of 256 gives a stride of 2048. Thread 100 handles 100, 2148, 4196, 6244 and 8292."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Thread 2000 handles 2000, 4048, 6096 and 8144; the next, 10,192, is past the end. 4 elements."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: 2048 threads per block exceeds the limit of 1024, so the launch fails and z is never written. cudaGetLastError after the launch would say so."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: forgetting the test i less than n, so the idle threads write past the end of the array."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "always test i < n"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A kernel is launched with blocks and threads, returns at once, and needs the ceiling of n over T blocks, with a bounds test. A grid-stride loop works for any grid size."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Explicit memory copies data in and out, and those copies can cost more than the kernel. Unified memory is simpler. And launches must be checked for errors."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: threads that cooperate. syncthreads, shared memory, and timing with CUDA events."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=8]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: CUDA programming, part 2"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

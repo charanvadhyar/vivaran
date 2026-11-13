@@ -1,0 +1,1370 @@
+{
+ "version": 1,
+ "title": "Vector execution time",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "What decides the time"
+    ],
+    [
+     2,
+     "Convoys"
+    ],
+    [
+     3,
+     "Chimes"
+    ],
+    [
+     4,
+     "DAXPY in convoys"
+    ],
+    [
+     5,
+     "Adding startup time"
+    ],
+    [
+     6,
+     "A convoy with two units"
+    ],
+    [
+     7,
+     "Short vectors pay more"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "fac",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the time depends on",
+    "because"
+   ],
+   "rows": [
+    [
+     "the vector length n",
+     "one element per cycle per unit"
+    ],
+    [
+     "structural hazards",
+     "VMIPS has one unit of each kind, and one load-store unit"
+    ],
+    [
+     "data dependences",
+     "an instruction may need the whole result of another"
+    ],
+    [
+     "startup latency",
+     "each pipeline must fill before the first result"
+    ]
+   ]
+  },
+  {
+   "id": "cv",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "a convoy is",
+    "a set of vector instructions that can start together"
+   ],
+   "rows": [
+    [
+     "rule 1: no structural hazard",
+     "no two need the same unit"
+    ],
+    [
+     "rule 2 (no chaining yet)",
+     "none needs a result produced in the same convoy"
+    ],
+    [
+     "so",
+     "convoys run one after another; inside one, all run at once"
+    ]
+   ]
+  },
+  {
+   "id": "ch",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"chime\" = \"the time to execute one convoy\" approx n \"cycles\"",
+    "m \"convoys, length\" n: quad \"time\" approx m times n \"cycles\"",
+    "\"chimes ignore startup: good for long vectors, an estimate\""
+   ]
+  },
+  {
+   "id": "dx",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "LV       V1,Rx",
+    "MULVS.D  V2,V1,F0",
+    "LV       V3,Ry",
+    "ADDVV.D  V4,V2,V3",
+    "SV       V4,Ry"
+   ]
+  },
+  {
+   "id": "dc",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "convoy",
+    "instructions",
+    "why it ends"
+   ],
+   "rows": [
+    [
+     "1",
+     "",
+     ""
+    ],
+    [
+     "2",
+     "",
+     ""
+    ],
+    [
+     "3",
+     "",
+     ""
+    ],
+    [
+     "4",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "st",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "unit",
+    "startup (cycles)"
+   ],
+   "rows": [
+    [
+     "vector load/store",
+     "12"
+    ],
+    [
+     "FP multiply",
+     "7"
+    ],
+    [
+     "FP add",
+     "6"
+    ],
+    [
+     "FP divide",
+     "20"
+    ]
+   ]
+  },
+  {
+   "id": "stm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"convoy time\" = \"largest startup in the convoy\" + n",
+    "\"DAXPY, \" n = 64: quad (12 + 64) + (12 + 64) + (6 + 64) + (12 + 64) = 298 \"cycles\"",
+    "\"chime estimate\" 4 times 64 = 256 quad \"startup adds\" 42",
+    "298 / 64 approx 4.66 \"cycles per element\""
+   ]
+  },
+  {
+   "id": "tl",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "convoy",
+    "instructions",
+    "starts",
+    "ends",
+    "cycles"
+   ],
+   "rows": [
+    [
+     "1",
+     "LV",
+     "0",
+     "76",
+     "12 + 64"
+    ],
+    [
+     "2",
+     "MULVS.D, LV",
+     "76",
+     "152",
+     "12 + 64"
+    ],
+    [
+     "3",
+     "ADDVV.D",
+     "152",
+     "222",
+     "6 + 64"
+    ],
+    [
+     "4",
+     "SV",
+     "222",
+     "298",
+     "12 + 64"
+    ]
+   ]
+  },
+  {
+   "id": "ex",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "LV       V1,Rx",
+    "LV       V2,Ry",
+    "DIVVV.D  V3,V1,V2",
+    "MULVS.D  V4,V1,F0",
+    "ADDVV.D  V5,V3,V4",
+    "SV       V5,Rz"
+   ]
+  },
+  {
+   "id": "exc",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "convoy",
+    "instructions",
+    "cycles"
+   ],
+   "rows": [
+    [
+     "1",
+     "LV V1",
+     "12 + n"
+    ],
+    [
+     "2",
+     "LV V2",
+     "12 + n"
+    ],
+    [
+     "3",
+     "DIVVV.D, MULVS.D",
+     "max(20, 7) + n"
+    ],
+    [
+     "4",
+     "ADDVV.D",
+     "6 + n"
+    ],
+    [
+     "5",
+     "SV",
+     "12 + n"
+    ],
+    [
+     "total",
+     "62 + 5n",
+     "n = 64: 382"
+    ]
+   ]
+  },
+  {
+   "id": "sh",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "vector length n",
+    "time = 42 + 4n",
+    "cycles per element"
+   ],
+   "rows": [
+    [
+     "64",
+     "298",
+     "4.66"
+    ],
+    [
+     "32",
+     "170",
+     "5.31"
+    ],
+    [
+     "8",
+     "74",
+     "9.25"
+    ],
+    [
+     "1",
+     "46",
+     "46"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "LV       V1,Rx",
+    "LV       V2,Ry",
+    "MULVV.D  V3,V1,V2",
+    "ADDVS.D  V4,V3,F0",
+    "SV       V4,Rz",
+    "; no chaining, one load-store unit. Find the convoys, the chimes,",
+    "; and the cycles for n = 64 and n = 32, with the startup table"
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "convoy",
+    "instruction",
+    "why a new convoy",
+    "startup"
+   ],
+   "rows": [
+    [
+     "1",
+     "LV V1",
+     "",
+     "12"
+    ],
+    [
+     "2",
+     "LV V2",
+     "the load-store unit is busy",
+     "12"
+    ],
+    [
+     "3",
+     "MULVV.D",
+     "needs V2 from convoy 2",
+     "7"
+    ],
+    [
+     "4",
+     "ADDVS.D",
+     "needs V3",
+     "6"
+    ],
+    [
+     "5",
+     "SV",
+     "needs V4",
+     "12"
+    ]
+   ]
+  },
+  {
+   "id": "qb",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "5 \"chimes\" quad \"startups\" 12 + 12 + 7 + 6 + 12 = 49",
+    "n = 64: quad 49 + 5 times 64 = 369 \"cycles\" quad 5.77 \"per element\"",
+    "n = 32: quad 49 + 5 times 32 = 209 \"cycles\" quad 6.53 \"per element\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Six instructions for DAXPY is impressive. But how many cycles do they take? Exam questions ask exactly this, and the answer needs two ideas: convoys and chimes."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Vector execution time"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What decides the time, convoys, and chimes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then DAXPY divided into convoys, startup time, a convoy with two units, why short vectors pay more, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fac",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: four things decide how long vector code takes. The vector length: each unit handles one element per cycle."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: what decides the time"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "fac"
+      },
+      {
+       "action": "highlight",
+       "target": "fac[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Structural hazards: VMIPS has one unit of each kind, and only one load-store unit. Two loads cannot run at once."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fac[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Data dependences: an instruction may need another's result."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fac[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And startup: every pipeline takes some cycles to fill before its first result appears."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fac[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "length · structural hazards · dependences · startup"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "convoy",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: a convoy is a set of vector instructions that can start executing together."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: convoys"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "fac"
+      },
+      {
+       "action": "show",
+       "target": "cv"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Rule 1: no structural hazard. No two instructions in a convoy may need the same unit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cv[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Rule 2, for now: no instruction may need a result produced inside the same convoy. Next video, chaining relaxes this rule."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cv[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Convoys execute one after another. Within a convoy, all the instructions run side by side, each on its own unit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cv[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "convoy: instructions that can run together"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "chime",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: a chime is the time to execute one convoy. With one element per cycle, a convoy on vectors of length n takes about n cycles."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: chimes"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cv"
+      },
+      {
+       "action": "show",
+       "target": "ch"
+      },
+      {
+       "action": "highlight",
+       "target": "ch[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So code that forms m convoys takes about m chimes: m times n cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ch[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "ch[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This ignores startup, so it is an estimate, accurate when vectors are long. Counting chimes is the quick first step in every timing question."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ch[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "ch[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "m convoys ≈ m × n cycles"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "daxpy",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: divide DAXPY into convoys. Start with the first load."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: DAXPY in convoys"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ch"
+      },
+      {
+       "action": "show",
+       "target": "dx"
+      },
+      {
+       "action": "show",
+       "target": "dc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "dx",
+       "from": 1,
+       "to": 1
+      },
+      {
+       "action": "set",
+       "target": "dc[0][1]",
+       "value": "LV V1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The multiply needs V1, which the load is producing. Without chaining it cannot join. Convoy 1 is just the load."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "dx",
+       "from": 2,
+       "to": 2
+      },
+      {
+       "action": "set",
+       "target": "dc[0][2]",
+       "value": "MULVS needs V1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Convoy 2 starts with the multiply. The second load is independent of it, and uses a different unit, so it joins."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "dc[1][1]",
+       "value": "MULVS.D, LV V3"
+      },
+      {
+       "action": "mark_lines",
+       "target": "dx",
+       "from": 2,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The add needs V2 and V3, both produced in convoy 2. So it starts convoy 3."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "dc[1][2]",
+       "value": "ADDVV needs V2, V3"
+      },
+      {
+       "action": "set",
+       "target": "dc[2][1]",
+       "value": "ADDVV.D",
+       "delay": 0.3
+      },
+      {
+       "action": "mark_lines",
+       "target": "dx",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The store needs V4. Convoy 4."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "dc[2][2]",
+       "value": "SV needs V4"
+      },
+      {
+       "action": "set",
+       "target": "dc[3][1]",
+       "value": "SV",
+       "delay": 0.3
+      },
+      {
+       "action": "mark_lines",
+       "target": "dx",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Four convoys: four chimes. For 64 elements, about 256 cycles, 4 cycles per element."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dc[0..=3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "DAXPY without chaining: 4 chimes"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "start",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: now the startup. These are the textbook's latencies: 12 cycles for the load-store unit, 7 for the multiplier, 6 for the adder, 20 for the divider."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: adding startup"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "dx"
+      },
+      {
+       "action": "hide",
+       "target": "dc"
+      },
+      {
+       "action": "show",
+       "target": "st"
+      },
+      {
+       "action": "highlight",
+       "target": "st[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A convoy takes its largest startup, plus n cycles. The instructions inside it start together, so the slowest pipeline decides when the convoy is done."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "st"
+      },
+      {
+       "action": "show",
+       "target": "stm"
+      },
+      {
+       "action": "highlight",
+       "target": "stm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "DAXPY: 12 plus 64 for the load, 12 plus 64 for the multiply and load, 6 plus 64 for the add, 12 plus 64 for the store. 298 cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "stm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "stm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The chime estimate was 256. Startup added 42."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "stm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "stm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "About 4.66 cycles per element."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "stm[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "stm[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "As a timeline: convoy 1 runs from cycle 0 to 76, convoy 2 from 76 to 152, convoy 3 to 222, and the store finishes at 298. Each convoy waits for the one before it to finish completely."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "stm"
+      },
+      {
+       "action": "show",
+       "target": "tl"
+      },
+      {
+       "action": "highlight",
+       "target": "tl[0..=3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "time = Σ (largest startup + n)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "two",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a convoy can hold two arithmetic units with different startups. Here a divide and a multiply."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: a convoy with two units"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tl"
+      },
+      {
+       "action": "show",
+       "target": "ex"
+      },
+      {
+       "action": "show",
+       "target": "exc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ex",
+       "from": 1,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The two loads need separate convoys: one load-store unit."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ex",
+       "from": 1,
+       "to": 2
+      },
+      {
+       "action": "highlight",
+       "target": "exc[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The divide needs V2, so it starts convoy 3. The multiply needs only V1, finished long ago, and uses a different unit. It joins the divide."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ex",
+       "from": 3,
+       "to": 4
+      },
+      {
+       "action": "highlight",
+       "target": "exc[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That convoy takes the larger startup: the divider's 20, not the multiplier's 7."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "exc[2][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The add needs both results: convoy 4. The store: convoy 5."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ex",
+       "from": 5,
+       "to": 6
+      },
+      {
+       "action": "highlight",
+       "target": "exc[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Startups 12, 12, 20, 6 and 12 make 62. For 64 elements: 62 plus 320, 382 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "exc[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a shared convoy pays its slowest startup"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "short",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: startup is paid once per convoy, whatever the length. So it matters more and more as vectors get shorter."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: short vectors"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ex"
+      },
+      {
+       "action": "hide",
+       "target": "exc"
+      },
+      {
+       "action": "show",
+       "target": "sh"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At 64 elements: 4.66 cycles each. At 32: 5.31."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sh[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At 8 elements, 74 cycles: over 9 cycles per element. And a single element takes 46 cycles, far slower than scalar code."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sh[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two remedies follow in the next videos. Chaining cuts the number of convoys, so fewer startups are paid. And strip mining handles vectors longer than a register, where startup is paid once per strip."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sh[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So vector machines need long vectors to pay off. This is also why the time per convoy matters more than the count of instructions."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "sh[0]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "startup is fixed · long vectors hide it"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sh"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two loads, a multiply, an add of a scalar, and a store. No chaining, one load-store unit. Find the convoys, the chimes, and the cycles for 64 and 32 elements. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 1,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Convoy 1: the first load. The second load cannot join: there is only one load-store unit."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The multiply needs V2, produced in convoy 2, so it starts convoy 3. The add needs V3: convoy 4. The store needs V4: convoy 5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Five chimes. The startups add up to 49."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "qb"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For 64 elements: 49 plus 5 times 64, 369 cycles, 5.77 per element."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qb[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For 32 elements: 49 plus 160, 209 cycles, 6.53 per element. Shorter vectors, higher cost per element."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qb[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: putting two loads in one convoy. VMIPS has a single load-store unit, so two memory instructions can never share a convoy, though one can share with arithmetic."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "one load-store unit: never two memory instructions in a convoy"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qb"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A convoy is a group of instructions with no structural hazard and, without chaining, no dependence inside it. Each convoy takes one chime, about n cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Adding startup: each convoy costs its largest startup plus n. Short vectors pay much more per element."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: chaining, which lets dependent instructions share a convoy, and multiple lanes, which process several elements per cycle."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: chaining and lanes"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

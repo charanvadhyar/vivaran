@@ -1,0 +1,1368 @@
+{
+ "version": 1,
+ "title": "CUDA programming 2",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Threads that cooperate"
+    ],
+    [
+     2,
+     "__syncthreads: a barrier"
+    ],
+    [
+     3,
+     "Summing a block in shared memory"
+    ],
+    [
+     4,
+     "Timing with CUDA events"
+    ],
+    [
+     5,
+     "Matrix multiply, the simple way"
+    ],
+    [
+     6,
+     "Tiles in shared memory"
+    ],
+    [
+     7,
+     "Why two barriers"
+    ],
+    [
+     8,
+     "How much it helps"
+    ],
+    [
+     9,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "co",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "why"
+   ],
+   "rows": [
+    [
+     "so far",
+     "each thread worked alone on its own element"
+    ],
+    [
+     "many problems need sharing",
+     "sums, matrix products, stencils, sorting"
+    ],
+    [
+     "threads of one block can share",
+     "shared memory, on the same SM"
+    ],
+    [
+     "but they run at different speeds",
+     "warps are scheduled independently"
+    ],
+    [
+     "so they need a way to wait",
+     "until the shared data is ready"
+    ]
+   ]
+  },
+  {
+   "id": "sy",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "__syncthreads()",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "a barrier for one block",
+     "no thread passes until every thread of the block arrives"
+    ],
+    [
+     "after it",
+     "every write to shared memory before it is visible"
+    ],
+    [
+     "only within a block",
+     "blocks cannot wait for each other inside a kernel"
+    ],
+    [
+     "every thread must reach it",
+     "never inside a branch some threads skip: the block can hang"
+    ]
+   ]
+  },
+  {
+   "id": "rd",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "__global__ void block_sum(const float *x, float *out) {",
+    "    __shared__ float s[256];",
+    "    int t = threadIdx.x;",
+    "    s[t] = x[blockIdx.x * 256 + t];",
+    "    __syncthreads();                      // all 256 loaded",
+    "    for (int h = 128; h > 0; h /= 2) {",
+    "        if (t < h) s[t] += s[t + h];      // fold the top half onto the bottom",
+    "        __syncthreads();                  // outside the if: every thread reaches it",
+    "    }",
+    "    if (t == 0) out[blockIdx.x] = s[0];",
+    "}"
+   ]
+  },
+  {
+   "id": "rt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "8 values",
+    "s[0]",
+    "s[1]",
+    "s[2]",
+    "s[3]",
+    "s[4]",
+    "s[5]",
+    "s[6]",
+    "s[7]"
+   ],
+   "rows": [
+    [
+     "loaded",
+     "3",
+     "1",
+     "4",
+     "1",
+     "5",
+     "9",
+     "2",
+     "6"
+    ],
+    [
+     "h = 4",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "h = 2",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "h = 1",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "ev",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "cudaEvent_t start, stop;",
+    "cudaEventCreate(&start);  cudaEventCreate(&stop);",
+    "cudaEventRecord(start);               // a marker in the GPU's queue",
+    "mm<<<grid, block>>>(A, B, C, N);",
+    "cudaEventRecord(stop);",
+    "cudaEventSynchronize(stop);           // wait until the GPU reaches stop",
+    "float ms;  cudaEventElapsedTime(&ms, start, stop);",
+    "// GFLOP/s = 2 N^3 / (ms × 10^6):  N = 2048, 40 ms → 429.5"
+   ]
+  },
+  {
+   "id": "nv",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "__global__ void mm(const float *A, const float *B, float *C, int N) {",
+    "    int row = blockIdx.y * blockDim.y + threadIdx.y;",
+    "    int col = blockIdx.x * blockDim.x + threadIdx.x;",
+    "    float sum = 0;",
+    "    for (int k = 0; k < N; k++)",
+    "        sum += A[row * N + k] * B[k * N + col];   // 2 loads, 2 FLOPs",
+    "    C[row * N + col] = sum;",
+    "}",
+    "// 2 FLOPs per 8 bytes from global memory: 0.25 FLOP/byte"
+   ]
+  },
+  {
+   "id": "tl",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "#define T 16",
+    "__shared__ float As[T][T], Bs[T][T];",
+    "int tx = threadIdx.x, ty = threadIdx.y;",
+    "int row = blockIdx.y * T + ty, col = blockIdx.x * T + tx;",
+    "for (int t = 0; t < N / T; t++) {",
+    "    As[ty][tx] = A[row * N + t * T + tx];     // each thread loads one of A",
+    "    Bs[ty][tx] = B[(t * T + ty) * N + col];   // and one of B",
+    "    __syncthreads();                          // the tiles are complete",
+    "    for (int k = 0; k < T; k++)",
+    "        sum += As[ty][k] * Bs[k][tx];         // 16 multiply-adds from shared",
+    "    __syncthreads();                          // everyone is done with the tiles",
+    "}"
+   ]
+  },
+  {
+   "id": "tw",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "without",
+    "what goes wrong"
+   ],
+   "rows": [
+    [
+     "the first barrier",
+     "a fast warp reads As and Bs before slower warps have loaded them"
+    ],
+    [
+     "the second barrier",
+     "a fast warp starts the next tile and overwrites As and Bs while others still read them"
+    ],
+    [
+     "both",
+     "wrong answers that change from run to run: a race"
+    ]
+   ]
+  },
+  {
+   "id": "hm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"simple: 2 FLOPs per 8 bytes\" = 0.25 \"FLOP/byte\"",
+    "\"tiled, T = 16: per tile, 2 loads (8 bytes) feed 16 multiply-adds (32 FLOPs)\": quad 4 \"FLOP/byte\"",
+    "\"at 224 GB/s:\" quad 0.25 times 224 = 56 quad \"against\" quad 4 times 224 = 896 \"GFLOP/s\"",
+    "\"global traffic falls by a factor of\" T = 16"
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "tiled matrix multiply, N = 1024 floats, T = 32"
+   ],
+   "rows": [
+    [
+     "a) shared memory per block"
+    ],
+    [
+     "b) global loads per thread: simple, and tiled"
+    ],
+    [
+     "c) arithmetic intensity, and the bound at 300 GB/s"
+    ],
+    [
+     "d) CUDA events measure 4 ms: the GFLOP/s achieved"
+    ],
+    [
+     "e) the second __syncthreads is deleted: what happens?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a",
+     "2 tiles × 32 × 32 × 4 bytes",
+     "8 KB"
+    ],
+    [
+     "b",
+     "simple: 2 × 1024 · tiled: 2 × 1024 / 32",
+     "2048 and 64"
+    ],
+    [
+     "c",
+     "2 loads (8 B) feed 32 multiply-adds (64 FLOPs)",
+     "8 FLOP/byte → 2400 GFLOP/s"
+    ],
+    [
+     "d",
+     "2 × 1024³ / 0.004 s",
+     "536.9 GFLOP/s"
+    ],
+    [
+     "e",
+     "a fast warp overwrites a tile still being read",
+     "a race: wrong, varying results"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "In part 1, every thread worked alone. The fastest CUDA programs make threads work together, sharing data through on-chip memory. This video shows how, and how to measure whether it helped."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "CUDA programming, part 2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the nine stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why threads cooperate, the barrier syncthreads, a block sum in shared memory, and timing with CUDA events."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then matrix multiply, the simple way and with shared-memory tiles, why it needs two barriers, how much it helps, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=8]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "co",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: so far, each thread worked alone on its own element."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 9: threads that cooperate"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "co"
+      },
+      {
+       "action": "highlight",
+       "target": "co[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Many problems need sharing: a sum, a matrix product, a stencil, a sort."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Threads of one block live on the same SM, so they can share its shared memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But their warps are scheduled independently, and run at different speeds."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So a thread that wants another thread's value needs a way to wait until it has been written."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "sharing needs waiting"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sync",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: double-underscore syncthreads is a barrier for one block. No thread passes it until every thread of the block has arrived."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 9: a barrier"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "co"
+      },
+      {
+       "action": "show",
+       "target": "sy"
+      },
+      {
+       "action": "highlight",
+       "target": "sy[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "After it, every write to shared memory made before the barrier is visible to the whole block."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sy[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It works only within a block. Different blocks cannot wait for each other inside a kernel; to combine results across blocks, launch another kernel."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sy[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And every thread of the block must reach the same barrier. Put it inside an if that some threads skip, and the block can hang forever."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sy[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "__syncthreads: the whole block waits"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "red",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: summing 256 values per block. Each thread loads one value into shared memory, then a barrier: all 256 are loaded."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 9: a block sum"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sy"
+      },
+      {
+       "action": "show",
+       "target": "rd"
+      },
+      {
+       "action": "mark_lines",
+       "target": "rd",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then a loop that halves h each time. Threads below h add the value h places above them: the top half folds onto the bottom."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rd",
+       "from": 6,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A barrier after every step, placed outside the if so that all threads reach it."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rd",
+       "from": 8,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "After 8 steps, log base 2 of 256, the block's sum is in s of 0, and thread 0 writes it out."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rd",
+       "from": 10,
+       "to": 10
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Trace it with 8 values: 3, 1, 4, 1, 5, 9, 2, 6."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rd"
+      },
+      {
+       "action": "show",
+       "target": "rt"
+      },
+      {
+       "action": "highlight",
+       "target": "rt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "h equal to 4: threads 0 to 3 add the value 4 places up. 3 plus 5 is 8, 1 plus 9 is 10, 4 plus 2 is 6, 1 plus 6 is 7."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "rt[1][1]",
+       "value": "8"
+      },
+      {
+       "action": "set",
+       "target": "rt[1][2]",
+       "value": "10",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "rt[1][3]",
+       "value": "6",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "rt[1][4]",
+       "value": "7",
+       "delay": 0.45
+      },
+      {
+       "action": "highlight",
+       "target": "rt[1]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "h equal to 2: 8 plus 6 is 14, 10 plus 7 is 17."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "rt[2][1]",
+       "value": "14"
+      },
+      {
+       "action": "set",
+       "target": "rt[2][2]",
+       "value": "17",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "rt[2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "h equal to 1: 14 plus 17 is 31, the sum of all eight. Three steps for 8 values: the tree from the reductions in video 17."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "rt[3][1]",
+       "value": "31"
+      },
+      {
+       "action": "mark",
+       "target": "rt[3][1]",
+       "delay": 0.3
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a tree in shared memory, a barrier per level"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ev",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: how fast is a kernel? A CPU timer around the launch measures nothing, because the launch returns at once. CUDA events are timestamps recorded by the GPU itself."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 9: timing with events"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rt"
+      },
+      {
+       "action": "show",
+       "target": "ev"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ev",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Record start, launch the kernel, record stop. Each record puts a marker in the GPU's queue."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ev",
+       "from": 3,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Wait until the GPU reaches the stop marker, then ask for the time between them, in milliseconds."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ev",
+       "from": 6,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Turn time into a rate. A matrix multiply does 2 N cubed floating-point operations. With N equal to 2048 and 40 milliseconds: 429.5 gigaflops per second. Compare it with the roofline."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ev",
+       "from": 8,
+       "to": 8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "events: GPU timestamps around the kernel"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "naive",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: matrix multiply, the simple way. One thread per element of C, with a 2-D grid."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 9: the simple matrix multiply"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ev"
+      },
+      {
+       "action": "show",
+       "target": "nv"
+      },
+      {
+       "action": "mark_lines",
+       "target": "nv",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each thread walks a row of A and a column of B. Neighbouring threads share the row and read neighbouring columns of B, so the loads are coalesced."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "nv",
+       "from": 5,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But every multiply-add needs two loads from global memory: 2 floating-point operations per 8 bytes, 0.25 per byte. Deep in the memory-bound part of the roofline."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "nv",
+       "from": 9,
+       "to": 9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And it is wasteful: every element of A is loaded N times, once by each thread in its row of C."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "simple: 0.25 FLOP/byte, each value loaded N times"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tile",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: tiling. A block of 16 by 16 threads computes a 16 by 16 tile of C, and keeps 16 by 16 tiles of A and B in shared memory."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 9: tiles in shared memory"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "nv"
+      },
+      {
+       "action": "show",
+       "target": "tl"
+      },
+      {
+       "action": "mark_lines",
+       "target": "tl",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The outer loop walks across: one tile of A and one tile of B at a time."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tl",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each thread loads one element of each tile. 256 threads, 256 elements: the tiles are loaded in one step, with coalesced reads."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tl",
+       "from": 6,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A barrier: the tiles must be complete before anyone uses them."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tl",
+       "from": 8,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now each thread does 16 multiply-adds, reading only from shared memory."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tl",
+       "from": 9,
+       "to": 10
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And a second barrier before the next tile is loaded."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tl",
+       "from": 11,
+       "to": 11
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "load a tile · sync · compute · sync"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "two",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: why two barriers? Without the first, a fast warp could read As and Bs before slower warps have loaded their parts."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 9: why two barriers"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tl"
+      },
+      {
+       "action": "show",
+       "target": "tw"
+      },
+      {
+       "action": "highlight",
+       "target": "tw[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Without the second, a fast warp would start the next tile and overwrite As and Bs while other warps are still reading the old values."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tw[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Either way the result is a race: wrong answers that change from run to run, which are hard to find. Every reuse of shared memory needs a barrier before and after."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tw[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "barrier before reading, barrier before overwriting"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "help",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 8: how much does it help? The simple version: 2 operations per 8 bytes, 0.25 per byte."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 8 of 9: how much it helps"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tw"
+      },
+      {
+       "action": "show",
+       "target": "hm"
+      },
+      {
+       "action": "highlight",
+       "target": "hm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Tiled: per tile, each thread loads 2 values, 8 bytes, and does 16 multiply-adds, 32 operations. 4 per byte: 16 times better."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "hm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At 224 gigabytes per second, the roofline allows 56 gigaflops for the simple version, and 896 for the tiled one."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "hm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In general, tiles of size T cut global traffic by a factor of T. Bigger tiles help more, until shared memory or registers run out and occupancy falls. Measure with events to find the best."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hm[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "hm[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "tiling multiplies intensity by T"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: tiled matrix multiply, N equal to 1024 floats, with tiles of 32."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hm"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find the shared memory per block, the global loads per thread, the intensity and its bound at 300 gigabytes per second, the rate if events measure 4 milliseconds, and what happens without the second barrier. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: two tiles of 32 by 32 floats, 4 bytes each: 8 kilobytes."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: the simple version loads a row and a column, 2 times 1024 values per thread. Tiled, 32 tiles, 2 loads each: 64."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: per tile, 8 bytes feed 32 multiply-adds, 64 operations: 8 per byte. At 300 gigabytes per second, the bound is 2400 gigaflops."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: 2 times 1024 cubed is about 2.15 billion operations, in 4 milliseconds: 536.9 gigaflops per second."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[3][2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "e: a fast warp loads the next tile while others still read the current one. A race: wrong results that vary."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: putting syncthreads inside if t less than h in the reduction. Threads that skip it never arrive, and the block can hang."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "barriers outside branches"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Threads of a block share data through shared memory, and syncthreads makes them wait for each other. A block sum is a tree with a barrier per level. CUDA events time kernels on the GPU."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Tiled matrix multiply loads each tile once into shared memory and reuses it T times, with a barrier before and after. That multiplies the intensity by T."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video, the last of the module: a real GPU. The NVIDIA Maxwell architecture."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=8]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: case study, NVIDIA Maxwell"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

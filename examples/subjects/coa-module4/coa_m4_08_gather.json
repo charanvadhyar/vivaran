@@ -1,0 +1,1693 @@
+{
+ "version": 1,
+ "title": "Gather and scatter",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Sparse data"
+    ],
+    [
+     2,
+     "Storing a sparse matrix"
+    ],
+    [
+     3,
+     "Gather and scatter"
+    ],
+    [
+     4,
+     "The VMIPS code"
+    ],
+    [
+     5,
+     "Element by element"
+    ],
+    [
+     6,
+     "A sparse row in vector code"
+    ],
+    [
+     7,
+     "The catch: duplicate indices"
+    ],
+    [
+     8,
+     "Cost, and where else it appears"
+    ],
+    [
+     9,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "sp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "sparse data",
+    "example"
+   ],
+   "rows": [
+    [
+     "a matrix with mostly zeros",
+     "a 1000 × 1000 matrix with 1% non-zero"
+    ],
+    [
+     "dense storage",
+     "1,000,000 doubles: 8 MB, almost all zeros"
+    ],
+    [
+     "useful work",
+     "only the 10,000 non-zeros matter"
+    ],
+    [
+     "where it appears",
+     "circuit simulation, finite elements, graphs, recommender systems"
+    ]
+   ]
+  },
+  {
+   "id": "csr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "CSR array",
+    "holds",
+    "size for 10,000 non-zeros"
+   ],
+   "rows": [
+    [
+     "val",
+     "the non-zero values, row by row",
+     "10,000 × 8 B = 80,000 B"
+    ],
+    [
+     "col",
+     "the column of each value",
+     "10,000 × 4 B = 40,000 B"
+    ],
+    [
+     "rowptr",
+     "where each row starts in val",
+     "1001 × 4 B = 4,004 B"
+    ],
+    [
+     "total",
+     "",
+     "124,004 B ≈ 124 KB, against 8 MB dense"
+    ]
+   ]
+  },
+  {
+   "id": "spmv",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "// y = A x, A in CSR",
+    "for (i = 0; i < n; i++)",
+    "    for (j = rowptr[i]; j < rowptr[i+1]; j++)",
+    "        y[i] += val[j] * x[col[j]];     // x is read at scattered places"
+   ]
+  },
+  {
+   "id": "gs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "operation",
+    "VMIPS",
+    "does"
+   ],
+   "rows": [
+    [
+     "gather",
+     "LVI V1,(R1+V2)",
+     "V1[i] = memory[R1 + V2[i]]: load from a list of addresses"
+    ],
+    [
+     "scatter",
+     "SVI (R1+V2),V1",
+     "memory[R1 + V2[i]] = V1[i]: store to a list of addresses"
+    ],
+    [
+     "the index vector",
+     "V2",
+     "loaded first, an ordinary vector of offsets"
+    ],
+    [
+     "RISC-V V",
+     "vluxei64 · vsuxei64",
+     "indexed load and store"
+    ]
+   ]
+  },
+  {
+   "id": "c",
+   "type": "code",
+   "region": "left",
+   "language": "c",
+   "lines": [
+    "for (i = 0; i < n; i++)",
+    "  A[K[i]] = A[K[i]] + C[M[i]];"
+   ]
+  },
+  {
+   "id": "code",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "LV       Vk,Rk          ; load the index vector K",
+    "LVI      Va,(Ra+Vk)     ; gather A[K[i]]",
+    "LV       Vm,Rm          ; load the index vector M",
+    "LVI      Vc,(Rc+Vm)     ; gather C[M[i]]",
+    "ADDVV.D  Va,Va,Vc       ; add",
+    "SVI      (Ra+Vk),Va     ; scatter back to A[K[i]]"
+   ]
+  },
+  {
+   "id": "ga",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "i",
+    "0",
+    "1",
+    "2",
+    "3"
+   ],
+   "rows": [
+    [
+     "K[i]",
+     "6",
+     "1",
+     "4",
+     "0"
+    ],
+    [
+     "gathered A[K[i]]",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "M[i]",
+     "2",
+     "7",
+     "0",
+     "5"
+    ],
+    [
+     "gathered C[M[i]]",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "sum, scattered to A[K[i]]",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "arr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "index",
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+   ],
+   "rows": [
+    [
+     "A before",
+     "5",
+     "1",
+     "7",
+     "3",
+     "9",
+     "2",
+     "8",
+     "4"
+    ],
+    [
+     "C",
+     "10",
+     "20",
+     "30",
+     "40",
+     "50",
+     "60",
+     "70",
+     "80"
+    ],
+    [
+     "A after",
+     "65",
+     "81",
+     "7",
+     "3",
+     "19",
+     "2",
+     "38",
+     "4"
+    ]
+   ]
+  },
+  {
+   "id": "row",
+   "type": "code",
+   "region": "left",
+   "language": "asm",
+   "lines": [
+    "; one row of y = A x: VLR = its non-zeros",
+    "LV       V1,Rcol      ; column indices",
+    "LVI      V2,(Rx+V1)   ; gather x[col[j]]",
+    "LV       V3,Rval      ; the values",
+    "MULVV.D  V4,V3,V2     ; products",
+    "; sum V4 into y[i]: a reduction",
+    "; (RISC-V: vfredusum)"
+   ]
+  },
+  {
+   "id": "rowt",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "j",
+    "0",
+    "1",
+    "2",
+    "3"
+   ],
+   "rows": [
+    [
+     "col[j]",
+     "0",
+     "3",
+     "4",
+     "7"
+    ],
+    [
+     "x[col[j]]",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "val[j]",
+     "2",
+     "5",
+     "1",
+     "3"
+    ],
+    [
+     "product",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "y[i]",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "dup",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "duplicate indices",
+    "what happens"
+   ],
+   "rows": [
+    [
+     "K = 3, 5, 3, 7",
+     "two lanes read the same A[3]"
+    ],
+    [
+     "both add their own C value",
+     "to the same old A[3]"
+    ],
+    [
+     "the scatter",
+     "writes A[3] twice: one sum is lost"
+    ],
+    [
+     "a scalar loop would",
+     "add both, one after the other"
+    ],
+    [
+     "so",
+     "vectorize only if K has no duplicates: the programmer must promise it"
+    ]
+   ]
+  },
+  {
+   "id": "cost",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "gather and scatter",
+    "cost"
+   ],
+   "rows": [
+    [
+     "addresses",
+     "random: bank conflicts are likely"
+    ],
+    [
+     "each element",
+     "a separate memory access: no bulk transfer"
+    ],
+    [
+     "so",
+     "much slower per element than unit stride, but far faster than a scalar loop"
+    ],
+    [
+     "also in",
+     "AVX2 gather (2013), AVX-512 scatter, every GPU load and store"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "index",
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+   ],
+   "rows": [
+    [
+     "A",
+     "2",
+     "4",
+     "6",
+     "8",
+     "10",
+     "12",
+     "14",
+     "16"
+    ],
+    [
+     "C",
+     "1",
+     "1",
+     "2",
+     "3",
+     "5",
+     "8",
+     "13",
+     "21"
+    ],
+    [
+     "A after",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "qx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the same loop, K = 3, 5, 1, 7 and M = 0, 2, 4, 6. Find:"
+   ],
+   "rows": [
+    [
+     "a) the gathered vectors, the sums, and A after the scatter"
+    ],
+    [
+     "b) what goes wrong if K were 3, 5, 3, 7"
+    ],
+    [
+     "c) CSR size for a 2000 × 2000 matrix with 0.5% non-zero, against dense"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "i",
+    "0",
+    "1",
+    "2",
+    "3"
+   ],
+   "rows": [
+    [
+     "A[K[i]]",
+     "8",
+     "12",
+     "4",
+     "16"
+    ],
+    [
+     "C[M[i]]",
+     "1",
+     "2",
+     "5",
+     "13"
+    ],
+    [
+     "sum → A[K[i]]",
+     "9",
+     "14",
+     "9",
+     "29"
+    ]
+   ]
+  },
+  {
+   "id": "qb",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"b) lanes 0 and 2 both read\" A[3] = 8: quad 8 + 1 = 9, quad 8 + 5 = 13 quad \"one is lost; the loop gives\" 14",
+    "\"c) non-zeros\" = 2000^2 times 0.005 = 20000",
+    "20000 times 8 + 20000 times 4 + 2001 times 4 = 248004 \"B\" approx 248 \"KB\" quad \"dense\" 32 \"MB\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Unit-stride and strided loads need a regular pattern. But much real data is irregular: sparse matrices, graphs, lookup tables. This video shows how vector machines load and store through a list of addresses."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Gather and scatter"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the nine stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sparse data, how a sparse matrix is stored, gather and scatter, and the VMIPS code."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then a trace element by element, a sparse row in vector code, the danger of duplicate indices, the cost, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=8]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sparse",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a sparse matrix is mostly zeros. Take a 1000 by 1000 matrix with 1 percent non-zero."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 9: sparse data"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "sp"
+      },
+      {
+       "action": "highlight",
+       "target": "sp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Stored densely it takes a million doubles, 8 megabytes, almost all of them zero."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Only the 10,000 non-zeros do any useful work."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Such matrices are everywhere: circuit simulation, finite elements, graphs, recommender systems."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sp[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "store and touch only the non-zeros"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "csr",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the usual format is CSR, compressed sparse row. Three arrays. val holds the non-zero values, row by row."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 9: storing it"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sp"
+      },
+      {
+       "action": "show",
+       "target": "csr"
+      },
+      {
+       "action": "highlight",
+       "target": "csr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "col holds each value's column number."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "csr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "rowptr says where each row starts in val: one entry per row, plus one at the end."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "csr[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 8-byte values and 4-byte indices: 80,000 plus 40,000 plus 4,004 bytes. About 124 kilobytes, instead of 8 megabytes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "csr[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The matrix-vector product y equals A x then reads x at the column of each non-zero: x of col of j. Those reads jump around memory. No stride describes them."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "csr"
+      },
+      {
+       "action": "show",
+       "target": "spmv"
+      },
+      {
+       "action": "mark_lines",
+       "target": "spmv",
+       "from": 4,
+       "to": 4
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "CSR: val, col, rowptr · x read at col[j]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gs",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: two instructions handle such access. A gather, LVI, loads from a list of addresses: element i comes from R1 plus the i-th entry of an index vector."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 9: gather and scatter"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "spmv"
+      },
+      {
+       "action": "show",
+       "target": "gs"
+      },
+      {
+       "action": "highlight",
+       "target": "gs[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A scatter, SVI, does the reverse: it stores element i to R1 plus the i-th index."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gs[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The index vector is an ordinary vector, loaded first with LV."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gs[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "RISC-V calls them indexed loads and stores: vluxei and vsuxei."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gs[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "gather: load via indices · scatter: store via indices"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the textbook's example. A of K of i gets C of M of i added to it: two index arrays, K and M."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 9: the VMIPS code"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "gs"
+      },
+      {
+       "action": "show",
+       "target": "c"
+      },
+      {
+       "action": "mark_lines",
+       "target": "c",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Load the index vector K, and gather the elements of A it points to."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "c"
+      },
+      {
+       "action": "show",
+       "target": "code"
+      },
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Load M, and gather the elements of C."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 3,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add them as ordinary vectors."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And scatter the sums back to the same places in A, using K again. Six instructions for a loop no stride could express."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 6,
+       "to": 6
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "LV index · LVI gather · compute · SVI scatter"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: four elements, step by step. Here are A and C."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 9: element by element"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "code"
+      },
+      {
+       "action": "show",
+       "target": "arr"
+      },
+      {
+       "action": "highlight",
+       "target": "arr[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "K is 6, 1, 4, 0. The gather fetches A of 6, A of 1, A of 4 and A of 0: 8, 1, 9 and 5."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "arr"
+      },
+      {
+       "action": "show",
+       "target": "ga"
+      },
+      {
+       "action": "highlight",
+       "target": "ga[0]"
+      },
+      {
+       "action": "set",
+       "target": "ga[1][1]",
+       "value": "8"
+      },
+      {
+       "action": "set",
+       "target": "ga[1][2]",
+       "value": "1",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "ga[1][3]",
+       "value": "9",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "ga[1][4]",
+       "value": "5",
+       "delay": 0.45
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "M is 2, 7, 0, 5. The second gather fetches 30, 80, 10 and 60 from C."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ga[2]"
+      },
+      {
+       "action": "set",
+       "target": "ga[3][1]",
+       "value": "30"
+      },
+      {
+       "action": "set",
+       "target": "ga[3][2]",
+       "value": "80",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "ga[3][3]",
+       "value": "10",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "ga[3][4]",
+       "value": "60",
+       "delay": 0.45
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add: 38, 81, 19 and 65."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "ga[4][1]",
+       "value": "38"
+      },
+      {
+       "action": "set",
+       "target": "ga[4][2]",
+       "value": "81",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "ga[4][3]",
+       "value": "19",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "ga[4][4]",
+       "value": "65",
+       "delay": 0.45
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The scatter writes them back to positions 6, 1, 4 and 0 of A. The other positions are untouched."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "ga"
+      },
+      {
+       "action": "show",
+       "target": "arr"
+      },
+      {
+       "action": "highlight",
+       "target": "arr[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "gather from K · compute · scatter to K"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "row",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: back to the sparse matrix. One row of y equals A x, in vector code. Set VLR to the number of non-zeros in the row, here 4."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 9: a sparse row"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "arr"
+      },
+      {
+       "action": "show",
+       "target": "row"
+      },
+      {
+       "action": "show",
+       "target": "rowt"
+      },
+      {
+       "action": "mark_lines",
+       "target": "row",
+       "from": 1,
+       "to": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Load the row's column indices: 0, 3, 4 and 7."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "row",
+       "from": 2,
+       "to": 2
+      },
+      {
+       "action": "highlight",
+       "target": "rowt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Gather x at those columns. With x equal to 1 to 8, that is 1, 4, 5 and 8."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "row",
+       "from": 3,
+       "to": 3
+      },
+      {
+       "action": "set",
+       "target": "rowt[1][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "rowt[1][2]",
+       "value": "4",
+       "delay": 0.12
+      },
+      {
+       "action": "set",
+       "target": "rowt[1][3]",
+       "value": "5",
+       "delay": 0.24
+      },
+      {
+       "action": "set",
+       "target": "rowt[1][4]",
+       "value": "8",
+       "delay": 0.36
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Load the values, 2, 5, 1, 3, and multiply: 2, 20, 5 and 24."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "row",
+       "from": 4,
+       "to": 5
+      },
+      {
+       "action": "set",
+       "target": "rowt[3][1]",
+       "value": "2"
+      },
+      {
+       "action": "set",
+       "target": "rowt[3][2]",
+       "value": "20",
+       "delay": 0.12
+      },
+      {
+       "action": "set",
+       "target": "rowt[3][3]",
+       "value": "5",
+       "delay": 0.24
+      },
+      {
+       "action": "set",
+       "target": "rowt[3][4]",
+       "value": "24",
+       "delay": 0.36
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Finally, add the products into one number: a reduction. 51. VMIPS does it with a few vector adds of halves, and RISC-V has a reduction instruction, vfredusum. Real codes often vectorize across many rows instead, to get longer vectors."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "row",
+       "from": 6,
+       "to": 7
+      },
+      {
+       "action": "set",
+       "target": "rowt[4][1]",
+       "value": "51"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "gather x · multiply · reduce"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dup",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: the catch. Suppose K holds the same index twice: 3, 5, 3, 7."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 9: duplicate indices"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "row"
+      },
+      {
+       "action": "hide",
+       "target": "rowt"
+      },
+      {
+       "action": "show",
+       "target": "dup"
+      },
+      {
+       "action": "highlight",
+       "target": "dup[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Lanes 0 and 2 both gather the same old A of 3, and each adds its own C value to it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dup[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The scatter then writes A of 3 twice. Only one sum survives; the other addition is lost."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dup[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A scalar loop would have done the two additions one after the other, keeping both."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dup[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the compiler may vectorize this loop only if K has no duplicates. It usually cannot prove that, so the programmer must promise it, with a pragma. A histogram, where many elements land in the same bin, is the classic loop that breaks."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dup[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "duplicate indices break scatter updates"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cost",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 8: what does it cost? The addresses are random, so bank conflicts are likely."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 8 of 9: the cost"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "dup"
+      },
+      {
+       "action": "show",
+       "target": "cost"
+      },
+      {
+       "action": "highlight",
+       "target": "cost[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every element is a separate memory access. There is no bulk transfer of a whole block."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So a gather is much slower per element than a unit-stride load. But it is still far faster than a scalar loop, which pays instruction overhead and stalls on every element."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the idea is everywhere: x86 added a gather in AVX2 and a scatter in AVX-512, and on a GPU, every thread's load is effectively part of a gather."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "gather is slow per element, still beats scalar"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: the same loop, with these A and C."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cost"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "K is 3, 5, 1, 7 and M is 0, 2, 4, 6. Find the gathered vectors, the sums, and A after the scatter. Then what goes wrong if K were 3, 5, 3, 7. And the CSR size of a 2000 by 2000 matrix with half a percent non-zero. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qx"
+      },
+      {
+       "action": "highlight",
+       "target": "qx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Gather A at 3, 5, 1, 7: 8, 12, 4, 16. Gather C at 0, 2, 4, 6: 1, 2, 5, 13. Sums: 9, 14, 9, 29."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qx"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Scatter them to positions 3, 5, 1 and 7."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "set",
+       "target": "q[2][1]",
+       "value": "2"
+      },
+      {
+       "action": "set",
+       "target": "q[2][2]",
+       "value": "9",
+       "delay": 0.08
+      },
+      {
+       "action": "set",
+       "target": "q[2][3]",
+       "value": "6",
+       "delay": 0.16
+      },
+      {
+       "action": "set",
+       "target": "q[2][4]",
+       "value": "9",
+       "delay": 0.24
+      },
+      {
+       "action": "set",
+       "target": "q[2][5]",
+       "value": "10",
+       "delay": 0.32
+      },
+      {
+       "action": "set",
+       "target": "q[2][6]",
+       "value": "14",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "q[2][7]",
+       "value": "14",
+       "delay": 0.48
+      },
+      {
+       "action": "set",
+       "target": "q[2][8]",
+       "value": "29",
+       "delay": 0.56
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: with K equal to 3, 5, 3, 7, lanes 0 and 2 both read A of 3, which is 8. One computes 8 plus 1, the other 8 plus 5. The scatter keeps only one. The correct answer, from a scalar loop, is 14."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qb"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 2000 squared times 0.005 is 20,000 non-zeros."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qb[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "20,000 values at 8 bytes, 20,000 columns at 4, and 2001 row pointers at 4: about 248 kilobytes, against 32 megabytes dense. About 129 times smaller."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qb[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: forgetting the plus one in rowptr. n rows need n plus 1 entries, so the last row knows where it ends."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "rowptr has n + 1 entries"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qb"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sparse data is stored compactly, as in CSR, and read through index arrays. Gather loads through an index vector; scatter stores through one. A sparse row is a gather, a multiply and a reduction."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Duplicate indices break scatter updates, and random addresses make gathers slow per element, though still far faster than scalar code."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[6..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: the vector ideas squeezed into ordinary processors. SIMD extensions: MMX, SSE and AVX."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=8]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: SIMD extensions"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

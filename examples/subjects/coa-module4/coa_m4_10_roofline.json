@@ -1,0 +1,1250 @@
+{
+ "version": 1,
+ "title": "The roofline model",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Two limits: arithmetic and memory"
+    ],
+    [
+     2,
+     "Arithmetic intensity"
+    ],
+    [
+     3,
+     "Counting intensity"
+    ],
+    [
+     4,
+     "The roofline formula"
+    ],
+    [
+     5,
+     "Drawing the roofline"
+    ],
+    [
+     6,
+     "Kernels on the roofline"
+    ],
+    [
+     7,
+     "Two real machines"
+    ],
+    [
+     8,
+     "Ceilings, and how to climb"
+    ],
+    [
+     9,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "lim",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "a kernel can be limited by",
+    "measured in"
+   ],
+   "rows": [
+    [
+     "how fast the processor computes",
+     "peak GFLOP/s: lanes × units × clock"
+    ],
+    [
+     "how fast memory delivers data",
+     "peak bandwidth: GB/s from DRAM"
+    ],
+    [
+     "which one?",
+     "depends on how much arithmetic each byte supports"
+    ]
+   ]
+  },
+  {
+   "id": "ai",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"arithmetic intensity\" I = \"floating-point operations\" / \"bytes moved to or from DRAM\"",
+    "\"DAXPY:\" quad Y_i = a X_i + Y_i quad 2 \"flops\" quad \"read\" X_i, Y_i, \"write\" Y_i : 3 times 8 = 24 \"bytes\"",
+    "I_\"DAXPY\" = 2 / 24 approx 0.083 \"flops per byte\"",
+    "\"dense matrix multiply:\" I \"grows with the matrix size: data is reused many times\""
+   ]
+  },
+  {
+   "id": "cnt",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "// (1) a polynomial: 3 multiplies, 2 adds = 5 flops",
+    "y[i] = a*x[i]*x[i] + b*x[i] + c;      // DRAM: read x, write y = 16 bytes",
+    "",
+    "// (2) a 3-point average: 2 adds, 1 multiply = 3 flops",
+    "B[i] = (A[i-1] + A[i] + A[i+1]) * third;"
+   ]
+  },
+  {
+   "id": "cntm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "(1) quad I = 5 / 16 approx 0.31",
+    "(2) \" with cache reuse: each A read from DRAM once:\" quad 3 / (8 + 8) approx 0.19",
+    "(2) \" without reuse: 3 reads + 1 write:\" quad 3 / 32 approx 0.094"
+   ]
+  },
+  {
+   "id": "rf",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"attainable GFLOP/s\" = min(\"peak GFLOP/s\", quad \"bandwidth\" times I)",
+    "\"ridge point:\" quad I_\"ridge\" = \"peak\" / \"bandwidth\"",
+    "I < I_\"ridge\": \"memory-bound\" quad quad I > I_\"ridge\": \"compute-bound\""
+   ]
+  },
+  {
+   "id": "rp",
+   "type": "plot",
+   "region": "center",
+   "x": {
+    "label": "log₂ of intensity: −4 is 1/16, 0 is 1, 4 is 16 flops per byte",
+    "min": -4,
+    "max": 4
+   },
+   "y": {
+    "label": "log₂ of GFLOP/s: 6 is 64",
+    "min": -1,
+    "max": 7
+   },
+   "curves": [
+    {
+     "id": "roof",
+     "points": [
+      [
+       -4,
+       0
+      ],
+      [
+       2,
+       6
+      ],
+      [
+       4,
+       6
+      ]
+     ],
+     "label": "roof",
+     "visible": false
+    }
+   ],
+   "points": [
+    {
+     "id": "ridge",
+     "at": [
+      2,
+      6
+     ],
+     "label": "ridge"
+    },
+    {
+     "id": "dax",
+     "at": [
+      -3.585,
+      0.415
+     ],
+     "label": "DAXPY"
+    },
+    {
+     "id": "spmv",
+     "at": [
+      -2,
+      2
+     ],
+     "label": "SpMV"
+    },
+    {
+     "id": "fft",
+     "at": [
+      1,
+      5
+     ],
+     "label": "FFT"
+    },
+    {
+     "id": "mm",
+     "at": [
+      3,
+      6
+     ],
+     "label": "matmul"
+    }
+   ]
+  },
+  {
+   "id": "kt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "kernel",
+    "I (flops/byte)",
+    "16 × I",
+    "attainable",
+    "bound by"
+   ],
+   "rows": [
+    [
+     "DAXPY",
+     "0.083",
+     "1.33",
+     "1.33",
+     "memory"
+    ],
+    [
+     "sparse matrix-vector",
+     "0.25",
+     "4",
+     "4",
+     "memory"
+    ],
+    [
+     "stencil",
+     "0.5",
+     "8",
+     "8",
+     "memory"
+    ],
+    [
+     "FFT",
+     "2",
+     "32",
+     "32",
+     "memory"
+    ],
+    [
+     "dense matrix multiply",
+     "8",
+     "128",
+     "64",
+     "compute"
+    ]
+   ]
+  },
+  {
+   "id": "rm",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "textbook machine",
+    "peak",
+    "bandwidth",
+    "ridge",
+    "DAXPY attains"
+   ],
+   "rows": [
+    [
+     "NEC SX-9 (vector)",
+     "102.4 GFLOP/s",
+     "162 GB/s",
+     "0.63",
+     "162 × 0.083 = 13.5"
+    ],
+    [
+     "Intel Core i7 920",
+     "42.66 GFLOP/s",
+     "16.4 GB/s",
+     "2.6",
+     "16.4 × 0.083 = 1.37"
+    ]
+   ]
+  },
+  {
+   "id": "ce",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "ceiling",
+    "lowers",
+    "climb past it by"
+   ],
+   "rows": [
+    [
+     "no SIMD",
+     "the compute roof",
+     "vectorizing the loop"
+    ],
+    [
+     "unbalanced multiply and add",
+     "the compute roof",
+     "using fused multiply-add"
+    ],
+    [
+     "no prefetching, poor locality",
+     "the memory slope",
+     "prefetching, unit-stride access"
+    ],
+    [
+     "low intensity itself",
+     "where the kernel sits",
+     "blocking and reuse: raise I"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "a machine: peak 200 GFLOP/s, bandwidth 50 GB/s"
+   ],
+   "rows": [
+    [
+     "a) the ridge point"
+    ],
+    [
+     "b) attainable GFLOP/s for kernels with I = 0.5, 2 and 8"
+    ],
+    [
+     "c) a kernel with 3 flops per element that reads 2 doubles and writes 1: its I and GFLOP/s"
+    ],
+    [
+     "d) the bandwidth needed for the I = 0.5 kernel to reach peak"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad 200 / 50 = 4 \"flops per byte\"",
+    "\"b)\" quad min(200, 50 times 0.5) = 25 quad min(200, 100) = 100 quad min(200, 400) = 200",
+    "\"c)\" quad I = 3 / 24 = 0.125 quad 50 times 0.125 = 6.25 \"GFLOP/s: memory-bound\"",
+    "\"d)\" quad 200 / 0.5 = 400 \"GB/s\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Last video's AVX core could do 48 gigaflops. Will DAXPY get anywhere near that? Almost never. The roofline model, from Williams, Waterman and Patterson in 2009, tells you in one picture what limits a loop, and how fast it can possibly run."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "The roofline model"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the nine stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The two limits, arithmetic intensity and how to count it, the formula, and drawing the roofline."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then where real kernels sit on it, two real machines, how to climb, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=8]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lim",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a loop can be limited by how fast the processor computes: its peak floating-point rate."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 9: two limits"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "lim"
+      },
+      {
+       "action": "highlight",
+       "target": "lim[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Or by how fast memory delivers the data: its peak bandwidth from DRAM, in gigabytes per second."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lim[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Which limit bites depends on the loop: how many operations it performs for each byte it moves."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lim[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "compute or memory: whichever runs out first"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ai",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: arithmetic intensity is the floating-point operations divided by the bytes moved to or from main memory."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 9: arithmetic intensity"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lim"
+      },
+      {
+       "action": "show",
+       "target": "ai"
+      },
+      {
+       "action": "highlight",
+       "target": "ai[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "DAXPY: each element needs a multiply and an add, 2 flops. It reads X and Y, and writes Y: 3 doubles, 24 bytes."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ai[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "ai[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So its intensity is 2 over 24, about 0.083 flops per byte. Very low: one operation for every 12 bytes."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ai[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "ai[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dense matrix multiplication is the opposite. Each element is reused many times from the caches, so the intensity grows with the matrix size."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "ai[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "ai[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "I = flops ÷ DRAM bytes"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cnt",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: count intensity for two more loops. A polynomial: three multiplies and two adds, 5 flops. It reads x and writes y: 16 bytes."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 9: counting intensity"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ai"
+      },
+      {
+       "action": "show",
+       "target": "cnt"
+      },
+      {
+       "action": "mark_lines",
+       "target": "cnt",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 3-point average: two adds and a multiply by a third, 3 flops per element."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "cnt",
+       "from": 4,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The polynomial: 5 over 16, about 0.31 flops per byte."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "cnt"
+      },
+      {
+       "action": "show",
+       "target": "cntm"
+      },
+      {
+       "action": "highlight",
+       "target": "cntm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The average reads three neighbours of A. But A of i plus 1 for this element is A of i for the next one, so with a cache each A comes from DRAM once. 3 flops over 8 bytes read and 8 written: about 0.19."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cntm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "cntm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Without that reuse, every access goes to DRAM: 32 bytes, and only 0.094. The cache doubled the intensity. Count what reaches DRAM, not what the code mentions."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cntm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "cntm[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "count DRAM bytes, after cache reuse"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rf",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the formula. Attainable performance is the smaller of two numbers: the peak, and the bandwidth times the intensity."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 9: the formula"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cntm"
+      },
+      {
+       "action": "show",
+       "target": "rf"
+      },
+      {
+       "action": "highlight",
+       "target": "rf[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Bandwidth times intensity is how fast memory can feed operations: gigabytes per second, times flops per byte, gives flops per second."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rf[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The two are equal at the ridge point: the peak divided by the bandwidth."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rf[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "rf[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A kernel to the left of the ridge is memory-bound: a faster processor would not help it. To the right, it is compute-bound: more bandwidth would not help."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rf[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "rf[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "attainable = min(peak, BW × I)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "draw",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: draw it for a machine with a 64 gigaflop peak and 16 gigabytes per second of bandwidth."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 9: drawing the roofline"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rf"
+      },
+      {
+       "action": "show",
+       "target": "rp"
+      },
+      {
+       "action": "trace",
+       "target": "rp.roof"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Both axes are logarithmic, the usual way to draw it, so the memory roof, 16 times I, becomes a straight slanted line. Each step right doubles the intensity; each step up doubles the performance."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rp.roof"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The flat part is the compute roof, at 64 gigaflops, 2 to the 6."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rp.roof"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "They meet at the ridge, at 4 flops per byte. A loop needs at least 4 flops for every byte it moves to reach peak."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rp.ridge"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "slope: bandwidth · flat: peak · corner: ridge"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "kern",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: place some kernels. DAXPY, at 0.083, attains just 16 times 0.083: 1.3 gigaflops. 2 percent of peak."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 9: kernels"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "highlight",
+       "target": "rp.dax"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sparse matrix-vector product, about 0.25 flops per byte: 4 gigaflops. Still deep in memory-bound territory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rp.spmv"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An FFT, about 2: 32 gigaflops, half of peak."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rp.fft"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And a large dense matrix multiply, intensity 8 or more: it reaches the full 64."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rp.mm"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In a table: everything left of the ridge is limited by memory, whatever the arithmetic hardware. Most real loops live there."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rp"
+      },
+      {
+       "action": "show",
+       "target": "kt"
+      },
+      {
+       "action": "highlight",
+       "target": "kt[0..=3]"
+      },
+      {
+       "action": "highlight",
+       "target": "kt[4]",
+       "delay": 0.5
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "most kernels are memory-bound"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "real",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: the textbook compares two real machines. NEC's SX-9 vector computer: 102.4 gigaflops, but a huge 162 gigabytes per second of memory bandwidth. Its ridge is at only 0.63."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 9: two real machines"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "kt"
+      },
+      {
+       "action": "show",
+       "target": "rm"
+      },
+      {
+       "action": "highlight",
+       "target": "rm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An Intel Core i7 920: 42.66 gigaflops, with 16.4 gigabytes per second. Its ridge is at 2.6."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On DAXPY, the SX-9 attains 13.5 gigaflops, the Core i7 just 1.37. Ten times faster, though its peak is only 2.4 times higher. Vector machines were built around memory bandwidth, and on memory-bound loops that is what counts."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rm[0][4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a low ridge point: a balanced machine"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ceil",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 8: a real program rarely reaches even its roofline. Lower ceilings sit beneath the roofs. Without SIMD, the compute roof drops by the number of lanes."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 9: ceilings"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rm"
+      },
+      {
+       "action": "show",
+       "target": "ce"
+      },
+      {
+       "action": "highlight",
+       "target": "ce[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Without fused multiply-adds, or with an unbalanced mix, it drops again."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ce[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Poor locality, or no prefetching, lowers the memory slope."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ce[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the kernel's own intensity decides where it sits. Blocking a loop so that data is reused from cache raises I, and moves the kernel to the right, toward the compute roof."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ce[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "vectorize to raise the roof · reuse data to raise I"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: a machine with a 200 gigaflop peak and 50 gigabytes per second."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ce"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find the ridge, the attainable rate for intensities 0.5, 2 and 8, the intensity and rate of a kernel with 3 flops per element reading 2 doubles and writing 1, and the bandwidth the 0.5 kernel would need to reach peak. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: 200 over 50: the ridge is at 4 flops per byte."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: at 0.5, 50 times 0.5 is 25 gigaflops. At 2, 100. At 8, 400 exceeds the peak, so 200."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 3 flops for 3 doubles, 24 bytes: intensity 0.125. 50 times 0.125: 6.25 gigaflops, memory-bound."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: to reach 200 at intensity 0.5 needs 200 over 0.5: 400 gigabytes per second, eight times the bandwidth."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: counting bytes that come from cache. Arithmetic intensity counts only the traffic to main memory."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "I counts DRAM traffic only"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Arithmetic intensity is flops per byte of DRAM traffic. Attainable performance is the minimum of the peak and the bandwidth times the intensity."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Kernels left of the ridge are memory-bound, and most are. Vectorizing raises the roof; reusing data raises the intensity."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: graphics processors. CUDA, and the hierarchy of threads, blocks and grids."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=8]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: GPUs and CUDA"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

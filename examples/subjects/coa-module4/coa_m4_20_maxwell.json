@@ -1,0 +1,1397 @@
+{
+ "version": 1,
+ "title": "NVIDIA Maxwell",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Why Maxwell"
+    ],
+    [
+     2,
+     "The GeForce GTX 980"
+    ],
+    [
+     3,
+     "Inside the SMM"
+    ],
+    [
+     4,
+     "Maxwell against Kepler"
+    ],
+    [
+     5,
+     "Peak speed and the roofline"
+    ],
+    [
+     6,
+     "Occupancy on Maxwell"
+    ],
+    [
+     7,
+     "The memory system"
+    ],
+    [
+     8,
+     "The whole module on one chip"
+    ],
+    [
+     9,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "why",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "Maxwell, 2014",
+    ""
+   ],
+   "rows": [
+    [
+     "the generation after Kepler",
+     "first GM107 (GTX 750 Ti), then GM204 (GTX 980)"
+    ],
+    [
+     "the same 28 nm process as Kepler",
+     "no help from smaller transistors"
+    ],
+    [
+     "so the goal was efficiency",
+     "more work per watt from a better design"
+    ],
+    [
+     "NVIDIA's claim",
+     "about twice the performance per watt of Kepler GK104"
+    ]
+   ]
+  },
+  {
+   "id": "gtx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "GeForce GTX 980 (GM204)",
+    "value"
+   ],
+   "rows": [
+    [
+     "streaming multiprocessors (SMM)",
+     "16"
+    ],
+    [
+     "CUDA cores (SIMD lanes)",
+     "16 × 128 = 2048"
+    ],
+    [
+     "clock: base / boost",
+     "1126 / 1216 MHz"
+    ],
+    [
+     "peak single precision",
+     "4612 GFLOP/s"
+    ],
+    [
+     "memory",
+     "4 GB GDDR5, 224.3 GB/s"
+    ],
+    [
+     "L2 cache",
+     "2 MB"
+    ],
+    [
+     "power (TDP) · transistors",
+     "165 W · 5.2 billion"
+    ]
+   ]
+  },
+  {
+   "id": "smm",
+   "type": "diagram",
+   "region": "center",
+   "layout": "layers",
+   "direction": "down",
+   "nodes": [
+    {
+     "id": "p0",
+     "label": "part 0"
+    },
+    {
+     "id": "p1",
+     "label": "part 1"
+    },
+    {
+     "id": "p2",
+     "label": "part 2"
+    },
+    {
+     "id": "p3",
+     "label": "part 3"
+    },
+    {
+     "id": "l1",
+     "label": "L1 + texture"
+    },
+    {
+     "id": "sh",
+     "label": "shared 96 KB"
+    }
+   ],
+   "edges": [
+    {
+     "from": "p0",
+     "to": "l1"
+    },
+    {
+     "from": "p1",
+     "to": "l1"
+    },
+    {
+     "from": "p2",
+     "to": "sh"
+    },
+    {
+     "from": "p3",
+     "to": "sh"
+    }
+   ]
+  },
+  {
+   "id": "smx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "one SMM",
+    "contents"
+   ],
+   "rows": [
+    [
+     "4 processing blocks",
+     "each: 32 cores, 1 warp scheduler, 2 dispatch units"
+    ],
+    [
+     "32 cores = warp width",
+     "a warp instruction issues in one cycle"
+    ],
+    [
+     "each block's own units",
+     "no sharing between schedulers"
+    ],
+    [
+     "register file",
+     "64K 32-bit registers (256 KB), 16K per block"
+    ],
+    [
+     "shared memory",
+     "96 KB, dedicated; at most 48 KB per thread block"
+    ],
+    [
+     "L1 and texture cache",
+     "combined into one unit"
+    ]
+   ]
+  },
+  {
+   "id": "vs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "per SM",
+    "Kepler SMX (GK104)",
+    "Maxwell SMM (GM204)"
+   ],
+   "rows": [
+    [
+     "CUDA cores",
+     "192",
+     "128"
+    ],
+    [
+     "organisation",
+     "units shared by 4 schedulers",
+     "4 partitions × 32, nothing shared"
+    ],
+    [
+     "registers · max warps",
+     "64K · 64",
+     "64K · 64"
+    ],
+    [
+     "max thread blocks",
+     "16",
+     "32"
+    ],
+    [
+     "shared memory",
+     "48 KB",
+     "96 KB"
+    ],
+    [
+     "shared-memory atomics",
+     "lock, update, unlock",
+     "native 32-bit"
+    ],
+    [
+     "result",
+     "",
+     "40% more per core"
+    ]
+   ]
+  },
+  {
+   "id": "pk",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"peak\" = 2048 \"lanes\" times 2 \"FLOPs (fused multiply-add)\" times 1.126 \"GHz\" approx 4612 \"GFLOP/s\"",
+    "\"ridge point\" = 4612 / 224.3 approx 20.6 \"FLOP/byte\"",
+    "\"GTX 980:\" 4612 / 165 \"W\" approx 28 \"GFLOP/s per W\" quad \"GTX 680:\" 3090 / 195 approx 15.8",
+    "28 / 15.8 approx 1.77 \"times the peak per watt\""
+   ]
+  },
+  {
+   "id": "oc",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "kernel",
+    "Kepler SMX",
+    "Maxwell SMM"
+   ],
+   "rows": [
+    [
+     "64 threads per block",
+     "16 blocks × 2 warps = 32 warps: 50%",
+     "32 blocks × 2 = 64 warps: 100%"
+    ],
+    [
+     "256 threads, 24 KB shared",
+     "48 / 24 = 2 blocks: 16 warps, 25%",
+     "96 / 24 = 4 blocks: 32 warps, 50%"
+    ],
+    [
+     "the same code",
+     "",
+     "more warps resident, no change needed"
+    ]
+   ]
+  },
+  {
+   "id": "mem",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "Maxwell memory system",
+    ""
+   ],
+   "rows": [
+    [
+     "L2",
+     "2 MB, four times GK104's 512 KB: fewer trips to DRAM"
+    ],
+    [
+     "global loads",
+     "cached in L2 only by default on GM204"
+    ],
+    [
+     "L1 + texture",
+     "one unit, also merging a warp's accesses"
+    ],
+    [
+     "shared memory",
+     "96 KB, separate from L1"
+    ],
+    [
+     "memory compression",
+     "colour data compressed to save bandwidth"
+    ]
+   ]
+  },
+  {
+   "id": "all",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "module idea",
+    "on the GTX 980"
+   ],
+   "rows": [
+    [
+     "SIMD lanes",
+     "2048 CUDA cores"
+    ],
+    [
+     "SIMD thread (warp)",
+     "32 threads, one partition's 32 cores"
+    ],
+    [
+     "multithreading",
+     "64 warps per SMM: 1024 warps, 32,768 threads"
+    ],
+    [
+     "memory hierarchy",
+     "64K registers · 96 KB shared · 2 MB L2 · 4 GB DRAM"
+    ],
+    [
+     "roofline",
+     "4612 GFLOP/s, 224.3 GB/s, ridge 20.6"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "GTX 980: 16 SMMs of 128 cores, 1126 MHz base, 1216 MHz boost, 224.3 GB/s"
+   ],
+   "rows": [
+    [
+     "a) peak GFLOP/s at the boost clock"
+    ],
+    [
+     "b) SAXPY, y = a x + y in floats: intensity, and attainable GFLOP/s"
+    ],
+    [
+     "c) 128 threads per block, 64 registers per thread, 16 KB shared: blocks, warps, occupancy per SMM"
+    ],
+    [
+     "d) threads resident on the whole GPU at full occupancy"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a",
+     "2048 × 2 × 1.216",
+     "≈ 4981 GFLOP/s"
+    ],
+    [
+     "b",
+     "2 FLOPs per 12 bytes = 0.167; × 224.3",
+     "≈ 37.4 GFLOP/s"
+    ],
+    [
+     "c",
+     "threads 16 · registers 8 · shared 96 / 16 = 6 · blocks 32",
+     "6 blocks: shared memory decides"
+    ],
+    [
+     "c",
+     "6 × 4 warps = 24 of 64",
+     "37.5%"
+    ],
+    [
+     "d",
+     "16 × 2048",
+     "32,768"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "This module ends with a real GPU. NVIDIA's Maxwell architecture, in the GeForce GTX 980, puts every idea from this module on one chip: lanes, warps, multithreading, shared memory and the roofline. The figures come from NVIDIA's own Maxwell documents."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Case study: NVIDIA Maxwell"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the nine stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why Maxwell was built, the GTX 980, inside its streaming multiprocessor, and how it differs from Kepler."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then its peak speed and roofline, occupancy, the memory system, the module's ideas mapped onto it, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=8]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: Maxwell, from 2014, followed Kepler. It appeared first in the small GM107 chip, then in the larger GM204 of the GTX 980."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 9: why Maxwell"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      },
+      {
+       "action": "highlight",
+       "target": "why[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It was built on the same 28 nanometre process as Kepler. No help came from smaller transistors."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the design goal was efficiency: more work per watt from a better organisation of the same transistors."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "NVIDIA claims about twice the performance per watt of Kepler's GK104. Let us see where it comes from."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "same process, better design"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gtx",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the GTX 980 has 16 streaming multiprocessors, which NVIDIA calls SMMs."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 9: the GTX 980"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "gtx"
+      },
+      {
+       "action": "highlight",
+       "target": "gtx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each has 128 CUDA cores, the textbook's SIMD lanes: 2048 in all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gtx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A base clock of 1126 megahertz, boosting to 1216, gives a peak of 4612 gigaflops per second in single precision."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gtx[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 gigabytes of GDDR5 memory at 224.3 gigabytes per second, and a 2 megabyte L2 cache."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gtx[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "All in 165 watts, with 5.2 billion transistors."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gtx[6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "16 SMMs × 128 lanes, 224 GB/s, 165 W"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "smm",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: inside one SMM. It is split into four processing blocks, or partitions."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 9: inside the SMM"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "gtx"
+      },
+      {
+       "action": "show",
+       "target": "smm"
+      },
+      {
+       "action": "highlight",
+       "target": "smm.p0"
+      },
+      {
+       "action": "highlight",
+       "target": "smm.p1",
+       "delay": 0.15
+      },
+      {
+       "action": "highlight",
+       "target": "smm.p2",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "smm.p3",
+       "delay": 0.45
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Below them, a combined L1 and texture cache, and 96 kilobytes of shared memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "smm.l1"
+      },
+      {
+       "action": "highlight",
+       "target": "smm.sh",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each processing block has 32 cores, one warp scheduler, and two dispatch units."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "smm"
+      },
+      {
+       "action": "show",
+       "target": "smx"
+      },
+      {
+       "action": "highlight",
+       "target": "smx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "32 cores is exactly the warp width, so a warp instruction issues in a single cycle. With 16 lanes, as in video 12, it would take two."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "smx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And each block's units belong to its scheduler alone. No arbitration between schedulers: simpler, and less power."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "smx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The register file holds 64K 32-bit registers, 256 kilobytes, divided among the four blocks."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "smx[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Shared memory is 96 kilobytes, dedicated, not shared with L1. One thread block may use at most 48."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "smx[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the L1 and texture caches are now one unit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "smx[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "4 × (32 lanes + 1 scheduler) per SMM"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vs",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: compared with Kepler. A Kepler SMX had 192 cores; a Maxwell SMM has 128."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 9: Maxwell against Kepler"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "smx"
+      },
+      {
+       "action": "show",
+       "target": "vs"
+      },
+      {
+       "action": "highlight",
+       "target": "vs[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Kepler's four schedulers shared its execution units, which needed extra control logic. Maxwell gives each scheduler its own 32 cores."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The register file and the limit of 64 warps are unchanged."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But the limit on thread blocks doubles from 16 to 32, and shared memory doubles from 48 to 96 kilobytes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Shared-memory atomics are now native instructions, instead of a lock, update and unlock sequence."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "NVIDIA reports over 40 percent more delivered performance per core. Fewer, busier lanes: the efficiency comes from keeping each lane fed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "fewer lanes, each kept busier"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "peak",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the peak. 2048 lanes, each doing a fused multiply-add, 2 operations, every cycle, at 1.126 gigahertz: about 4612 gigaflops per second."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 9: peak speed and the roofline"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "vs"
+      },
+      {
+       "action": "show",
+       "target": "pk"
+      },
+      {
+       "action": "highlight",
+       "target": "pk[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The ridge point of its roofline is 4612 over 224.3: about 20.6 operations per byte. A kernel needs that much intensity to reach the peak."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pk[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "pk[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Per watt: the GTX 980 reaches about 28 peak gigaflops per watt; Kepler's GTX 680, about 15.8."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pk[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "pk[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "About 1.77 times, close to NVIDIA's claim of double, from the same 28 nanometre process."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pk[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "pk[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "4612 GFLOP/s, ridge ≈ 20.6 FLOP/byte"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "occ",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: occupancy, from video 12. A kernel with blocks of 64 threads: Kepler allows 16 blocks per SM, 32 warps, 50 percent. Maxwell allows 32 blocks: 64 warps, 100 percent."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 9: occupancy on Maxwell"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pk"
+      },
+      {
+       "action": "show",
+       "target": "oc"
+      },
+      {
+       "action": "highlight",
+       "target": "oc[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A kernel with 256 threads and 24 kilobytes of shared memory per block: Kepler fits 2 blocks in 48 kilobytes, 25 percent. Maxwell fits 4 in 96: 50 percent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "oc[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The same compiled code gets more resident warps, and so hides more memory latency, with no change at all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "oc[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "double the blocks and shared memory: higher occupancy"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mem",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: the memory system. The L2 cache grows to 2 megabytes, four times Kepler GK104's 512 kilobytes, so fewer accesses go to DRAM."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 9: the memory system"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "oc"
+      },
+      {
+       "action": "show",
+       "target": "mem"
+      },
+      {
+       "action": "highlight",
+       "target": "mem[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On GM204, global loads are cached in L2 only by default; caching them in L1 is an option for the programmer."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mem[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The combined L1 and texture cache also gathers a warp's scattered accesses: coalescing, from video 15."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mem[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Shared memory is its own 96 kilobytes, no longer split with L1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mem[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And for graphics, colour data is compressed in memory, saving bandwidth: the scarcest resource, as the roofline shows."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mem[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "bigger L2, more shared memory, less DRAM traffic"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "all",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 8: the whole module on one chip. The textbook's SIMD lanes are the 2048 CUDA cores."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 8 of 9: the module on one chip"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "mem"
+      },
+      {
+       "action": "show",
+       "target": "all"
+      },
+      {
+       "action": "highlight",
+       "target": "all[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A SIMD thread is a warp of 32, running on one partition's 32 cores."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "all[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Multithreading: 64 warps per SMM, 1024 warps on the chip, 32,768 threads, all resident at once, so latency is hidden."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "all[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The memory hierarchy: registers, shared memory, L2 and DRAM. And a roofline with a peak of 4612 and a ridge at 20.6."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "all[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "lanes · warps · threads · memory · roofline"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question on the GTX 980."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "all"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find the peak at the boost clock, SAXPY's intensity and attainable rate, the blocks, warps and occupancy of a kernel, and the threads resident on the whole GPU. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: 2048 lanes times 2 operations times 1.216 gigahertz: about 4981 gigaflops per second."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: SAXPY reads x and y and writes y: 12 bytes, for a multiply and an add. 2 over 12 is 0.167 operations per byte, far below the ridge. 0.167 times 224.3: about 37.4 gigaflops, under 1 percent of the peak."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: threads allow 16 blocks. Registers: 65,536 over 128 times 64 is 8. Shared memory: 96 over 16 is 6. The block limit is 32. The smallest is 6: shared memory decides."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "6 blocks of 4 warps is 24 warps, out of 64: 37.5 percent occupancy."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[3][2]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: 16 SMMs times 2048 threads: 32,768."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: using the boost clock for one part and the base clock for another. State which clock you use."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "say which clock you use"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Maxwell kept Kepler's 28 nanometre process and gained efficiency by design: 16 SMMs, each 4 partitions of 32 lanes with their own scheduler."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4612 gigaflops, a ridge at 20.6, twice the blocks and shared memory per SM, and a 2 megabyte L2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That completes Module 4: vectors, SIMD, GPUs, loop-level parallelism and CUDA, all meeting in one real chip."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=8]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "End of Module 4"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

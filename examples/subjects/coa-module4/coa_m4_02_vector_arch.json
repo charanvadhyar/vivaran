@@ -1,0 +1,1411 @@
+{
+ "version": 1,
+ "title": "Vector architecture",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The VMIPS machine"
+    ],
+    [
+     2,
+     "Vector registers"
+    ],
+    [
+     3,
+     "Why registers, not memory"
+    ],
+    [
+     4,
+     "Fully pipelined vector units"
+    ],
+    [
+     5,
+     "The vector instruction set"
+    ],
+    [
+     6,
+     "VMIPS and RISC-V V side by side"
+    ],
+    [
+     7,
+     "Writing a vector program"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "dg",
+   "type": "diagram",
+   "region": "center",
+   "layout": "layers",
+   "direction": "down",
+   "nodes": [
+    {
+     "id": "mem",
+     "label": "memory"
+    },
+    {
+     "id": "ls",
+     "label": "load/store"
+    },
+    {
+     "id": "vr",
+     "label": "vector regs"
+    },
+    {
+     "id": "sr",
+     "label": "scalar regs"
+    },
+    {
+     "id": "add",
+     "label": "FP add"
+    },
+    {
+     "id": "mul",
+     "label": "FP multiply"
+    },
+    {
+     "id": "div",
+     "label": "FP divide"
+    },
+    {
+     "id": "int",
+     "label": "integer"
+    },
+    {
+     "id": "log",
+     "label": "logical"
+    }
+   ],
+   "edges": [
+    {
+     "from": "mem",
+     "to": "ls"
+    },
+    {
+     "from": "ls",
+     "to": "vr"
+    },
+    {
+     "from": "ls",
+     "to": "sr"
+    },
+    {
+     "from": "vr",
+     "to": "add"
+    },
+    {
+     "from": "vr",
+     "to": "mul"
+    },
+    {
+     "from": "vr",
+     "to": "div"
+    },
+    {
+     "from": "vr",
+     "to": "int"
+    },
+    {
+     "from": "vr",
+     "to": "log"
+    }
+   ]
+  },
+  {
+   "id": "vr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "vector registers",
+    "VMIPS"
+   ],
+   "rows": [
+    [
+     "how many",
+     "8: V0 to V7"
+    ],
+    [
+     "each holds",
+     "64 elements of 64 bits"
+    ],
+    [
+     "total size",
+     "8 × 64 × 8 bytes = 4 KB"
+    ],
+    [
+     "ports",
+     "16 read and 8 write, through crossbars to every unit"
+    ],
+    [
+     "special registers",
+     "VLR: vector length · VM: vector mask"
+    ]
+   ]
+  },
+  {
+   "id": "mm",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "memory-memory",
+    "vector-register"
+   ],
+   "rows": [
+    [
+     "operands",
+     "from memory",
+     "from registers"
+    ],
+    [
+     "example",
+     "CDC STAR-100, 1974",
+     "Cray-1, 1976, and since"
+    ],
+    [
+     "startup",
+     "long",
+     "short"
+    ],
+    [
+     "results",
+     "back to memory",
+     "stay in registers"
+    ]
+   ]
+  },
+  {
+   "id": "pipe",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "cycle",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+   ],
+   "rows": [
+    [
+     "stage 1 of the adder",
+     "e0",
+     "e1",
+     "e2",
+     "e3",
+     "e4",
+     "e5",
+     "e6",
+     "e7"
+    ],
+    [
+     "stage 2",
+     "",
+     "e0",
+     "e1",
+     "e2",
+     "e3",
+     "e4",
+     "e5",
+     "e6"
+    ],
+    [
+     "stage 3",
+     "",
+     "",
+     "e0",
+     "e1",
+     "e2",
+     "e3",
+     "e4",
+     "e5"
+    ],
+    [
+     "stage 4",
+     "",
+     "",
+     "",
+     "e0",
+     "e1",
+     "e2",
+     "e3",
+     "e4"
+    ],
+    [
+     "result",
+     "",
+     "",
+     "",
+     "",
+     "e0",
+     "e1",
+     "e2",
+     "e3"
+    ]
+   ]
+  },
+  {
+   "id": "isa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "VMIPS instruction",
+    "operands",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "ADDVV.D V1,V2,V3",
+     "vector, vector",
+     "V1[i] = V2[i] + V3[i] for every element"
+    ],
+    [
+     "ADDVS.D V1,V2,F0",
+     "vector, scalar",
+     "V1[i] = V2[i] + F0"
+    ],
+    [
+     "LV V1,R1 · SV V1,R1",
+     "unit stride",
+     "load or store consecutive elements"
+    ],
+    [
+     "LVWS V1,(R1,R2)",
+     "strided",
+     "load every R2-th element"
+    ],
+    [
+     "LVI V1,(R1+V2)",
+     "indexed (gather)",
+     "load from R1 + V2[i]"
+    ],
+    [
+     "SEQVV.D V1,V2",
+     "compare",
+     "set the mask bit where V1[i] = V2[i]"
+    ],
+    [
+     "MTC1 VLR,R1",
+     "control",
+     "set the vector length"
+    ]
+   ]
+  },
+  {
+   "id": "rv",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "operation",
+    "VMIPS",
+    "RISC-V V (RV64V)"
+   ],
+   "rows": [
+    [
+     "set the vector length",
+     "MTC1 VLR,R1",
+     "vsetvli t0,a0,e64"
+    ],
+    [
+     "unit-stride load",
+     "LV V1,R1",
+     "vle64.v v1,(a1)"
+    ],
+    [
+     "strided load",
+     "LVWS V1,(R1,R2)",
+     "vlse64.v v1,(a1),a2"
+    ],
+    [
+     "indexed load",
+     "LVI V1,(R1+V2)",
+     "vluxei64.v v1,(a1),v2"
+    ],
+    [
+     "vector × scalar",
+     "MULVS.D V2,V1,F0",
+     "vfmul.vf v2,v1,fa0"
+    ],
+    [
+     "vector + vector",
+     "ADDVV.D V4,V2,V3",
+     "vfadd.vv v4,v2,v3"
+    ],
+    [
+     "store",
+     "SV V4,R2",
+     "vse64.v v4,(a2)"
+    ]
+   ]
+  },
+  {
+   "id": "rvx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "RISC-V V differs",
+    "how"
+   ],
+   "rows": [
+    [
+     "vector length",
+     "not fixed at 64: each chip chooses; vsetvli says how many fit"
+    ],
+    [
+     "element width",
+     "set by vsetvli: e64, e32, e16, e8"
+    ],
+    [
+     "same binary",
+     "runs on narrow and wide hardware alike"
+    ]
+   ]
+  },
+  {
+   "id": "pr",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "; Z[i] = X[i]*X[i] + Y[i]*Y[i], 64 elements",
+    "LV       V1,Rx       ; X",
+    "MULVV.D  V2,V1,V1    ; X squared",
+    "LV       V3,Ry       ; Y",
+    "MULVV.D  V4,V3,V3    ; Y squared",
+    "ADDVV.D  V5,V2,V4    ; sum",
+    "SV       V5,Rz       ; store Z"
+   ]
+  },
+  {
+   "id": "prx",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "6 \"instructions\" quad 64 + 64 + 64 = 192 \"floating-point operations\"",
+    "\"registers used: V1 to V5, five of the eight\""
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "question"
+   ],
+   "rows": [
+    [
+     "a) write VMIPS code for D[i] = (A[i] + B[i]) × s, 64 elements"
+    ],
+    [
+     "b) how many instructions, and how many floating-point operations?"
+    ],
+    [
+     "c) a vector file of 32 registers, 32 elements of 64 bits each: its size?"
+    ],
+    [
+     "d) write the add in RISC-V V"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "L.D      F0,s",
+    "LV       V1,Ra",
+    "LV       V2,Rb",
+    "ADDVV.D  V3,V1,V2",
+    "MULVS.D  V4,V3,F0",
+    "SV       V4,Rd"
+   ]
+  },
+  {
+   "id": "qb",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"b)\" quad 6 \"instructions\" quad 64 + 64 = 128 \"FP operations\"",
+    "\"c)\" quad 32 times 32 times 8 \"bytes\" = 8192 \"bytes\" = 8 \"KB\"",
+    "\"d)\" quad \"vfadd.vv v3, v1, v2\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Last video showed that six vector instructions can replace 578 scalar ones. Now we open the machine that runs them: the textbook's VMIPS, and its modern relative, the RISC-V vector extension."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Vector architecture"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The machine, its vector registers, why they are registers at all, and the pipelined units."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the instruction set, VMIPS beside RISC-V, writing a small program, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "machine",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: VMIPS is an ordinary scalar MIPS processor with a vector unit added. Its heart is the vector register file."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: the VMIPS machine"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "dg"
+      },
+      {
+       "action": "highlight",
+       "target": "dg.vr"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A vector load-store unit moves whole vectors between memory and the registers. It is pipelined too: after an initial latency it delivers one word per cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dg.mem"
+      },
+      {
+       "action": "highlight",
+       "target": "dg.ls",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Five vector functional units read from and write to the vector registers: floating-point add, multiply and divide, integer, and logical."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dg.add"
+      },
+      {
+       "action": "highlight",
+       "target": "dg.mul",
+       "delay": 0.15
+      },
+      {
+       "action": "highlight",
+       "target": "dg.div",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "dg.int",
+       "delay": 0.45
+      },
+      {
+       "action": "highlight",
+       "target": "dg.log",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the scalar registers supply single values, like the a in DAXPY, and addresses."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dg.sr"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "memory ↔ load/store ↔ vector registers ↔ pipelined units"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "regs",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: VMIPS has eight vector registers, V0 to V7."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: vector registers"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "dg"
+      },
+      {
+       "action": "show",
+       "target": "vr"
+      },
+      {
+       "action": "highlight",
+       "target": "vr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each one holds 64 elements of 64 bits: a whole vector of doubles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Eight registers of 64 elements of 8 bytes: 4 kilobytes. Far bigger than a scalar register file of 32 registers."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vr[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Several units work at once, so the file needs many ports: 16 read and 8 write, connected to the units by crossbars."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vr[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two special registers come up again and again: the vector length register, VLR, for vectors shorter than 64, and the vector mask register, VM, for conditionals. Each gets its own video."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vr[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "8 registers × 64 elements × 64 bits = 4 KB"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: why keep vectors in registers at all? The earliest vector machines did not. The CDC STAR-100 of 1974 read every operand from memory and wrote every result back."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: why registers"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "vr"
+      },
+      {
+       "action": "show",
+       "target": "mm"
+      },
+      {
+       "action": "highlight",
+       "target": "mm[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That made every instruction wait for memory before its first element could start: a long startup on every operation."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And a result needed by the next instruction made a round trip through memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mm[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The Cray-1, two years later, put vectors in registers. Loads and stores move data in bulk, and arithmetic works register to register, exactly like a RISC processor. Every vector machine since has followed it, VMIPS included."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "mm[1][2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "load once, compute in registers, store once"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pipe",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: each vector unit is fully pipelined. Here is a 4-stage adder working through a vector."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: pipelined units"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "mm"
+      },
+      {
+       "action": "show",
+       "target": "pipe"
+      },
+      {
+       "action": "highlight",
+       "target": "pipe[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Element 0 enters in cycle 1, element 1 in cycle 2, and so on. A new element starts every cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pipe[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The first result appears after the pipeline latency, in cycle 5. After that, one result comes out every cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pipe[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The pipeline never stalls inside a vector, because the elements are independent. So vector units can be very deeply pipelined, and clocked fast. A vector of n elements takes about the latency plus n cycles."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "pipe[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "one element per cycle, after the startup latency"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "isa",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the instruction set. Arithmetic comes in two forms. Vector-vector: ADDVV.D adds two vectors element by element."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: the instruction set"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pipe"
+      },
+      {
+       "action": "show",
+       "target": "isa"
+      },
+      {
+       "action": "highlight",
+       "target": "isa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Vector-scalar: ADDVS.D adds the same scalar to every element."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "isa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three kinds of load and store. Unit stride, LV and SV, for consecutive elements."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "isa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Strided, LVWS, for every k-th element: a column of a matrix stored by rows."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "isa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And indexed, LVI, which loads from addresses given by another vector: a gather, for sparse data."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "isa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Compares set bits in the mask register, and MTC1 sets the vector length. These come later in the module."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "isa[5..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "VV and VS arithmetic · unit, strided and indexed memory"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rv",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: the same operations in the RISC-V vector extension, which real chips now ship."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: VMIPS and RISC-V V"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "isa"
+      },
+      {
+       "action": "show",
+       "target": "rv"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "vsetvli sets the vector length and the element width."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rv[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Loads: vle64 for unit stride, vlse64 for strided, vluxei64 for indexed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rv[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Arithmetic: vfmul dot vf multiplies a vector by a scalar register, and vfadd dot vv adds two vectors. The same pattern as MULVS and ADDVV."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rv[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And vse64 stores."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rv[6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The big difference: RISC-V does not fix the vector length at 64. Each chip chooses its own, and vsetvli tells the program how many elements fit."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rv"
+      },
+      {
+       "action": "show",
+       "target": "rvx"
+      },
+      {
+       "action": "highlight",
+       "target": "rvx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The element width is chosen at run time too, so the same registers hold 64-bit doubles or 8-bit pixels."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rvx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So one binary runs on a small chip with short vectors and a big chip with long ones."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rvx[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "same ideas · RISC-V lets the hardware pick the length"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "prog",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: write a program. Z equals X squared plus Y squared, for 64 elements."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: a vector program"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rvx"
+      },
+      {
+       "action": "show",
+       "target": "pr"
+      },
+      {
+       "action": "mark_lines",
+       "target": "pr",
+       "from": 1,
+       "to": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Load X, and multiply it by itself: a vector-vector multiply."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "pr",
+       "from": 2,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Load Y, and square it."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "pr",
+       "from": 4,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add the two squares, and store Z."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "pr",
+       "from": 6,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Notice the dependences between instructions: each multiply needs its load, and the add needs both multiplies. Within a vector there are none, but between vector instructions there are. How the machine overlaps them decides the running time, the subject of the next two videos."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "pr",
+       "from": 2,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Six instructions do 192 floating-point operations, and use five of the eight vector registers. With only eight, the compiler must reuse registers carefully in bigger loops."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "pr"
+      },
+      {
+       "action": "show",
+       "target": "prx"
+      },
+      {
+       "action": "highlight",
+       "target": "prx[0]"
+      },
+      {
+       "action": "reveal",
+       "target": "prx[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "prx[1]",
+       "delay": 0.4
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "6 instructions, 192 operations"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "prx"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write VMIPS code for D equals A plus B, times a scalar s, for 64 elements. Count instructions and operations. Find the size of a register file with 32 registers of 32 elements. And write the add in RISC-V. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Load the scalar s into F0. Load A and B."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "mark_lines",
+       "target": "qa",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add them with ADDVV, multiply by the scalar with MULVS, and store D."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "qa",
+       "from": 4,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Six instructions, and 64 adds plus 64 multiplies: 128 operations."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "qb"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The register file: 32 times 32 times 8 bytes, 8 kilobytes. Twice VMIPS's, even though each register is half as long."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qb[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And in RISC-V, vfadd dot vv, v3, v1, v2."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qb[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: using a VV instruction with a scalar operand. A scalar needs the VS form: MULVS, or vfmul dot vf."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "scalar operand → VS form"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qb"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "VMIPS adds eight 64-element vector registers, a pipelined load-store unit and five fully pipelined units to a scalar MIPS. Registers, not memory, hold the vectors, as in the Cray-1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Its instructions come in vector-vector and vector-scalar forms, with unit-stride, strided and indexed memory access. RISC-V V has the same ideas, with a hardware-chosen length."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: how long does vector code take? Convoys, chimes and startup time."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: vector execution time"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

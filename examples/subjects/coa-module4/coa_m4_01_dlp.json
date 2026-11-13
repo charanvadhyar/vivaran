@@ -1,0 +1,1203 @@
+{
+ "version": 1,
+ "title": "Data-level parallelism",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Three kinds of parallelism"
+    ],
+    [
+     2,
+     "Data-level parallelism"
+    ],
+    [
+     3,
+     "Which loops have it"
+    ],
+    [
+     4,
+     "DAXPY: scalar against vector"
+    ],
+    [
+     5,
+     "Why one instruction for many data is cheap"
+    ],
+    [
+     6,
+     "How much it helps a whole program"
+    ],
+    [
+     7,
+     "Three ways hardware exploits DLP"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "three",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "kind",
+    "the parallel unit",
+    "found by",
+    "seen in"
+   ],
+   "rows": [
+    [
+     "ILP",
+     "independent instructions",
+     "hardware or compiler",
+     "Modules 1, 3"
+    ],
+    [
+     "TLP",
+     "independent threads",
+     "the programmer",
+     "Module 3"
+    ],
+    [
+     "DLP",
+     "one operation, many data items",
+     "compiler, from loops",
+     "this module"
+    ]
+   ]
+  },
+  {
+   "id": "dlp",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "for (i = 0; i < 64; i++)",
+    "    Y[i] = a * X[i] + Y[i];      // DAXPY: double a times X plus Y",
+    "",
+    "// 64 multiplies and 64 adds, all independent",
+    "// one instruction could say: do this to all 64"
+   ]
+  },
+  {
+   "id": "vec",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "loop",
+    "vectorizable?",
+    "why"
+   ],
+   "rows": [
+    [
+     "C[i] = A[i] + B[i]",
+     "yes",
+     "every iteration independent"
+    ],
+    [
+     "Y[i] = a * X[i] + Y[i]",
+     "yes",
+     "each i touches only its own elements"
+    ],
+    [
+     "A[i] = A[i-1] + B[i]",
+     "no",
+     "iteration i needs the result of i − 1: a loop-carried dependence"
+    ],
+    [
+     "if (A[i] > 0) B[i] = A[i]",
+     "yes, with a mask",
+     "only some elements are written"
+    ],
+    [
+     "sum += A[i]",
+     "yes, as a reduction",
+     "partial sums in parallel, then combine"
+    ]
+   ]
+  },
+  {
+   "id": "sc",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "      L.D    F0,a",
+    "      DADDIU R4,Rx,#512",
+    "Loop: L.D    F2,0(Rx)",
+    "      MUL.D  F2,F2,F0",
+    "      L.D    F4,0(Ry)",
+    "      ADD.D  F4,F4,F2",
+    "      S.D    F4,0(Ry)",
+    "      DADDIU Rx,Rx,#8",
+    "      DADDIU Ry,Ry,#8",
+    "      DSUBU  R20,R4,Rx",
+    "      BNEZ   R20,Loop"
+   ]
+  },
+  {
+   "id": "vc",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "L.D      F0,a        ; the scalar a",
+    "LV       V1,Rx       ; load 64 X values",
+    "MULVS.D  V2,V1,F0    ; 64 multiplies",
+    "LV       V3,Ry       ; load 64 Y values",
+    "ADDVV.D  V4,V2,V3    ; 64 adds",
+    "SV       V4,Ry       ; store 64 results"
+   ]
+  },
+  {
+   "id": "cnt",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"scalar:\" quad 2 + 9 times 64 = 578 \"instructions\"",
+    "\"vector:\" quad 6 \"instructions\" quad => quad 578 / 6 approx 96 \"times fewer\"",
+    "\"stalls: scalar ADD.D waits for MUL.D 64 times · vector: once per vector\""
+   ]
+  },
+  {
+   "id": "eff",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "one instruction, 64 operations",
+    "saves"
+   ],
+   "rows": [
+    [
+     "fetch and decode",
+     "once instead of 64 times: less energy, less bandwidth"
+    ],
+    [
+     "hazard checks",
+     "elements are independent by definition: no checks between them"
+    ],
+    [
+     "memory access",
+     "a known pattern: fetched in bulk, latency paid once"
+    ],
+    [
+     "loop overhead",
+     "no branches or pointer bumps per element"
+    ]
+   ]
+  },
+  {
+   "id": "am",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"vectorizable fraction\" f, quad \"vector speedup\" v: quad S = 1 / ((1 - f) + f / v)",
+    "f = 0.7, v = 10: quad S = 1 / (0.3 + 0.07) = 1 / 0.37 approx 2.70",
+    "f = 0.9, v = 10: quad S = 1 / (0.1 + 0.09) = 1 / 0.19 approx 5.26",
+    "\"the compiler's job: raise\" f \"· the hardware's job: raise\" v"
+   ]
+  },
+  {
+   "id": "hw",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "hardware",
+    "idea",
+    "examples"
+   ],
+   "rows": [
+    [
+     "vector machines",
+     "long vector registers, pipelined units",
+     "Cray-1, NEC SX, RISC-V V"
+    ],
+    [
+     "SIMD extensions",
+     "short fixed-width registers in a CPU",
+     "MMX, SSE, AVX, Neon"
+    ],
+    [
+     "GPUs",
+     "thousands of threads in lockstep groups",
+     "NVIDIA, AMD"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "// a) which can be vectorized directly?",
+    "(1) for (i = 0; i < n; i++) D[i] = A[i] * B[i] + C[i];",
+    "(2) for (i = 1; i < n; i++) A[i] = A[i-1] * 2;",
+    "(3) for (i = 0; i < n; i++) if (B[i] != 0) A[i] = A[i] / B[i];",
+    "(4) for (i = 0; i < n; i++) A[i] = B[i+1] + B[i];",
+    "// b) Z = X + Y, 64 elements: the scalar loop body has 8 instructions",
+    "//    and 2 setup instructions. Count scalar and vector instructions.",
+    "// c) 80% of the run vectorizes, 8 times faster: overall speedup?"
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "loop",
+    "vectorizable?",
+    "why"
+   ],
+   "rows": [
+    [
+     "(1)",
+     "yes",
+     "independent multiply-adds"
+    ],
+    [
+     "(2)",
+     "no",
+     "A[i] needs A[i-1]: loop-carried"
+    ],
+    [
+     "(3)",
+     "yes, with a mask",
+     "skip elements where B[i] is 0"
+    ],
+    [
+     "(4)",
+     "yes",
+     "reads B only, writes A only"
+    ]
+   ]
+  },
+  {
+   "id": "qb",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"scalar:\" quad 2 + 8 times 64 = 514 \"instructions\"",
+    "\"vector:\" quad \"LV, LV, ADDVV.D, SV\" = 4 \"instructions\" quad 514 / 4 approx 128 \"times fewer\"",
+    "\"c)\" quad S = 1 / (0.2 + 0.8 / 8) = 1 / 0.3 approx 3.33"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Modules 1 and 3 found parallelism between instructions, and between threads. This module is about a third kind, the one that powers graphics cards and machine learning: doing the same operation on many data items at once."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Data-level parallelism"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The three kinds of parallelism, what data-level parallelism is, and which loops have it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then a scalar and a vector program side by side, why the vector one is so cheap, the effect on a whole program, the three hardware families, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "three",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: instruction-level parallelism finds independent instructions within one stream. The hardware finds a few at a time, as we saw with Tomasulo."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: three kinds"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "three"
+      },
+      {
+       "action": "highlight",
+       "target": "three[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Thread-level parallelism runs independent threads on separate cores, or on one core with multithreading. The programmer creates the threads."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "three[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Data-level parallelism applies the same operation to many data items. It comes from loops over arrays: images, matrices, signals, neural network layers."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "three[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "ILP: instructions · TLP: threads · DLP: data"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dlp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the running example of this module, DAXPY. Y equals a times X plus Y, for 64 elements."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: data-level parallelism"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "three"
+      },
+      {
+       "action": "show",
+       "target": "dlp"
+      },
+      {
+       "action": "mark_lines",
+       "target": "dlp",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every iteration does one multiply and one add, on its own elements. No iteration needs another's result."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "dlp",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So instead of 64 instructions that each say: multiply this one number, one instruction could say: multiply all 64. That is the whole idea."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "dlp",
+       "from": 5,
+       "to": 5
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "one instruction, many data: SIMD"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "which",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: which loops have data-level parallelism? Adding two arrays: yes, every iteration is independent."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: which loops"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "dlp"
+      },
+      {
+       "action": "show",
+       "target": "vec"
+      },
+      {
+       "action": "highlight",
+       "target": "vec[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "DAXPY: yes. Each iteration reads and writes only its own elements."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vec[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A of i equals A of i minus 1 plus B of i: no. Each iteration needs the one before. That is a loop-carried dependence, and video 16 of this module is about finding them."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vec[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A loop with an if inside: yes, with a mask that switches off the elements where the condition is false."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vec[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And a sum: yes, as a reduction. Add in parallel into several partial sums, then combine them at the end."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vec[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "vectorizable: iterations independent, or a reduction"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "daxpy",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: DAXPY in scalar MIPS code. Two setup instructions, then a loop of nine."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: scalar against vector"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "vec"
+      },
+      {
+       "action": "show",
+       "target": "sc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "sc",
+       "from": 3,
+       "to": 11
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two loads, a multiply, an add, a store, two pointer bumps, a compare and a branch. Only two of the nine do arithmetic."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "sc",
+       "from": 3,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the vector version, in VMIPS: the textbook's vector extension of MIPS, with 64-element vector registers. RISC-V's vector extension has the same instructions under other names, like vle, vfmul and vfadd."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "sc"
+      },
+      {
+       "action": "show",
+       "target": "vc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "vc",
+       "from": 1,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Load the scalar a. Load 64 X values into vector register V1. Multiply all 64 by a."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "vc",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Load 64 Y values, add the two vectors, and store 64 results. Six instructions in all."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "vc",
+       "from": 4,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Count them. The scalar loop runs nine instructions 64 times, plus two: 578. The vector code: 6. About 96 times fewer instructions."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "vc"
+      },
+      {
+       "action": "show",
+       "target": "cnt"
+      },
+      {
+       "action": "highlight",
+       "target": "cnt[0]"
+      },
+      {
+       "action": "reveal",
+       "target": "cnt[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "cnt[1]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the stalls. In the scalar loop, every add must wait for its multiply: 64 waits. In the vector code the add waits for the multiply once per vector, not once per element."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cnt[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "cnt[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "578 instructions → 6"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: why is one vector instruction so much cheaper than 64 scalar ones?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: why it is cheap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cnt"
+      },
+      {
+       "action": "show",
+       "target": "eff"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The instruction is fetched and decoded once, not 64 times. That saves energy and instruction bandwidth."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "eff[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The 64 operations are independent by definition, so the hardware needs no hazard checks between them."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "eff[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Memory is accessed in a known pattern, so many elements can be fetched at once, and the latency is paid once per vector."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "eff[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the loop overhead, branches and pointer bumps, almost disappears."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "eff[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "fewer instructions, fewer checks, bulk memory access"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "amdahl",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: how much faster does a whole program get? Amdahl's law again. If a fraction f of the run vectorizes, and that part runs v times faster, the speedup is one over one minus f, plus f over v."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: the whole program"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "eff"
+      },
+      {
+       "action": "show",
+       "target": "am"
+      },
+      {
+       "action": "highlight",
+       "target": "am[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If 70 percent vectorizes and runs 10 times faster: 0.3 plus 0.07 is 0.37. The program runs only 2.7 times faster."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "am[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "am[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Raise the vectorizable part to 90 percent, with the same hardware: 0.1 plus 0.09 is 0.19. Now 5.26 times faster."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "am[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "am[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the serial part dominates. The compiler's job is to vectorize as much of the program as it can; the hardware's job is to make the vector part fast. Both matter."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "am[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "am[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "the unvectorized part sets the limit"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hw",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: three hardware families exploit this. Vector architectures: long vector registers feeding deeply pipelined units. Cray machines, NEC's SX line, and now RISC-V's vector extension."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: three families"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "am"
+      },
+      {
+       "action": "show",
+       "target": "hw"
+      },
+      {
+       "action": "highlight",
+       "target": "hw[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "SIMD extensions: short fixed-width registers added to ordinary processors. MMX, SSE and AVX on x86, Neon on ARM."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hw[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And GPUs: thousands of threads, run in lockstep groups. This module takes them in that order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hw[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "vector · SIMD extensions · GPU"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hw"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part a: which of these four loops can be vectorized directly?"
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part b: adding two 64-element vectors, with a scalar loop body of 8 instructions and 2 setup instructions. Count the scalar and the vector instructions. Part c: if 80 percent of a run vectorizes, 8 times faster, what is the overall speedup? Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 6,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Loop 1: independent multiply-adds. Yes."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Loop 2: each A of i needs A of i minus 1. No."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Loop 3: yes, with a mask, skipping the elements where B is 0."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Loop 4 looks suspicious, with i plus 1. But it reads only B and writes only A, so no iteration depends on another. Yes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part b: scalar, 2 plus 8 times 64: 514 instructions. Vector: two loads, an add and a store: 4. About 128 times fewer."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "qb"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[0]"
+      },
+      {
+       "action": "reveal",
+       "target": "qb[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[1]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part c: 0.2 plus 0.8 over 8 is 0.3. One over 0.3: about 3.33 times faster, far from 8."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qb[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: calling any loop with an i plus 1 or i minus 1 a dependence. Check what is written and what is read."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a dependence needs one iteration to write what another reads"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qb"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Data-level parallelism is the same operation on many items, found in loops whose iterations are independent, or are reductions."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One vector instruction replaces dozens of scalar ones: 578 became 6 for DAXPY. Amdahl's law limits the whole program. Vector machines, SIMD extensions and GPUs all exploit it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: vector architecture. The registers, the instructions, and how VMIPS is built."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: vector architecture"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

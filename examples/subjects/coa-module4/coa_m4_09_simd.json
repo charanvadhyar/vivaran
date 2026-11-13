@@ -1,0 +1,1248 @@
+{
+ "version": 1,
+ "title": "SIMD extensions: MMX, SSE, AVX",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Why ordinary CPUs added SIMD"
+    ],
+    [
+     2,
+     "Partitioned registers"
+    ],
+    [
+     3,
+     "From MMX to AVX-512"
+    ],
+    [
+     4,
+     "Saturating arithmetic"
+    ],
+    [
+     5,
+     "DAXPY with SIMD instructions"
+    ],
+    [
+     6,
+     "AVX from C"
+    ],
+    [
+     7,
+     "SIMD extensions against vector machines"
+    ],
+    [
+     8,
+     "Peak performance"
+    ],
+    [
+     9,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "why",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "observation",
+    "consequence"
+   ],
+   "rows": [
+    [
+     "media data is narrow",
+     "pixels are 8 bits, audio samples 16 bits"
+    ],
+    [
+     "a 64-bit adder",
+     "can be cut into eight 8-bit adders by breaking the carry chain"
+    ],
+    [
+     "cheap to add",
+     "little new state, reuses the existing pipeline and caches"
+    ],
+    [
+     "the result",
+     "one instruction does 8, 16, 32 or 64 narrow operations"
+    ]
+   ]
+  },
+  {
+   "id": "pt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "a 256-bit AVX register holds",
+    "lanes",
+    "typical data"
+   ],
+   "rows": [
+    [
+     "8-bit elements",
+     "32",
+     "pixels"
+    ],
+    [
+     "16-bit elements",
+     "16",
+     "audio samples"
+    ],
+    [
+     "32-bit elements",
+     "8",
+     "floats, ints"
+    ],
+    [
+     "64-bit elements",
+     "4",
+     "doubles"
+    ]
+   ]
+  },
+  {
+   "id": "hist",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "extension",
+    "about",
+    "width",
+    "added"
+   ],
+   "rows": [
+    [
+     "MMX",
+     "1996",
+     "64 bits",
+     "integer only, in the FP registers"
+    ],
+    [
+     "SSE",
+     "1999",
+     "128 bits",
+     "new XMM registers, single-precision floats"
+    ],
+    [
+     "SSE2",
+     "2001",
+     "128 bits",
+     "doubles, wider integers"
+    ],
+    [
+     "AVX",
+     "2010",
+     "256 bits",
+     "YMM registers, three-operand form"
+    ],
+    [
+     "AVX2",
+     "2013",
+     "256 bits",
+     "integer at 256 bits, fused multiply-add, gather"
+    ],
+    [
+     "AVX-512",
+     "2016",
+     "512 bits",
+     "ZMM registers, mask registers, scatter"
+    ]
+   ]
+  },
+  {
+   "id": "sat",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "8-bit pixel add",
+    "250 + 10",
+    "100 + 50"
+   ],
+   "rows": [
+    [
+     "wrap-around (ordinary)",
+     "260 mod 256 = 4: a bright pixel turns black",
+     "150"
+    ],
+    [
+     "saturating",
+     "clamped to 255: stays white",
+     "150"
+    ],
+    [
+     "MMX's answer",
+     "both, as different instructions",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "dx",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "      L.D     F0,a          ; the scalar a",
+    "      MOV     F1,F0         ; a in 4 lanes",
+    "      MOV     F2,F0",
+    "      MOV     F3,F0",
+    "      DADDIU  R4,Rx,#512",
+    "Loop: L.4D    F4,0(Rx)      ; 4 X values",
+    "      MUL.4D  F4,F4,F0",
+    "      L.4D    F8,0(Ry)      ; 4 Y values",
+    "      ADD.4D  F8,F8,F4",
+    "      S.4D    F8,0(Ry)",
+    "      DADDIU  Rx,Rx,#32     ; 32 bytes",
+    "      DADDIU  Ry,Ry,#32",
+    "      DSUBU   R20,R4,Rx",
+    "      BNEZ    R20,Loop"
+   ]
+  },
+  {
+   "id": "dxc",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "DAXPY, 64 elements",
+    "instructions",
+    "how"
+   ],
+   "rows": [
+    [
+     "MIPS (scalar)",
+     "578",
+     "2 + 9 × 64"
+    ],
+    [
+     "MIPS with 4-wide SIMD",
+     "149",
+     "5 + 9 × 16"
+    ],
+    [
+     "VMIPS (vector)",
+     "6",
+     "one per vector operation"
+    ]
+   ]
+  },
+  {
+   "id": "c",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "#include <immintrin.h>",
+    "__m256d va = _mm256_set1_pd(a);          // a in all 4 lanes",
+    "for (i = 0; i + 4 <= n; i += 4) {",
+    "    __m256d x = _mm256_loadu_pd(&X[i]);",
+    "    __m256d y = _mm256_loadu_pd(&Y[i]);",
+    "    y = _mm256_fmadd_pd(va, x, y);        // y = a*x + y, fused",
+    "    _mm256_storeu_pd(&Y[i], y);",
+    "}",
+    "for (; i < n; i++) Y[i] = a * X[i] + Y[i];   // leftover elements"
+   ]
+  },
+  {
+   "id": "vs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "vector machine",
+    "SIMD extension"
+   ],
+   "rows": [
+    [
+     "vector length",
+     "VLR, up to MVL",
+     "fixed by the opcode"
+    ],
+    [
+     "leftovers",
+     "a shorter last strip",
+     "a scalar cleanup loop"
+    ],
+    [
+     "strided, indexed",
+     "from the start",
+     "late: AVX2, AVX-512"
+    ],
+    [
+     "masks",
+     "from the start",
+     "only from AVX-512"
+    ],
+    [
+     "why they won",
+     "",
+     "cheap, small state"
+    ]
+   ]
+  },
+  {
+   "id": "pk",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"peak\" = \"units\" times \"lanes\" times \"flops per lane\" times \"clock\"",
+    "\"AVX2, 2 FMA units, 3 GHz, doubles:\" quad 2 times 4 times 2 times 3 = 48 \"GFLOP/s per core\"",
+    "\"FMA counts as 2 flops: a multiply and an add\""
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "question"
+   ],
+   "rows": [
+    [
+     "a) a 1920 × 1080 image of 8-bit pixels: how many 256-bit AVX2 adds to brighten every pixel?"
+    ],
+    [
+     "b) 200 + 100 in 8 bits, wrap-around and saturating?"
+    ],
+    [
+     "c) DAXPY on 64 doubles with 8-wide AVX-512, loop of 9, 5 setup: instructions?"
+    ],
+    [
+     "d) peak for 2 AVX-512 FMA units at 2 GHz, doubles?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad 1920 times 1080 = 2073600 \"pixels\" quad 2073600 / 32 = 64800 \"adds\"",
+    "\"b)\" quad \"wrap:\" 300 \"mod\" 256 = 44 quad \"saturating:\" 255",
+    "\"c)\" quad 64 / 8 = 8 \"iterations\" quad 5 + 9 times 8 = 77",
+    "\"d)\" quad 2 times 8 times 2 times 2 = 64 \"GFLOP/s\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Vector supercomputers were expensive. But the idea of one instruction for many data slipped into every desktop and phone processor through a back door: multimedia. This video covers MMX, SSE and AVX."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "SIMD extensions: MMX, SSE, AVX"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the nine stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why ordinary processors added SIMD, partitioned registers, the history from MMX to AVX-512, and saturating arithmetic."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then DAXPY with SIMD, AVX from C, how these extensions compare with vector machines, peak performance, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=8]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: media data is narrow. A pixel colour is 8 bits, an audio sample 16."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 9: why SIMD in a CPU"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      },
+      {
+       "action": "highlight",
+       "target": "why[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 64-bit adder can be cut into eight 8-bit adders, simply by breaking the carry chain at every 8th bit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That costs very little: little new state, and the same pipeline, caches and memory system."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So one instruction does 8, 16, 32 or 64 narrow operations at once. This is SIMD, single instruction multiple data, inside an ordinary processor."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "cut a wide register into narrow lanes"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lanes",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: a 256-bit AVX register can hold 32 8-bit elements."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 9: partitioned registers"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "pt"
+      },
+      {
+       "action": "highlight",
+       "target": "pt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Or 16 elements of 16 bits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Or 8 floats or 32-bit integers, or 4 doubles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pt[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The instruction says how to split it. So the number of lanes is the register width divided by the element width."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "pt[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "lanes = register width ÷ element width"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hist",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: Intel's x86 extensions grew in steps. MMX, around 1996: 64 bits, integers only, borrowing the floating-point registers."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 9: MMX to AVX-512"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pt"
+      },
+      {
+       "action": "show",
+       "target": "hist"
+      },
+      {
+       "action": "highlight",
+       "target": "hist[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "SSE, 1999: new 128-bit XMM registers, and single-precision floats. SSE2 added doubles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hist[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "AVX, around 2010: 256-bit YMM registers, and a three-operand form, so a result need not overwrite a source."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hist[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "AVX2: 256-bit integers, fused multiply-add, and a gather instruction."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hist[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "AVX-512: 512-bit ZMM registers, mask registers and scatter. Step by step, SIMD extensions acquired what vector machines had from the start. ARM followed a similar path with Neon, and then SVE."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hist[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "64 → 128 → 256 → 512 bits"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sat",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: a detail that matters for media: overflow. Adding 10 to a pixel of 250 gives 260, which does not fit in 8 bits."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 9: saturating arithmetic"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hist"
+      },
+      {
+       "action": "show",
+       "target": "sat"
+      },
+      {
+       "action": "highlight",
+       "target": "sat[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Ordinary arithmetic wraps around: 260 mod 256 is 4. A bright white pixel suddenly turns black."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sat[0][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Saturating arithmetic clamps the result at the largest value, 255. The pixel stays white, which is what the eye expects."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sat[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "MMX offered both, as different instructions. When nothing overflows, as with 100 plus 50, they agree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sat[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "saturating: clamp at the maximum, never wrap"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "daxpy",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: DAXPY with 4-wide SIMD, written in the textbook's MIPS style. First, copy a into four registers, one per lane."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 9: DAXPY with SIMD"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sat"
+      },
+      {
+       "action": "show",
+       "target": "dx"
+      },
+      {
+       "action": "mark_lines",
+       "target": "dx",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each pass loads 4 X values and 4 Y values, multiplies, adds and stores 4 results."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "dx",
+       "from": 6,
+       "to": 10
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The pointers move by 32 bytes: 4 doubles. Then the usual compare and branch."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "dx",
+       "from": 11,
+       "to": 14
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Count them: 5 setup instructions, plus 9 in the loop, run 16 times. 149 instructions."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "dx"
+      },
+      {
+       "action": "show",
+       "target": "dxc"
+      },
+      {
+       "action": "highlight",
+       "target": "dxc[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Against 578 for scalar MIPS, and 6 for VMIPS. SIMD helps by the width, 4 times here, but still pays the full loop overhead every 4 elements."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dxc[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "dxc[2]",
+       "delay": 0.4
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "578 scalar · 149 SIMD · 6 vector"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: from C, programmers use intrinsics: functions that map to single instructions. set1 copies a into all four lanes."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 9: AVX from C"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "dxc"
+      },
+      {
+       "action": "show",
+       "target": "c"
+      },
+      {
+       "action": "mark_lines",
+       "target": "c",
+       "from": 2,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The loop steps by 4: load 4 X values and 4 Y values."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "c",
+       "from": 3,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "fmadd computes a times x plus y in one fused instruction, and store writes 4 results."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "c",
+       "from": 6,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And a scalar loop finishes the leftover elements when n is not a multiple of 4. A vector machine would just set a shorter vector length."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "c",
+       "from": 9,
+       "to": 9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Most of the time, though, the compiler writes this for you. Auto-vectorization at optimisation level 3 turns the plain loop into exactly this code."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "intrinsics: one C call, one instruction"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vs",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: SIMD extensions against true vector machines. The vector length is fixed in the opcode, so every new width needs a whole new set of instructions."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 9: against vector machines"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "c"
+      },
+      {
+       "action": "show",
+       "target": "vs"
+      },
+      {
+       "action": "highlight",
+       "target": "vs[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "There is no vector length register, so leftover elements need scalar cleanup code."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Strided and indexed access, and masks, came late: gather in AVX2, scatter and masks only in AVX-512."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why did they win anyway? They are cheap to add, add little state for the operating system to save, and need no special memory system. Every laptop and phone has them."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "less capable than vectors, but everywhere"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "peak",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 8: peak performance. Multiply the number of SIMD units, the lanes, the flops per lane, and the clock."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 8 of 9: peak performance"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "vs"
+      },
+      {
+       "action": "show",
+       "target": "pk"
+      },
+      {
+       "action": "highlight",
+       "target": "pk[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A core with two AVX2 fused multiply-add units at 3 gigahertz, on doubles: 2 times 4 lanes times 2 flops times 3. 48 gigaflops per core."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pk[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "pk[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A fused multiply-add counts as two flops, a multiply and an add. Exam questions often hinge on that factor of two. And peak is rarely reached: memory usually limits it first, the subject of the next video."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pk[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "pk[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "peak = units × lanes × flops × clock"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question in four parts."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pk"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The number of 256-bit adds to brighten a full HD image of 8-bit pixels. 200 plus 100 in 8 bits, both ways. DAXPY instructions on 8-wide AVX-512. And the peak of two AVX-512 units at 2 gigahertz. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: 1920 times 1080 is about 2.07 million pixels. A 256-bit register holds 32 of them: 64,800 adds."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: 300 does not fit. Wrap-around gives 300 mod 256, 44. Saturating gives 255."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 64 doubles, 8 per register: 8 passes of the loop. 5 plus 9 times 8: 77 instructions."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: 2 units, 8 doubles each, 2 flops per fused multiply-add, at 2 gigahertz: 64 gigaflops."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: using the register width in bits as the lane count. Divide by the element width first: 256 bits is 32 bytes, 4 doubles."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "256 bits = 32 pixels = 4 doubles"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "SIMD extensions cut a wide register into narrow lanes, from MMX's 64 bits to AVX-512's 512, with saturating arithmetic for media."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "DAXPY drops from 578 instructions to 149 with 4-wide SIMD. Fixed widths and cleanup loops make them weaker than vector machines, but they are everywhere."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: a model that tells you whether a loop is limited by arithmetic or by memory. The roofline."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=8]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: the roofline model"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1205 @@
+{
+ "version": 1,
+ "title": "The GCD test",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The question a compiler asks"
+    ],
+    [
+     2,
+     "The GCD test"
+    ],
+    [
+     3,
+     "The textbook example"
+    ],
+    [
+     4,
+     "When the test says maybe"
+    ],
+    [
+     5,
+     "Finding every dependence in a loop"
+    ],
+    [
+     6,
+     "Renaming removes name dependences"
+    ],
+    [
+     7,
+     "Reductions"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "qq",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"store\" X[a times i + b] quad \"load\" X[c times i + d]",
+    "\"dependence\" <=> a j + b = c k + d \"for some iterations\" j, k \"in the loop\"",
+    "\"affine indices: a constant times i, plus a constant\""
+   ]
+  },
+  {
+   "id": "gt",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"if a dependence exists, then\" gcd(a, c) \"divides\" d - b",
+    "\"so: if\" gcd(a, c) \"does not divide\" d - b, \"there is no dependence\"",
+    "\"why:\" a j - c k \"is always a multiple of\" gcd(a, c)"
+   ]
+  },
+  {
+   "id": "ex",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "for (i = 0; i < 100; i++)",
+    "    X[2*i + 3] = X[2*i] * 5.0;"
+   ]
+  },
+  {
+   "id": "exm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "a = 2, b = 3, quad c = 2, d = 0",
+    "gcd(2, 2) = 2, quad d - b = -3",
+    "2 \"does not divide\" -3: quad \"no dependence\"",
+    "\"stores go to odd elements, loads come from even ones\""
+   ]
+  },
+  {
+   "id": "mb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "loop",
+    "GCD test",
+    "the truth"
+   ],
+   "rows": [
+    [
+     "X[4i+2] = X[2i+4] …",
+     "gcd 2 divides 2: maybe",
+     "real: X[10] written at i = 2, read at i = 3"
+    ],
+    [
+     "X[i+100] = X[i] …, i < 100",
+     "gcd 1 divides 100: maybe",
+     "none: writes 100–199, reads 0–99"
+    ],
+    [
+     "the test",
+     "ignores the loop bounds",
+     "passing it proves nothing"
+    ],
+    [
+     "failing it",
+     "",
+     "proves there is no dependence"
+    ]
+   ]
+  },
+  {
+   "id": "rn",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "for (i = 0; i < 100; i++) {",
+    "    Y[i] = X[i] / c;     /* S1 */",
+    "    X[i] = X[i] + c;     /* S2 */",
+    "    Z[i] = Y[i] + c;     /* S3 */",
+    "    Y[i] = c - Y[i];     /* S4 */",
+    "}"
+   ]
+  },
+  {
+   "id": "rnd",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "dependence",
+    "through",
+    "kind"
+   ],
+   "rows": [
+    [
+     "S1 → S3, S1 → S4",
+     "Y[i]",
+     "true"
+    ],
+    [
+     "S1 → S2",
+     "X[i]: read, then written",
+     "anti"
+    ],
+    [
+     "S3 → S4",
+     "Y[i]: read, then written",
+     "anti"
+    ],
+    [
+     "S1 → S4",
+     "Y[i]: written twice",
+     "output"
+    ]
+   ]
+  },
+  {
+   "id": "rn2",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "for (i = 0; i < 100; i++) {",
+    "    T[i]  = X[i] / c;    /* Y renamed T: output and anti gone */",
+    "    X1[i] = X[i] + c;    /* X renamed X1: anti gone */",
+    "    Z[i]  = T[i] + c;",
+    "    Y[i]  = c - T[i];",
+    "}",
+    "// later code that reads X must now read X1"
+   ]
+  },
+  {
+   "id": "rd",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "for (i = 9999; i >= 0; i--) sum = sum + x[i] * y[i];   // carried: sum",
+    "",
+    "for (i = 9999; i >= 0; i--) p[i] = x[i] * y[i];        // fully parallel",
+    "for (i = 9999; i >= 0; i--) sum = sum + p[i];          // still a reduction",
+    "",
+    "// 10 processors: each sums 1000 of the p[i]",
+    "// then combine the 10 partial sums in a tree"
+   ]
+  },
+  {
+   "id": "rdm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"vector length 64, n = 4096:\" quad 4096 / 64 = 64 \"vector adds\"",
+    "\"then 64 partial sums\" -> 32 -> 16 -> 8 -> 4 -> 2 -> 1: quad log_2 64 = 6 \"steps\"",
+    "\"floating point: a new order of additions may round differently\""
+   ]
+  },
+  {
+   "id": "q",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "// a) for (i = 0; i < 100; i++) A[6*i + 2] = A[4*i + 5] + 1;",
+    "// b) for (i = 0; i < 100; i++) A[3*i + 1] = A[6*i + 4] + 1;",
+    "// c) sum of 4096 values with vector length 64: how many steps?",
+    "// For a and b: apply the GCD test. If it says maybe,",
+    "//   find the first pair of iterations and the kind of dependence."
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a",
+     "gcd(6, 4) = 2; d − b = 5 − 2 = 3",
+     "2 does not divide 3: no dependence"
+    ],
+    [
+     "b",
+     "gcd(3, 6) = 3; d − b = 4 − 1 = 3",
+     "3 divides 3: maybe"
+    ],
+    [
+     "b",
+     "i = 0 reads A[4]; i = 1 writes A[4]",
+     "read first: antidependence"
+    ],
+    [
+     "b",
+     "3j + 1 = 6k + 4 gives j = 2k + 1 > k",
+     "every pair: only anti, renaming removes it"
+    ],
+    [
+     "c",
+     "4096 / 64 = 64 vector adds, then log₂ 64 = 6",
+     "70 steps, against 4096"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Before a compiler can vectorise a loop, it must prove the iterations are independent. This video shows the simplest test it uses, the GCD test, and two ways to remove dependences that look fatal but are not."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "The GCD test and removing dependences"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The question, the GCD test, the textbook's example, and what the test cannot tell you."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then finding every dependence in a loop, renaming, reductions, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "qq",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: suppose a loop stores to X of a i plus b, and loads from X of c i plus d."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: the question"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "qq"
+      },
+      {
+       "action": "highlight",
+       "target": "qq[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A dependence exists if some iteration j stores to the same element that some iteration k loads: a j plus b equals c k plus d, with j and k inside the loop's range."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qq[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qq[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Indices like these, a constant times i plus a constant, are called affine. Most array loops have them, and they can be analysed exactly."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qq[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qq[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "dependence: a j + b = c k + d"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gt",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the GCD test. If a dependence exists, then the greatest common divisor of a and c divides d minus b."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: the GCD test"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qq"
+      },
+      {
+       "action": "show",
+       "target": "gt"
+      },
+      {
+       "action": "highlight",
+       "target": "gt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So turn it round: if the gcd does not divide d minus b, there can be no dependence."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "gt[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "gt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why? a j minus c k is always a multiple of the gcd of a and c. It must equal d minus b, so d minus b must be a multiple too."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "gt[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "gt[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "gcd does not divide d − b ⇒ no dependence"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ex",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: the textbook's example. X of 2i plus 3 is assigned X of 2i times 5."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: the textbook example"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "gt"
+      },
+      {
+       "action": "show",
+       "target": "ex"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ex",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The store has a equal to 2 and b equal to 3. The load has c equal to 2 and d equal to 0."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "ex"
+      },
+      {
+       "action": "show",
+       "target": "exm"
+      },
+      {
+       "action": "highlight",
+       "target": "exm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The gcd of 2 and 2 is 2. d minus b is minus 3."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "exm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "exm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2 does not divide minus 3, so there is no dependence. The loop can be vectorised."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "exm[2]"
+      },
+      {
+       "action": "mark",
+       "target": "exm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "You can see why directly: the stores all go to odd elements, and the loads all come from even ones. They never meet."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "exm[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "exm[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "odd stores, even loads: independent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "maybe",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: when the gcd does divide, the test says only maybe. Here, X of 4i plus 2 and X of 2i plus 4: the gcd 2 divides 2."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: when the test says maybe"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "exm"
+      },
+      {
+       "action": "show",
+       "target": "mb"
+      },
+      {
+       "action": "highlight",
+       "target": "mb[0][0]"
+      },
+      {
+       "action": "highlight",
+       "target": "mb[0][1]",
+       "delay": 0.2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And there is a dependence: iteration 2 writes X of 10, and iteration 3 reads it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mb[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But here, X of i plus 100 and X of i, with i below 100, the gcd 1 divides 100. Yet the writes go to 100 through 199 and the reads come from 0 through 99. No dependence."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The test ignores the loop bounds, so passing it proves nothing."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Only failing it is a proof. Real compilers use stronger tests when the GCD test says maybe."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mb[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "GCD test: fail = independent, pass = maybe"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "find",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the textbook's second exercise: find every dependence in this loop."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: finding every dependence"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "mb"
+      },
+      {
+       "action": "show",
+       "target": "rn"
+      },
+      {
+       "action": "mark_lines",
+       "target": "rn",
+       "from": 1,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "True dependences: S1 writes Y of i, and S3 and S4 read it."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rn"
+      },
+      {
+       "action": "show",
+       "target": "rnd"
+      },
+      {
+       "action": "highlight",
+       "target": "rnd[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Antidependence: S1 reads X of i, then S2 overwrites it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rnd[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Another antidependence: S3 reads Y of i, then S4 overwrites it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rnd[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Output dependence: S1 and S4 both write Y of i, and the final value must be S4's."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rnd[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "All of these are within one iteration; none is carried. But the anti and output ones force an order on the statements, and get in the way of scheduling."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "3 kinds: true, anti, output"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rename",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: anti and output dependences are only name clashes. Give the values new names and they disappear."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: renaming"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rnd"
+      },
+      {
+       "action": "show",
+       "target": "rn2"
+      },
+      {
+       "action": "mark_lines",
+       "target": "rn2",
+       "from": 1,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "S1 now writes T instead of Y. The output dependence with S4 is gone, and so is the antidependence from S3."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rn2",
+       "from": 2,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "S2 writes X1 instead of X: the antidependence from S1 is gone."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rn2",
+       "from": 3,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "S3 and S4 read T. Only the true dependences remain."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rn2",
+       "from": 4,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Any later code that reads X must now read X1. Renaming costs memory, but frees the schedule. Hardware does the same with registers: register renaming, from Module 3."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rn2",
+       "from": 7,
+       "to": 7
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "rename: only true dependences remain"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "red",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: some true carried dependences can still be broken. A dot product adds into sum every iteration: a carried dependence on sum."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: reductions"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rn2"
+      },
+      {
+       "action": "show",
+       "target": "rd"
+      },
+      {
+       "action": "mark_lines",
+       "target": "rd",
+       "from": 1,
+       "to": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Split it. The products p of i have no dependence at all: that loop is fully parallel."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rd",
+       "from": 3,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What is left is a reduction: summing an array. Because addition is associative, the order can change."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rd",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With 10 processors, each sums 1000 of the values, and the 10 partial sums are combined in a tree."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rd",
+       "from": 6,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On a vector machine with length 64, 4096 values take 64 vector adds into 64 partial sums."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rd"
+      },
+      {
+       "action": "show",
+       "target": "rdm"
+      },
+      {
+       "action": "highlight",
+       "target": "rdm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the 64 sums are halved six times: log base 2 of 64. 70 steps instead of 4096."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rdm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "rdm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One caution: with floating point, a new order of additions can round differently. Compilers reorder only when allowed to."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rdm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "rdm[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "reduction: partial sums, then a tree"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rdm"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Apply the GCD test to loops a and b. If it says maybe, find the first pair of iterations and the kind of dependence. For c, count the steps. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 4,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: a is 6, c is 4, their gcd is 2. d minus b is 5 minus 2, 3. 2 does not divide 3: no dependence."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: gcd of 3 and 6 is 3, and d minus b is 4 minus 1, 3. 3 divides 3: maybe."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Try values. Iteration 0 reads A of 4. Iteration 1 writes A of 3 plus 1, also A of 4. The read comes first: an antidependence, carried."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In general, 3 j plus 1 equals 6 k plus 4 gives j equals 2 k plus 1, always later than k. So every pair is read-then-write: only antidependences, and renaming A removes them."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 4096 over 64 is 64 vector adds, then 6 tree steps: 70."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[4][2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: treating a passed GCD test as proof of a dependence. It only says maybe."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "the GCD test proves only independence"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For affine indices, a dependence needs a j plus b to equal c k plus d. If the gcd of a and c does not divide d minus b, there is none; otherwise, maybe."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "True, anti and output dependences can be listed per statement. Renaming removes anti and output ones, and reductions become partial sums and a tree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: writing these parallel loops in CUDA. Launching kernels, indexing, and memory."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: CUDA programming, part 1"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

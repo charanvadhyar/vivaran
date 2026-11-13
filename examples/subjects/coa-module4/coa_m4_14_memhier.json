@@ -1,0 +1,1477 @@
+{
+ "version": 1,
+ "title": "GPU memory hierarchy",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Why a hierarchy"
+    ],
+    [
+     2,
+     "The memory spaces"
+    ],
+    [
+     3,
+     "Registers and local memory"
+    ],
+    [
+     4,
+     "Shared memory"
+    ],
+    [
+     5,
+     "Shared-memory banks"
+    ],
+    [
+     6,
+     "Global memory"
+    ],
+    [
+     7,
+     "Constant and texture memory"
+    ],
+    [
+     8,
+     "Textbook names and CUDA names"
+    ],
+    [
+     9,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "why",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "fact",
+    "consequence"
+   ],
+   "rows": [
+    [
+     "a GPU runs tens of thousands of threads",
+     "each needs operands every cycle"
+    ],
+    [
+     "DRAM is hundreds of cycles away",
+     "warps hide latency, but not bandwidth"
+    ],
+    [
+     "bandwidth is the scarce resource",
+     "reuse data close to the lanes"
+    ],
+    [
+     "so the programmer chooses",
+     "where each variable lives"
+    ]
+   ]
+  },
+  {
+   "id": "sp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "space",
+    "where",
+    "scope",
+    "lifetime",
+    "approx latency"
+   ],
+   "rows": [
+    [
+     "registers",
+     "on chip",
+     "one thread",
+     "thread",
+     "~1 cycle"
+    ],
+    [
+     "local",
+     "DRAM, cached",
+     "one thread",
+     "thread",
+     "hundreds"
+    ],
+    [
+     "shared",
+     "on chip",
+     "one block",
+     "block",
+     "~20–30 cycles"
+    ],
+    [
+     "global",
+     "DRAM",
+     "all threads + host",
+     "program",
+     "400–800 cycles"
+    ],
+    [
+     "constant",
+     "DRAM, cached",
+     "all threads, read-only",
+     "program",
+     "~1 if cached"
+    ],
+    [
+     "texture",
+     "DRAM, cached",
+     "all threads, read-only",
+     "program",
+     "cached"
+    ]
+   ]
+  },
+  {
+   "id": "rg",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "registers and local memory",
+    ""
+   ],
+   "rows": [
+    [
+     "scalar variables of a thread",
+     "registers: the fastest storage there is"
+    ],
+    [
+     "65,536 registers per SM, 2048 threads",
+     "65,536 / 2048 = 32 per thread for full occupancy"
+    ],
+    [
+     "a thread may use up to 255",
+     "then only 65,536 / 255 = 257 threads fit"
+    ],
+    [
+     "too many variables: spills",
+     "the extra values go to local memory"
+    ],
+    [
+     "arrays indexed at run time",
+     "also local memory: registers cannot be indexed"
+    ],
+    [
+     "local means private, not near",
+     "it is DRAM, cached in L1 and L2"
+    ]
+   ]
+  },
+  {
+   "id": "sh",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "__global__ void reverse(float *d, int n) {",
+    "    __shared__ float s[256];         // one copy per block, on chip",
+    "    int t = threadIdx.x;",
+    "    s[t] = d[blockIdx.x * 256 + t];  // each thread loads one value",
+    "    __syncthreads();                 // wait until the whole block has loaded",
+    "    d[blockIdx.x * 256 + t] = s[255 - t];   // read another thread's value",
+    "}"
+   ]
+  },
+  {
+   "id": "bk",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "access by a warp",
+    "banks of threads 0, 1, 2, 3",
+    "threads per bank",
+    "cost"
+   ],
+   "rows": [
+    [
+     "s[t]",
+     "0, 1, 2, 3",
+     "1",
+     "1 pass"
+    ],
+    [
+     "s[2t]",
+     "0, 2, 4, 6",
+     "",
+     ""
+    ],
+    [
+     "s[3t]",
+     "0, 3, 6, 9",
+     "",
+     ""
+    ],
+    [
+     "s[32t]",
+     "0, 0, 0, 0",
+     "",
+     ""
+    ],
+    [
+     "s[0] for all",
+     "0, 0, 0, 0",
+     "same word",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "bf",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"bank\" = \"word address\" mod 32 quad \"(32 banks, 4-byte words)\"",
+    "s[k t]: quad \"conflict degree\" = gcd(k, 32)",
+    "\"column of a 32 × 32 tile\": 32 r + c -> \"bank\" c: quad \"32-way\"",
+    "\"pad to 32 × 33\": 33 r + c -> \"bank\" (r + c) mod 32: quad \"no conflict\""
+   ]
+  },
+  {
+   "id": "gl",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "global memory",
+    ""
+   ],
+   "rows": [
+    [
+     "the GPU's DRAM: gigabytes",
+     "cudaMalloc allocates it; the host copies data in and out"
+    ],
+    [
+     "seen by every thread of every block",
+     "and it outlives the kernel"
+    ],
+    [
+     "400 to 800 cycles away",
+     "hidden by many warps, if bandwidth allows"
+    ],
+    [
+     "cached in L2, and often L1",
+     "but the caches are small for so many threads"
+    ],
+    [
+     "each warp's accesses are combined",
+     "into as few transactions as possible: next video"
+    ]
+   ]
+  },
+  {
+   "id": "ct",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "read-only memory",
+    "behaviour"
+   ],
+   "rows": [
+    [
+     "constant: __constant__, 64 KB",
+     "cached on each SM, read-only in a kernel"
+    ],
+    [
+     "a warp reads one address",
+     "one access, broadcast to all 32 threads"
+    ],
+    [
+     "a warp reads 32 addresses",
+     "serialised: 32 accesses"
+    ],
+    [
+     "texture memory",
+     "read-only cache tuned for 2-D locality"
+    ],
+    [
+     "texture extras",
+     "interpolation, and clamp or wrap at the edges"
+    ],
+    [
+     "newer GPUs",
+     "the same cache for any read-only data: const __restrict__"
+    ]
+   ]
+  },
+  {
+   "id": "nm",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "CUDA name",
+    "Hennessy and Patterson's name",
+    "what it is"
+   ],
+   "rows": [
+    [
+     "local memory",
+     "private memory",
+     "per thread, in DRAM"
+    ],
+    [
+     "shared memory",
+     "local memory",
+     "per SM, on chip"
+    ],
+    [
+     "global memory",
+     "GPU memory",
+     "the whole GPU's DRAM"
+    ],
+    [
+     "CUDA thread",
+     "SIMD lane",
+     ""
+    ],
+    [
+     "streaming multiprocessor",
+     "multithreaded SIMD processor",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "__constant__ float K[64];",
+    "__global__ void f(float *in, float *out) {",
+    "    __shared__ float t[1024];",
+    "    int i = blockIdx.x * blockDim.x + threadIdx.x;",
+    "    float x = in[i];",
+    "    float buf[40];   // indexed by a run-time loop variable",
+    "    ...",
+    "}",
+    "// a) where do K, t, i, x, buf and the arrays in, out live?",
+    "// b) a warp reads K[0]; then K[threadIdx.x]: accesses?",
+    "// c) conflict degree of t[2*tid], t[3*tid], t[32*tid]"
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "variable",
+    "space"
+   ],
+   "rows": [
+    [
+     "K",
+     "constant memory"
+    ],
+    [
+     "t",
+     "shared memory: one per block"
+    ],
+    [
+     "i, x",
+     "registers"
+    ],
+    [
+     "buf",
+     "local memory: indexed at run time"
+    ],
+    [
+     "the arrays in, out",
+     "global memory"
+    ]
+   ]
+  },
+  {
+   "id": "qb",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"b)\" K[0]: 1 \"access, broadcast\" quad K[\"tid\"]: 32 \"serialised accesses\"",
+    "\"c)\" gcd(2, 32) = 2: \"2-way\" quad gcd(3, 32) = 1: \"none\" quad gcd(32, 32) = 32: \"32-way\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A GPU has several kinds of memory, and unlike a CPU, the programmer decides which one each variable uses. Choosing well can make a kernel ten times faster. This video goes through them, from the fastest to the slowest."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "The GPU memory hierarchy"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the nine stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why a hierarchy, the memory spaces, registers and local memory, shared memory and its banks."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then global memory, constant and texture memory, the textbook's names for all of these, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=8]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a GPU runs tens of thousands of threads, and each one wants operands every cycle."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 9: why a hierarchy"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      },
+      {
+       "action": "highlight",
+       "target": "why[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "DRAM is hundreds of cycles away. Many warps hide that latency, as we saw, but they cannot create bandwidth."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So bandwidth is the real limit, and the cure is reuse: keep data that is used again close to the lanes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On a CPU, caches do this automatically. On a GPU, the programmer also chooses where each variable lives."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "bandwidth is scarce: reuse data on chip"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "spaces",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the memory spaces. Registers: on chip, private to one thread, about one cycle."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 9: the memory spaces"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "sp"
+      },
+      {
+       "action": "highlight",
+       "target": "sp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Local memory: also private to one thread, but it lives in DRAM, cached."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Shared memory: on chip, shared by the threads of one block, and gone when the block finishes. About 20 to 30 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Global memory: the GPU's DRAM, seen by every thread and by the host, lasting the whole program. 400 to 800 cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sp[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And two read-only spaces, constant and texture memory: in DRAM, but with their own caches. For exams, know each one's scope and where it physically is."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sp[4..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "know each space's scope and location"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "reg",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: scalar variables of a thread go into registers, the fastest storage there is."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 9: registers and local memory"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sp"
+      },
+      {
+       "action": "show",
+       "target": "rg"
+      },
+      {
+       "action": "highlight",
+       "target": "rg[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An SM with 65,536 registers and 2048 threads gives each thread 32 registers at full occupancy."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rg[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A thread may use up to 255, but then only 257 threads fit on the SM. More registers per thread means fewer warps to hide latency."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rg[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If a thread needs more values than it has registers, the compiler spills the extra ones to local memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rg[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Arrays indexed by a value known only at run time go there too, because registers cannot be indexed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rg[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The trap is the name. Local means private to the thread, not near it. It is in DRAM, as slow as global memory when it misses in the cache."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rg[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "local memory = private, but in DRAM"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shared",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: shared memory. Declared with double-underscore shared, there is one copy per block, held on chip."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 9: shared memory"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rg"
+      },
+      {
+       "action": "show",
+       "target": "sh"
+      },
+      {
+       "action": "mark_lines",
+       "target": "sh",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here each thread loads one value from global memory into the shared array."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "sh",
+       "from": 3,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "syncthreads makes every thread of the block wait until all have loaded. Without it, a thread might read a slot that is not yet written."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "sh",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now a thread can read a value that another thread loaded. Here each block reverses its 256 elements."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "sh",
+       "from": 6,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Shared memory is how threads of a block cooperate, and how data loaded once from DRAM is reused many times. Video 19 uses it to speed up matrix multiply."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "shared memory: one per block, on chip, explicit"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "banks",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: shared memory is split into 32 banks, each 4 bytes wide. Word w is in bank w mod 32. If the 32 threads of a warp touch 32 different banks, it takes one pass."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 9: shared-memory banks"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sh"
+      },
+      {
+       "action": "show",
+       "target": "bk"
+      },
+      {
+       "action": "highlight",
+       "target": "bk[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With a stride of 2, threads 0 and 16 both hit bank 0. Two threads per bank: 2 passes, a 2-way bank conflict."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bk[1]"
+      },
+      {
+       "action": "set",
+       "target": "bk[1][2]",
+       "value": "2"
+      },
+      {
+       "action": "set",
+       "target": "bk[1][3]",
+       "value": "2 passes",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With a stride of 3, the banks are 0, 3, 6, 9, and so on. 3 and 32 share no factor, so all 32 banks are different: no conflict."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bk[2]"
+      },
+      {
+       "action": "set",
+       "target": "bk[2][2]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "bk[2][3]",
+       "value": "1 pass",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With a stride of 32, every thread hits bank 0: a 32-way conflict, 32 passes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bk[3]"
+      },
+      {
+       "action": "set",
+       "target": "bk[3][2]",
+       "value": "32"
+      },
+      {
+       "action": "set",
+       "target": "bk[3][3]",
+       "value": "32 passes",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But if all threads read the same word, the hardware broadcasts it: one pass."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bk[4]"
+      },
+      {
+       "action": "set",
+       "target": "bk[4][3]",
+       "value": "1 pass: broadcast"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The rule: for an access s of k times t, the conflict degree is the gcd of k and 32. Exactly like interleaved memory banks in video 7."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "bk"
+      },
+      {
+       "action": "show",
+       "target": "bf"
+      },
+      {
+       "action": "highlight",
+       "target": "bf[0]"
+      },
+      {
+       "action": "reveal",
+       "target": "bf[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "bf[1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A common case: reading down a column of a 32 by 32 tile. Element r, c is word 32 r plus c, so the whole column is in bank c: 32-way."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bf[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "bf[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The fix is padding: declare the tile 32 by 33. Now element r, c is in bank r plus c mod 32, and a column touches all 32 banks."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bf[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "bf[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "conflict degree = gcd(stride, 32); pad by 1"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "global",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: global memory is the GPU's DRAM, gigabytes of it. The host allocates it with cudaMalloc and copies data in and out."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 9: global memory"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bf"
+      },
+      {
+       "action": "show",
+       "target": "gl"
+      },
+      {
+       "action": "highlight",
+       "target": "gl[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every thread of every block sees it, and it outlives the kernel, so one kernel can pass results to the next."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gl[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It is 400 to 800 cycles away. Enough warps hide the latency, but only if bandwidth is left."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gl[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "There is an L2 cache, and often L1, but they are small when shared by thousands of threads."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gl[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What matters most is how a warp's 32 addresses fit together. The hardware merges them into as few memory transactions as it can: coalescing, the next video."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gl[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "global: big, shared by all, slow"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "const",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: constant memory, declared double-underscore constant, is 64 kilobytes, cached on each SM, and read-only inside a kernel."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 9: constant and texture memory"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "gl"
+      },
+      {
+       "action": "show",
+       "target": "ct"
+      },
+      {
+       "action": "highlight",
+       "target": "ct[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It is built for one pattern: all threads of a warp reading the same address, such as a filter coefficient. One access, broadcast to all 32."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ct[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If the 32 threads read 32 different addresses, the accesses are serialised: 32 of them. Then constant memory is a bad choice."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ct[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Texture memory is also read-only, with a cache designed for two-dimensional locality: neighbours in an image, above and below as well as left and right."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ct[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It adds hardware interpolation between elements, and handles out-of-range coordinates by clamping or wrapping."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ct[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Newer GPUs let any read-only data use this cache, when a pointer is marked const and restrict."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ct[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "constant: same address for the warp"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "names",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 8: a warning for exams. Hennessy and Patterson use their own names, and two of them clash with CUDA's."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 8 of 9: two sets of names"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ct"
+      },
+      {
+       "action": "show",
+       "target": "nm"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What CUDA calls local memory, per thread in DRAM, the textbook calls private memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What CUDA calls shared memory, on chip for a block, the textbook calls local memory. So local memory means opposite things."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Global memory is the textbook's GPU memory. A CUDA thread maps to a SIMD lane, and an SM is a multithreaded SIMD processor."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nm[2..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "CUDA shared = textbook local"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "nm"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 1,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Say where each variable lives, how many accesses a warp makes reading K of 0 and then K of thread index, and the bank-conflict degree for three strides. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 9,
+       "to": 11
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "K is declared constant, so constant memory. t is declared shared: one copy per block."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "i and x are scalars: registers."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "buf is an array indexed at run time, so it cannot be in registers: local memory, in DRAM."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The arrays that in and out point to were allocated by the host: global memory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: K of 0 is one address for the whole warp: 1 access, broadcast. K of thread index is 32 addresses: 32 serialised accesses."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "qb"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: stride 2, gcd 2: 2-way. Stride 3, gcd 1: no conflict. Stride 32: 32-way."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qb[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: calling local memory fast because of its name. It is private, and slow."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "local is private, not fast"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qb"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Registers are private and fastest, local memory is private but in DRAM, shared memory is on chip for a block, with 32 banks."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Global memory is large, shared and slow. Constant memory broadcasts one address, texture memory caches two-dimensional neighbours, and the textbook's names differ from CUDA's."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: how a warp's accesses to global memory are combined. Memory coalescing."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=8]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: memory coalescing"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1483 @@
+{
+ "version": 1,
+ "title": "Vector mask registers",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "An if inside a loop"
+    ],
+    [
+     2,
+     "The vector mask register"
+    ],
+    [
+     3,
+     "The VMIPS code"
+    ],
+    [
+     4,
+     "Element by element"
+    ],
+    [
+     5,
+     "What masking costs"
+    ],
+    [
+     6,
+     "If and else: two masks"
+    ],
+    [
+     7,
+     "When few elements are active"
+    ],
+    [
+     8,
+     "Masks in RISC-V, AVX-512 and GPUs"
+    ],
+    [
+     9,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "c",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "for (i = 0; i < 64; i++)",
+    "    if (X[i] != 0)",
+    "        X[i] = X[i] - Y[i];",
+    "",
+    "// some elements are updated, others must be left alone",
+    "// a plain SUBVV.D would change all 64"
+   ]
+  },
+  {
+   "id": "vm",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the mask register VM",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "one bit per element",
+     "64 bits for VMIPS"
+    ],
+    [
+     "set by a vector compare",
+     "SNEVS.D V1,F0: bit i = 1 where V1[i] ≠ F0"
+    ],
+    [
+     "while VM is in use",
+     "every vector instruction changes only elements whose bit is 1"
+    ],
+    [
+     "CVM",
+     "clear the mask: all bits 1, every element active again"
+    ],
+    [
+     "POP R1,VM",
+     "count the 1 bits"
+    ]
+   ]
+  },
+  {
+   "id": "code",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "LV       V1,Rx        ; load X",
+    "LV       V2,Ry        ; load Y",
+    "L.D      F0,#0        ; the scalar 0",
+    "SNEVS.D  V1,F0        ; VM[i] = 1 where X[i] != 0",
+    "SUBVV.D  V1,V1,V2     ; subtract, only under the mask",
+    "CVM                   ; all elements active again",
+    "SV       V1,Rx        ; store X"
+   ]
+  },
+  {
+   "id": "el",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "element",
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+   ],
+   "rows": [
+    [
+     "X",
+     "3",
+     "0",
+     "5",
+     "0",
+     "0",
+     "2",
+     "7",
+     "0"
+    ],
+    [
+     "Y",
+     "1",
+     "4",
+     "2",
+     "6",
+     "3",
+     "1",
+     "1",
+     "2"
+    ],
+    [
+     "mask: X ≠ 0",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "new X",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "cost",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "masked execution",
+    "effect"
+   ],
+   "rows": [
+    [
+     "time",
+     "the instruction still steps through all VL elements"
+    ],
+    [
+     "masked-off elements",
+     "do no useful work, but take their cycles"
+    ],
+    [
+     "16 of 64 active",
+     "25% of the subtract's cycles are useful"
+    ],
+    [
+     "but",
+     "no branch, no misprediction, no scalar loop"
+    ],
+    [
+     "and",
+     "no exception from a masked element: X[i] / Y[i] with Y[i] = 0 is safe"
+    ]
+   ]
+  },
+  {
+   "id": "ie",
+   "type": "code",
+   "region": "left",
+   "language": "c",
+   "lines": [
+    "for (i = 0; i < 64; i++)",
+    "    if (A[i] > 0)",
+    "        C[i] = A[i] * s;",
+    "    else",
+    "        C[i] = A[i] + s;"
+   ]
+  },
+  {
+   "id": "iea",
+   "type": "code",
+   "region": "right",
+   "language": "asm",
+   "lines": [
+    "LV       V1,Ra",
+    "L.D      F0,#0      ; F2 holds s",
+    "SGTVS.D  V1,F0      ; A > 0",
+    "MULVS.D  V3,V1,F2   ; then-part",
+    "SLEVS.D  V1,F0      ; A <= 0",
+    "ADDVS.D  V3,V1,F2   ; else-part",
+    "CVM",
+    "SV       V3,Rc"
+   ]
+  },
+  {
+   "id": "few",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "4 of 64 active",
+    "masked",
+    "compress, then gather"
+   ],
+   "rows": [
+    [
+     "how",
+     "SUBVV.D under the mask",
+     "CVI: list the 4 active indices"
+    ],
+    [
+     "then",
+     "",
+     "gather 4 · subtract 4 · scatter 4"
+    ],
+    [
+     "arithmetic work",
+     "64 element steps",
+     "4 element steps"
+    ],
+    [
+     "memory",
+     "unit-stride loads",
+     "indexed: slower per element"
+    ],
+    [
+     "choose",
+     "many elements active",
+     "very few active"
+    ]
+   ]
+  },
+  {
+   "id": "oth",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "machine",
+    "masks"
+   ],
+   "rows": [
+    [
+     "RISC-V V",
+     "mask in v0 · vmfne sets it · ', v0.t' masks"
+    ],
+    [
+     "AVX-512",
+     "mask registers k0 to k7"
+    ],
+    [
+     "GPUs",
+     "a predicate per thread"
+    ],
+    [
+     "everywhere",
+     "masked-off lanes sit idle"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "element",
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+   ],
+   "rows": [
+    [
+     "A",
+     "4",
+     "-1",
+     "2",
+     "-3",
+     "5",
+     "0",
+     "-2",
+     "1"
+    ],
+    [
+     "mask A > 0",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "C",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "qx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "using the if-else code with s = 10, find:"
+   ],
+   "rows": [
+    [
+     "a) the mask after SGTVS.D"
+    ],
+    [
+     "b) C for these 8 elements"
+    ],
+    [
+     "c) element operations done and useful in MULVS and ADDVS"
+    ],
+    [
+     "d) with 64 elements of which 16 are positive: the useful share of MULVS"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"c)\" quad \"MULVS: 8 done, 4 useful · ADDVS: 8 done, 4 useful\" quad 8 / 16 = 50%",
+    "\"d)\" quad \"MULVS works on all 64; 16 are useful:\" quad 16 / 64 = 25%"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Loops in real programs are full of ifs. A vector instruction treats every element the same way, so how can it run a loop where some elements are changed and others are not? The answer is a mask."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Vector mask registers"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the nine stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The problem, the mask register, the VMIPS code, and a trace element by element."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then what masking costs, an if with an else, when very few elements are active, masks on other machines, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=8]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: this loop subtracts Y from X, but only where X is not zero."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 9: an if inside a loop"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "c"
+      },
+      {
+       "action": "mark_lines",
+       "target": "c",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Some elements must change, and the rest must be left exactly as they are. A plain vector subtract would change all 64."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "c",
+       "from": 5,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Without help, the compiler could not vectorize this loop at all. Loops like it are common: in the textbook's measurements, many programs vectorize poorly for exactly this reason."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "an if makes the elements behave differently"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vm",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the vector mask register holds one bit per element: 64 bits for VMIPS."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 9: the mask register"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "c"
+      },
+      {
+       "action": "show",
+       "target": "vm"
+      },
+      {
+       "action": "highlight",
+       "target": "vm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A vector compare sets it. SNEVS.D compares each element with a scalar, and sets bit i to 1 where they are not equal."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "While the mask is in use, every vector instruction changes only the elements whose bit is 1. The others keep their old values."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "CVM clears the mask, making every element active again. Forgetting it is a classic bug: every later instruction stays masked."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vm[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And POP counts the 1 bits, the number of active elements."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vm[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "compare sets the mask · masked instructions skip 0 bits"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: the loop in VMIPS. Load X and Y, and put 0 in a scalar register."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 9: the VMIPS code"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "vm"
+      },
+      {
+       "action": "show",
+       "target": "code"
+      },
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "SNEVS.D sets the mask where X is not zero."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "SUBVV.D now subtracts only where the mask is 1."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "CVM restores the full mask, and SV stores X. Elements that were masked off are stored back unchanged."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 6,
+       "to": 7
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "7 instructions, no branch"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "el",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: watch 8 of the elements. Here are X and Y."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 9: element by element"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "code"
+      },
+      {
+       "action": "show",
+       "target": "el"
+      },
+      {
+       "action": "highlight",
+       "target": "el[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The compare sets the mask: 1 where X is not zero. Elements 0, 2, 5 and 6."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "el[2][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "el[2][2]",
+       "value": "0",
+       "delay": 0.08
+      },
+      {
+       "action": "set",
+       "target": "el[2][3]",
+       "value": "1",
+       "delay": 0.16
+      },
+      {
+       "action": "set",
+       "target": "el[2][4]",
+       "value": "0",
+       "delay": 0.24
+      },
+      {
+       "action": "set",
+       "target": "el[2][5]",
+       "value": "0",
+       "delay": 0.32
+      },
+      {
+       "action": "set",
+       "target": "el[2][6]",
+       "value": "1",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "el[2][7]",
+       "value": "1",
+       "delay": 0.48
+      },
+      {
+       "action": "set",
+       "target": "el[2][8]",
+       "value": "0",
+       "delay": 0.56
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The subtract runs under the mask. 3 minus 1 is 2, 5 minus 2 is 3, 2 minus 1 is 1, 7 minus 1 is 6."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "el[3][1]",
+       "value": "2"
+      },
+      {
+       "action": "set",
+       "target": "el[3][2]",
+       "value": "0",
+       "delay": 0.08
+      },
+      {
+       "action": "set",
+       "target": "el[3][3]",
+       "value": "3",
+       "delay": 0.16
+      },
+      {
+       "action": "set",
+       "target": "el[3][4]",
+       "value": "0",
+       "delay": 0.24
+      },
+      {
+       "action": "set",
+       "target": "el[3][5]",
+       "value": "0",
+       "delay": 0.32
+      },
+      {
+       "action": "set",
+       "target": "el[3][6]",
+       "value": "1",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "el[3][7]",
+       "value": "6",
+       "delay": 0.48
+      },
+      {
+       "action": "set",
+       "target": "el[3][8]",
+       "value": "0",
+       "delay": 0.56
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the masked-off elements, the zeros, are untouched: exactly what the if asked for."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "el[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "mask 1: computed · mask 0: unchanged"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cost",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: what does it cost? The masked instruction still steps through all VL elements. On VMIPS, a masked subtract takes as long as an unmasked one."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 9: the cost"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "el"
+      },
+      {
+       "action": "show",
+       "target": "cost"
+      },
+      {
+       "action": "highlight",
+       "target": "cost[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Masked-off elements do no useful work, but they still use their cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If only 16 of 64 elements are active, only a quarter of the subtract's cycles do useful work."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Even so, it usually beats the alternative: no branches, no mispredictions, no scalar loop of 64 iterations."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And a masked element raises no exception. Dividing under a mask where the divisor is zero is safe, because those elements are never computed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cost[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "masked elements cost time, not correctness"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ie",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: an if with an else. Positive elements are multiplied by s; the others have s added."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 9: if and else"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cost"
+      },
+      {
+       "action": "show",
+       "target": "ie"
+      },
+      {
+       "action": "show",
+       "target": "iea"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ie",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Compare greater than zero, and run the then-part under that mask."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "iea",
+       "from": 3,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then compare less than or equal, which sets the opposite mask, and run the else-part. Both write into V3, so each element gets the right result."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "iea",
+       "from": 5,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Clear the mask and store. Notice the cost: both halves run over all 64 elements. An if-else costs the time of both branches."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "iea",
+       "from": 7,
+       "to": 8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "if-else: both halves run, each under its mask"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "few",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: masking wastes the most when very few elements are active. Suppose only 4 of 64 are non-zero."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 9: few elements active"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ie"
+      },
+      {
+       "action": "hide",
+       "target": "iea"
+      },
+      {
+       "action": "show",
+       "target": "few"
+      },
+      {
+       "action": "highlight",
+       "target": "few[0][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The alternative: compress. VMIPS has CVI, create vector index, which builds a short vector holding just the positions whose mask bit is 1: here 4 indices."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "few[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then an indexed load gathers just those 4 X and Y values, the subtract runs on 4 elements, and an indexed store scatters them back."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "few[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The arithmetic drops from 64 element steps to 4. But indexed loads and stores are slower per element than unit-stride ones."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "few[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the compiler chooses: masks when many elements are active, compress and gather when very few are. Gather and scatter get their own video soon."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "few[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "many active: mask · few active: compress and gather"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "oth",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 8: every data-parallel machine has the same idea. In RISC-V V, register v0 is the mask. A compare like vmfne sets it, and adding v0 dot t to an instruction makes it masked."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 8 of 9: masks elsewhere"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "few"
+      },
+      {
+       "action": "show",
+       "target": "oth"
+      },
+      {
+       "action": "highlight",
+       "target": "oth[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "AVX-512 added eight mask registers, k0 to k7, usable by almost every instruction."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "oth[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And GPUs mask threads: when threads in a group take different sides of a branch, the hardware runs each side with the other threads masked off. That is branch divergence, video 13."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "oth[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The cost is the same everywhere: masked-off lanes sit idle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "oth[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "vectors, SIMD and GPUs all mask"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question, using the if-else code with s equal to 10."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "oth"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find the mask after the first compare, the values of C, the element operations done and useful, and the useful share when 16 of 64 elements are positive. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qx"
+      },
+      {
+       "action": "highlight",
+       "target": "qx"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: the mask is 1 where A is positive: elements 0, 2, 4 and 7."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qx"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "set",
+       "target": "q[1][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "q[1][2]",
+       "value": "0",
+       "delay": 0.08
+      },
+      {
+       "action": "set",
+       "target": "q[1][3]",
+       "value": "1",
+       "delay": 0.16
+      },
+      {
+       "action": "set",
+       "target": "q[1][4]",
+       "value": "0",
+       "delay": 0.24
+      },
+      {
+       "action": "set",
+       "target": "q[1][5]",
+       "value": "1",
+       "delay": 0.32
+      },
+      {
+       "action": "set",
+       "target": "q[1][6]",
+       "value": "0",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "q[1][7]",
+       "value": "0",
+       "delay": 0.48
+      },
+      {
+       "action": "set",
+       "target": "q[1][8]",
+       "value": "1",
+       "delay": 0.56
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: positive elements times 10: 40, 20, 50, 10. The others plus 10: 9, 7, 10, 8."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "q[2][1]",
+       "value": "40"
+      },
+      {
+       "action": "set",
+       "target": "q[2][2]",
+       "value": "9",
+       "delay": 0.08
+      },
+      {
+       "action": "set",
+       "target": "q[2][3]",
+       "value": "20",
+       "delay": 0.16
+      },
+      {
+       "action": "set",
+       "target": "q[2][4]",
+       "value": "7",
+       "delay": 0.24
+      },
+      {
+       "action": "set",
+       "target": "q[2][5]",
+       "value": "50",
+       "delay": 0.32
+      },
+      {
+       "action": "set",
+       "target": "q[2][6]",
+       "value": "10",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "q[2][7]",
+       "value": "8",
+       "delay": 0.48
+      },
+      {
+       "action": "set",
+       "target": "q[2][8]",
+       "value": "10",
+       "delay": 0.56
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Careful with element 5: A is 0, and 0 is not greater than 0. So it takes the else-part: 0 plus 10, 10."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[2][6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: the multiply and the add each process all 8 elements, but only 4 are useful in each. 8 useful out of 16: 50 percent."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: with 16 positive out of 64, the multiply does useful work on 16 of its 64 elements: 25 percent."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: forgetting CVM before the store, or before the next loop. Every later instruction would stay masked."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "always CVM after masked code"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A vector compare sets one mask bit per element, and masked instructions change only the elements whose bit is 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Masked elements still take their cycles, and an if-else runs both halves. When few are active, compressing and gathering can win. RISC-V, AVX-512 and GPUs all mask the same way."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: memory. How vector loads keep up, memory banks, and strided access."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=8]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: memory banks and stride"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

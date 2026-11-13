@@ -1,0 +1,1197 @@
+{
+ "version": 1,
+ "title": "GPUs and CUDA",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "From graphics to general computing"
+    ],
+    [
+     2,
+     "The heterogeneous model: host and device"
+    ],
+    [
+     3,
+     "DAXPY in CUDA"
+    ],
+    [
+     4,
+     "Threads, blocks and grids"
+    ],
+    [
+     5,
+     "Which thread does which element"
+    ],
+    [
+     6,
+     "Two-dimensional grids"
+    ],
+    [
+     7,
+     "CUDA in vector terms"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "hist",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "GPUs were built for",
+     "graphics: millions of pixels, each computed the same way"
+    ],
+    [
+     "that is",
+     "data-level parallelism on a huge scale"
+    ],
+    [
+     "CUDA (NVIDIA, 2007)",
+     "an extension of C to program the GPU for any computation"
+    ],
+    [
+     "also",
+     "OpenCL, an open standard on the same model"
+    ]
+   ]
+  },
+  {
+   "id": "het",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "host",
+    "device"
+   ],
+   "rows": [
+    [
+     "is",
+     "the CPU",
+     "the GPU"
+    ],
+    [
+     "memory",
+     "main memory",
+     "its own GPU memory"
+    ],
+    [
+     "runs",
+     "the serial program",
+     "kernels: functions run by many threads at once"
+    ],
+    [
+     "marked",
+     "__host__",
+     "__global__ (called from the host, runs on the device)"
+    ]
+   ]
+  },
+  {
+   "id": "code",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "// the kernel: every thread handles one element",
+    "__global__ void daxpy(int n, double a, double *x, double *y) {",
+    "    int i = blockIdx.x * blockDim.x + threadIdx.x;   // which element am I?",
+    "    if (i < n) y[i] = a * x[i] + y[i];",
+    "}",
+    "",
+    "// the host launches it: 256 threads per block",
+    "int nblocks = (n + 255) / 256;",
+    "daxpy<<<nblocks, 256>>>(n, 2.0, x, y);"
+   ]
+  },
+  {
+   "id": "hier",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "level",
+    "is",
+    "example: n = 8192"
+   ],
+   "rows": [
+    [
+     "thread",
+     "one instance of the kernel, usually one element",
+     "8192 threads"
+    ],
+    [
+     "thread block",
+     "a group of threads that run on one SM and can cooperate",
+     "512 threads per block"
+    ],
+    [
+     "grid",
+     "all the blocks of one kernel launch",
+     "8192 / 512 = 16 blocks"
+    ],
+    [
+     "built-in variables",
+     "threadIdx, blockIdx, blockDim, gridDim",
+     "known to every thread"
+    ]
+   ]
+  },
+  {
+   "id": "blk",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "blocks",
+    "within a block",
+    "between blocks"
+   ],
+   "rows": [
+    [
+     "share",
+     "fast on-chip shared memory",
+     "only global memory"
+    ],
+    [
+     "synchronise",
+     "__syncthreads(): a barrier for the block",
+     "no: blocks must be independent"
+    ],
+    [
+     "run",
+     "together, on one SM",
+     "in any order, on any SM"
+    ],
+    [
+     "so",
+     "cooperation",
+     "scalability: a bigger GPU runs more blocks at once"
+    ]
+   ]
+  },
+  {
+   "id": "idx",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "i = \"blockIdx.x\" times \"blockDim.x\" + \"threadIdx.x\"",
+    "\"block 3, thread 5, 256 per block:\" quad i = 3 times 256 + 5 = 773",
+    "n = 1000: quad ceil(1000 / 256) = 4 \"blocks\" = 1024 \"threads\" quad 24 \"fail the test\" i < n",
+    "\"(n + 255) / 256 is the ceiling, written in integer division\""
+   ]
+  },
+  {
+   "id": "two",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "dim3 block(16, 16);                                   // 256 threads",
+    "dim3 grid((W + 15) / 16, (H + 15) / 16);",
+    "brighten<<<grid, block>>>(img, W, H);",
+    "",
+    "__global__ void brighten(unsigned char *img, int W, int H) {",
+    "    int x = blockIdx.x * blockDim.x + threadIdx.x;   // column",
+    "    int y = blockIdx.y * blockDim.y + threadIdx.y;   // row",
+    "    if (x < W && y < H) img[y * W + x] += 10;",
+    "}"
+   ]
+  },
+  {
+   "id": "twox",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "640 times 480 \"image, 16 × 16 blocks:\" quad \"grid\" = 40 times 30 = 1200 \"blocks\"",
+    "\"pixel\" (x, y) = (100, 50): quad \"block\" (6, 3), quad \"thread\" (4, 2)",
+    "\"since\" 100 = 6 times 16 + 4 \"and\" 50 = 3 times 16 + 2"
+   ]
+  },
+  {
+   "id": "voc",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "CUDA",
+    "vector-machine equivalent"
+   ],
+   "rows": [
+    [
+     "CUDA thread",
+     "the work of one element: one lane's share"
+    ],
+    [
+     "thread block",
+     "the body of a strip-mined vector loop"
+    ],
+    [
+     "grid",
+     "the whole vectorizable loop"
+    ],
+    [
+     "if (i < n)",
+     "the vector length register, done by masking"
+    ],
+    [
+     "the difference",
+     "the programmer writes one element; the hardware groups threads"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "question"
+   ],
+   "rows": [
+    [
+     "a) DAXPY with n = 5000 and 128 threads per block: blocks launched, and idle threads"
+    ],
+    [
+     "b) the element handled by block 7, thread 100"
+    ],
+    [
+     "c) which block and thread handle element 4321?"
+    ],
+    [
+     "d) a 1920 × 1080 image with 16 × 16 blocks: the grid, and the block and thread for pixel (500, 300)"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a)\" quad ceil(5000 / 128) = 40 \"blocks\" = 5120 \"threads\" quad 120 \"idle\"",
+    "\"b)\" quad 7 times 128 + 100 = 996",
+    "\"c)\" quad 4321 = 33 times 128 + 97 quad \"block 33, thread 97\"",
+    "\"d)\" quad 120 times 68 = 8160 \"blocks\" quad 500 = 31 times 16 + 4, quad 300 = 18 times 16 + 12",
+    "\"block\" (31, 18), quad \"thread\" (4, 12)"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "The third family of data-parallel machines is the one in every gaming laptop and every AI data centre: the GPU. This video introduces how it is programmed, with CUDA, and the hierarchy of threads, blocks and grids."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "GPUs and CUDA"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Where GPUs came from, the host and device model, DAXPY in CUDA, and threads, blocks and grids."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then how a thread finds its element, two-dimensional grids, CUDA in vector terms, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hist",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: GPUs were built for graphics. A screen has millions of pixels, and each is computed in the same way."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: from graphics"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "hist"
+      },
+      {
+       "action": "highlight",
+       "target": "hist[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That is data-level parallelism on an enormous scale."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hist[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In 2007 NVIDIA released CUDA, an extension of C that lets programmers use the GPU for any computation, not just graphics."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hist[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "OpenCL is an open standard built on the same model. We use CUDA, as the textbook does."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hist[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "graphics hardware, programmed in C"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "het",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: a GPU does not run on its own. The host is the CPU, running the ordinary program."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: host and device"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hist"
+      },
+      {
+       "action": "show",
+       "target": "het"
+      },
+      {
+       "action": "highlight",
+       "target": "het[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The device is the GPU, with its own memory. Data must be in GPU memory before the GPU can use it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "het[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The host calls kernels: functions that the device runs with thousands of threads at once."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "het[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In the code, a kernel is marked double underscore global: called from the host, run on the device. This is heterogeneous computing: two kinds of processor, each doing what it does best."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "het[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "host: CPU, serial · device: GPU, kernels"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: DAXPY in CUDA. The kernel is written for one element."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: DAXPY in CUDA"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "het"
+      },
+      {
+       "action": "show",
+       "target": "code"
+      },
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each thread first works out which element it owns, from its block number and its thread number within the block."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 3,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then, if that element exists, it does one multiply-add. There is no loop at all: the loop has become the threads."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The host launches the kernel with triple angle brackets: the number of blocks, then the threads per block. 256 threads per block, and enough blocks to cover n."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 7,
+       "to": 9
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "write the code for one element"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hier",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the hierarchy. A thread is one instance of the kernel, usually handling one element. The textbook's example has 8192 elements, so 8192 threads."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: threads, blocks, grids"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "code"
+      },
+      {
+       "action": "show",
+       "target": "hier"
+      },
+      {
+       "action": "highlight",
+       "target": "hier[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Threads are grouped into thread blocks. A block runs on one streaming multiprocessor, an SM, and its threads can cooperate. Here, 512 threads per block."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hier[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "All the blocks of one launch form the grid: 8192 over 512, 16 blocks."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hier[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every thread can read built-in variables: its threadIdx and blockIdx, and the sizes blockDim and gridDim."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hier[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Within a block, threads share fast on-chip memory, and can wait for each other at a barrier, syncthreads."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "hier"
+      },
+      {
+       "action": "show",
+       "target": "blk"
+      },
+      {
+       "action": "highlight",
+       "target": "blk[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Between blocks, there is no synchronisation: blocks run in any order, on any SM."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "blk[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That rule is what lets CUDA scale. A small GPU runs a few blocks at a time, a big one runs many, and the same program works on both."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "blk[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "blocks: cooperate inside, independent outside"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "idx",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: which element does a thread own? i equals blockIdx times blockDim, plus threadIdx."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: which element"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "blk"
+      },
+      {
+       "action": "show",
+       "target": "idx"
+      },
+      {
+       "action": "highlight",
+       "target": "idx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Block 3, thread 5, with 256 threads per block: 3 times 256 plus 5, element 773."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "idx[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "idx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If n is 1000, we need the ceiling of 1000 over 256: 4 blocks, 1024 threads. The last 24 threads find i not less than n, and do nothing. That is why the if is there."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "idx[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "idx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "n plus 255, over 256, in integer division, is exactly that ceiling."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "idx[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "idx[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "i = blockIdx × blockDim + threadIdx"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "two",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: images are two-dimensional, so blocks and grids can be too. Here, blocks of 16 by 16 threads, and a grid that covers the image."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: 2-D grids"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "idx"
+      },
+      {
+       "action": "show",
+       "target": "two"
+      },
+      {
+       "action": "mark_lines",
+       "target": "two",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each thread computes a column x from the x parts of its indices, and a row y from the y parts."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "two",
+       "from": 6,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then, if the pixel is inside the image, it brightens it. Pixel x, y is at y times W plus x."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "two",
+       "from": 8,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 640 by 480 image with 16 by 16 blocks: a grid of 40 by 30, 1200 blocks."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "two"
+      },
+      {
+       "action": "show",
+       "target": "twox"
+      },
+      {
+       "action": "highlight",
+       "target": "twox[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pixel 100, 50 belongs to block 6, 3, and is thread 4, 2 within it, because 100 is 6 times 16 plus 4, and 50 is 3 times 16 plus 2."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "twox[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "twox[1]"
+      },
+      {
+       "action": "reveal",
+       "target": "twox[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "twox[2]",
+       "delay": 0.5
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "x from the .x indices · y from the .y indices"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "voc",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: CUDA looks very different from vector code, but it is the same idea. A CUDA thread is the work of one element: one lane's share."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: in vector terms"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "twox"
+      },
+      {
+       "action": "show",
+       "target": "voc"
+      },
+      {
+       "action": "highlight",
+       "target": "voc[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A thread block is like the body of a strip-mined vector loop: one strip of elements."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "voc[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The grid is the whole loop."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "voc[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the if i less than n does the job of the vector length register: the hardware masks off the threads past the end."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "voc[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The difference: the programmer writes code for one element, and the hardware groups threads into vector-like bundles. How it does that is the next video."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "voc[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "thread ≈ element · block ≈ strip · grid ≈ loop"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "voc"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "DAXPY with 5000 elements and 128 threads per block: how many blocks, and how many idle threads? The element of block 7, thread 100. The block and thread for element 4321. And a full HD image with 16 by 16 blocks. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: the ceiling of 5000 over 128 is 40 blocks: 5120 threads, so 120 do nothing."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: 7 times 128 plus 100: element 996."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: divide 4321 by 128: 33, remainder 97. Block 33, thread 97."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: 1920 over 16 is 120; 1080 over 16 is 67.5, rounded up to 68. 8160 blocks. Pixel 500, 300: 500 is 31 sixteens and 4, 300 is 18 sixteens and 12. Block 31, 18, thread 4, 12."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      },
+      {
+       "action": "reveal",
+       "target": "qa[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[4]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: rounding down the number of blocks. 1080 over 16 rounded down leaves the bottom rows of the image unprocessed."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "blocks = ⌈n / threads per block⌉"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The host CPU launches kernels on the device GPU. A kernel is written for one element; the loop becomes thousands of threads."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Threads form blocks, blocks form a grid. A thread finds its element from blockIdx, blockDim and threadIdx, in one or two dimensions. In vector terms: element, strip, loop."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: how the hardware actually runs those threads. Warps, SIMT, and the streaming multiprocessor."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: warps and SIMT"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

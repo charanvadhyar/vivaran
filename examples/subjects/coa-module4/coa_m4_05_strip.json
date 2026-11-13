@@ -1,0 +1,1311 @@
+{
+ "version": 1,
+ "title": "Strip mining",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "When n is not 64"
+    ],
+    [
+     2,
+     "The vector length register"
+    ],
+    [
+     3,
+     "Strip mining"
+    ],
+    [
+     4,
+     "The same loop in VMIPS"
+    ],
+    [
+     5,
+     "The strips for n = 200"
+    ],
+    [
+     6,
+     "A time formula"
+    ],
+    [
+     7,
+     "A worked example"
+    ],
+    [
+     8,
+     "RISC-V makes it simple"
+    ],
+    [
+     9,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "pb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "case",
+    "problem"
+   ],
+   "rows": [
+    [
+     "n < 64",
+     "only part of each register should be used"
+    ],
+    [
+     "n > 64",
+     "the data does not fit in one register"
+    ],
+    [
+     "n unknown until run time",
+     "for (i = 0; i < n; i++) with n read from input"
+    ],
+    [
+     "the answer",
+     "a register that says how long a vector is, and a loop over pieces"
+    ]
+   ]
+  },
+  {
+   "id": "vl",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "VMIPS",
+    "meaning"
+   ],
+   "rows": [
+    [
+     "MVL",
+     "maximum vector length: 64, the register size"
+    ],
+    [
+     "VLR",
+     "vector length register: how many elements the next instructions use"
+    ],
+    [
+     "MTC1 VLR,R1",
+     "set VLR from R1; VLR may be anything from 0 to MVL"
+    ],
+    [
+     "every vector instruction",
+     "operates on elements 0 to VLR − 1 only"
+    ]
+   ]
+  },
+  {
+   "id": "c",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "low = 0;",
+    "VL = n % MVL;                       // the odd-size piece first",
+    "for (j = 0; j <= n / MVL; j++) {    // one pass per strip",
+    "    for (i = low; i < low + VL; i++)    // runs as vector code, VLR = VL",
+    "        Y[i] = a * X[i] + Y[i];",
+    "    low = low + VL;                 // start of the next strip",
+    "    VL = MVL;                       // every later strip is full",
+    "}"
+   ]
+  },
+  {
+   "id": "vm",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "      ANDI    R1,Rn,#63     ; VL = n mod 64",
+    "      MTC1    VLR,R1",
+    "Loop: LV      V1,Rx         ; the vector work: VL elements",
+    "      MULVS.D V2,V1,F0",
+    "      LV      V3,Ry",
+    "      ADDVV.D V4,V2,V3",
+    "      SV      V4,Ry",
+    "      DSLL    R2,R1,#3      ; bytes done = VL × 8",
+    "      DADDU   Rx,Rx,R2",
+    "      DADDU   Ry,Ry,R2",
+    "      DSUBU   Rn,Rn,R1      ; elements left",
+    "      DADDIU  R1,R0,#64     ; later strips are full",
+    "      MTC1    VLR,R1",
+    "      BNEZ    Rn,Loop"
+   ]
+  },
+  {
+   "id": "st",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "strip",
+    "elements",
+    "VL"
+   ],
+   "rows": [
+    [
+     "1",
+     "",
+     ""
+    ],
+    [
+     "2",
+     "",
+     ""
+    ],
+    [
+     "3",
+     "",
+     ""
+    ],
+    [
+     "4",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "tf",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "T_n = ceil(n / \"MVL\") times (T_\"loop\" + T_\"start\") + n times T_\"chime\"",
+    "T_\"loop\": \"scalar loop overhead per strip (take 15)\"",
+    "T_\"start\": \"sum of the convoys' startups, paid once per strip\"",
+    "T_\"chime\": \"the number of convoys: cycles per element\""
+   ]
+  },
+  {
+   "id": "ex",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "; A = B × s, n = 200, MVL = 64, no chaining",
+    "LV       V1,Rb        ; convoy 1, startup 12",
+    "MULVS.D  V2,V1,F0     ; convoy 2, startup 7",
+    "SV       V2,Ra        ; convoy 3, startup 12"
+   ]
+  },
+  {
+   "id": "exm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "T_\"chime\" = 3, quad T_\"start\" = 12 + 7 + 12 = 31, quad T_\"loop\" = 15",
+    "T_200 = ceil(200 / 64) times (15 + 31) + 200 times 3 = 4 times 46 + 600 = 784",
+    "784 / 200 approx 3.92 \"cycles per element\"",
+    "n = 1000: quad 16 times 46 + 3000 = 3736 quad 3.74 \"per element\""
+   ]
+  },
+  {
+   "id": "rv",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "loop: vsetvli  t0,a0,e64      # t0 = min(a0, VLMAX): this strip's length",
+    "      vle64.v  v1,(a1)        # load X",
+    "      vle64.v  v2,(a2)        # load Y",
+    "      vfmacc.vf v2,fa0,v1     # Y = a*X + Y",
+    "      vse64.v  v2,(a2)        # store Y",
+    "      sub      a0,a0,t0       # elements left",
+    "      slli     t1,t0,3        # bytes done = t0 × 8",
+    "      add      a1,a1,t1",
+    "      add      a2,a2,t1",
+    "      bnez     a0,loop"
+   ]
+  },
+  {
+   "id": "q",
+   "type": "code",
+   "region": "center",
+   "language": "asm",
+   "lines": [
+    "; A = B + C, MVL = 64, no chaining, one load-store unit",
+    "LV       V1,Rb",
+    "LV       V2,Rc",
+    "ADDVV.D  V3,V1,V2",
+    "SV       V3,Ra",
+    "; a) strips for n = 150   b) T_150 with T_loop = 15   c) strips for n = 128"
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "a) strip",
+    "elements",
+    "VL"
+   ],
+   "rows": [
+    [
+     "1",
+     "0 to 21",
+     "22"
+    ],
+    [
+     "2",
+     "22 to 85",
+     "64"
+    ],
+    [
+     "3",
+     "86 to 149",
+     "64"
+    ],
+    [
+     "c) n = 128",
+     "128 mod 64 = 0: the first piece is empty",
+     "2 full strips"
+    ]
+   ]
+  },
+  {
+   "id": "qb",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"convoys: LV · LV · ADDVV.D · SV\" quad T_\"chime\" = 4",
+    "T_\"start\" = 12 + 12 + 6 + 12 = 42",
+    "T_150 = 3 times (15 + 42) + 150 times 4 = 171 + 600 = 771 quad 5.14 \"per element\""
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "So far every vector had exactly 64 elements, the size of a register. Real arrays have 10 elements, or 10 million, often unknown until the program runs. This video shows how vector code handles any length."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Strip mining"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the nine stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The problem, the vector length register, the strip-mining loop in C and in VMIPS, and the strips for one example."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then a formula for the time, a worked example, how RISC-V simplifies it, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=8]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: three cases break our simple code. A vector shorter than 64 should use only part of each register."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 9: when n is not 64"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "pb"
+      },
+      {
+       "action": "highlight",
+       "target": "pb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A vector longer than 64 does not fit in one register at all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And often n is a variable, read from input, so the compiler cannot know it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The answer has two parts: a register that tells the hardware how long the vector is, and a loop over pieces of at most 64."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "any n: a length register plus a loop"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vl",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: MVL, the maximum vector length, is fixed by the hardware: 64 for VMIPS."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 9: the vector length register"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pb"
+      },
+      {
+       "action": "show",
+       "target": "vl"
+      },
+      {
+       "action": "highlight",
+       "target": "vl[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "VLR, the vector length register, holds the length the next vector instructions should use."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vl[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "MTC1 VLR, R1 copies a value from a scalar register. It may be anything from 0 up to MVL."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vl[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every vector instruction then works only on elements 0 to VLR minus 1. The rest of the register is left alone."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vl[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "VLR ≤ MVL · instructions use VLR elements"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "strip",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: for longer vectors, the compiler generates strip mining: it cuts the loop into strips of at most MVL elements. Here is the textbook's version for DAXPY."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 9: strip mining"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "vl"
+      },
+      {
+       "action": "show",
+       "target": "c"
+      },
+      {
+       "action": "mark_lines",
+       "target": "c",
+       "from": 1,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "First, VL is set to n mod MVL: the odd-sized piece goes first."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "c",
+       "from": 2,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The outer loop runs n over MVL plus 1 times, once per strip."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "c",
+       "from": 3,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The inner loop is the part that becomes vector code. It sets VLR to VL, and runs LV, MULVS, LV, ADDVV and SV on that many elements."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "c",
+       "from": 4,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then it moves low past the strip just done, and sets VL to MVL: every later strip is full length."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "c",
+       "from": 6,
+       "to": 7
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "odd piece first, then full strips of MVL"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vmips",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the same loop in VMIPS assembly. Before the loop, n mod 64 goes into VLR. ANDI with 63 keeps the low six bits: that is n mod 64."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 9: the VMIPS loop"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "c"
+      },
+      {
+       "action": "show",
+       "target": "vm"
+      },
+      {
+       "action": "mark_lines",
+       "target": "vm",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The loop body starts with the five vector instructions of DAXPY, working on VL elements."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "vm",
+       "from": 3,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the scalar bookkeeping: move both pointers on by VL times 8 bytes, and subtract VL from the count."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "vm",
+       "from": 8,
+       "to": 11
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Set VLR to 64 for every later strip, and branch back while elements remain."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "vm",
+       "from": 12,
+       "to": 14
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Those seven scalar instructions run once per strip. With their stalls, that is the loop overhead the time formula will call T loop."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "vm",
+       "from": 8,
+       "to": 14
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "5 vector + 7 scalar instructions per strip"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "strips",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: take n equal to 200. 200 mod 64 is 8, so the first strip has just 8 elements, 0 to 7."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 9: strips for n = 200"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "vm"
+      },
+      {
+       "action": "show",
+       "target": "st"
+      },
+      {
+       "action": "set",
+       "target": "st[0][1]",
+       "value": "0 to 7"
+      },
+      {
+       "action": "set",
+       "target": "st[0][2]",
+       "value": "8",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then three full strips of 64: 8 to 71, 72 to 135, and 136 to 199."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "st[1][1]",
+       "value": "8 to 71"
+      },
+      {
+       "action": "set",
+       "target": "st[1][2]",
+       "value": "64",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "st[2][1]",
+       "value": "72 to 135",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "st[2][2]",
+       "value": "64",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "st[3][1]",
+       "value": "136 to 199",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "st[3][2]",
+       "value": "64",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Four strips: 8 plus 3 times 64 is 200. In general, the ceiling of n over MVL strips."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st[0..=3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "200 = 8 + 64 + 64 + 64: 4 strips"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "time",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: how long does it take? The textbook's formula has three parts."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 9: a time formula"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "st"
+      },
+      {
+       "action": "show",
+       "target": "tf"
+      },
+      {
+       "action": "highlight",
+       "target": "tf[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "T loop: the scalar instructions that run the outer loop, about 15 cycles per strip."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "tf[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "tf[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "T start: the startups of all the convoys, paid again in every strip."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "tf[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "tf[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And T chime: the number of convoys, which is the cycles per element once the pipelines are running."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "tf[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "tf[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "T_n = ⌈n / MVL⌉ (T_loop + T_start) + n T_chime"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ex",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: A equals B times a scalar s, with 200 elements, and no chaining."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 9: a worked example"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tf"
+      },
+      {
+       "action": "show",
+       "target": "ex"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ex",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three convoys: the load, the multiply, the store. Their startups are 12, 7 and 12."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ex",
+       "from": 2,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So T chime is 3, T start is 31, and T loop is 15."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "ex"
+      },
+      {
+       "action": "show",
+       "target": "exm"
+      },
+      {
+       "action": "highlight",
+       "target": "exm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Four strips, each paying 15 plus 31, that is 46: 184 cycles. Plus 200 elements at 3 cycles each: 600. 784 cycles."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "exm[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "exm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "About 3.92 cycles per element, against the ideal of 3."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "exm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "exm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For 1000 elements, 16 strips: 3736 cycles, 3.74 per element. The longer the vector, the closer to the chime count, since the overhead per strip is spread over 64 elements."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "exm[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "exm[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "overhead per strip, work per element"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rv",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 8: RISC-V's vector extension makes strip mining almost free to write. Each pass of the loop starts with vsetvli."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 8 of 9: RISC-V"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "exm"
+      },
+      {
+       "action": "show",
+       "target": "rv"
+      },
+      {
+       "action": "mark_lines",
+       "target": "rv",
+       "from": 1,
+       "to": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "vsetvli takes the number of elements left, and sets the vector length to that number or to the hardware maximum, whichever is smaller. It returns the length in t0."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rv",
+       "from": 1,
+       "to": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the loads, a fused multiply-add, and the store, on t0 elements."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rv",
+       "from": 2,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Subtract t0 from the count, move the pointers on by t0 times 8 bytes, and loop while elements remain."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rv",
+       "from": 6,
+       "to": 10
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "No odd piece to compute in advance, no knowledge of the hardware's maximum length. The last strip is simply the short one. The same binary runs on any vector length."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "vsetvli: the hardware picks each strip's length"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: A equals B plus C, maximum vector length 64, no chaining, one load-store unit."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rv"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find the strips for 150 elements, the execution time with a loop overhead of 15, and the strips for 128 elements. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 6,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "150 mod 64 is 22. So strip 1 has 22 elements, 0 to 21. Then two full strips: 22 to 85, and 86 to 149."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For 128: 128 mod 64 is 0, so the first piece is empty, and the code does two full strips. The formula's ceiling, 2, counts this correctly."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The time. Four convoys: the two loads cannot share the load-store unit. T chime is 4."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "qb"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The startups: 12, 12, 6 and 12, total 42."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qb[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "3 strips times 57, plus 150 times 4: 171 plus 600, 771 cycles, about 5.14 per element."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qb[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: counting n over MVL strips, rounded down. 150 needs 3 strips, not 2. Always round up."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "strips = ⌈n / MVL⌉"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qb"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The vector length register lets instructions work on fewer than MVL elements. Strip mining cuts a loop of any length into an odd piece and full strips."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Time is the strips times the loop and startup overhead, plus n times the chimes. RISC-V's vsetvli lets the hardware choose each strip's length."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5..=7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: what if the loop has an if inside? Vector mask registers."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=8]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: vector masks"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

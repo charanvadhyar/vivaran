@@ -1,0 +1,1375 @@
+{
+ "version": 1,
+ "title": "Branch divergence",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "An if inside a kernel"
+    ],
+    [
+     2,
+     "What the warp does"
+    ],
+    [
+     3,
+     "Element by element"
+    ],
+    [
+     4,
+     "Reconverging"
+    ],
+    [
+     5,
+     "The cost of divergence"
+    ],
+    [
+     6,
+     "Divergence only happens inside a warp"
+    ],
+    [
+     7,
+     "Loops that run different lengths"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "k",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "__global__ void f(double *X, double *Y, double *Z, int n) {",
+    "    int i = blockIdx.x * blockDim.x + threadIdx.x;",
+    "    if (X[i] != 0)",
+    "        X[i] = X[i] - Y[i];     // then-part",
+    "    else",
+    "        X[i] = Z[i];            // else-part",
+    "}"
+   ]
+  },
+  {
+   "id": "wd",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the warp",
+    "does"
+   ],
+   "rows": [
+    [
+     "1. evaluate the condition",
+     "every thread computes X[i] != 0: a predicate bit"
+    ],
+    [
+     "2. all agree",
+     "run only that side, at full speed"
+    ],
+    [
+     "3. they disagree",
+     "run the then-part with the false threads masked off"
+    ],
+    [
+     "4. then",
+     "run the else-part with the true threads masked off"
+    ],
+    [
+     "5. reconverge",
+     "after the if, all 32 threads run together again"
+    ]
+   ]
+  },
+  {
+   "id": "el",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "thread",
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+   ],
+   "rows": [
+    [
+     "X",
+     "3",
+     "0",
+     "5",
+     "0",
+     "2",
+     "0",
+     "0",
+     "7"
+    ],
+    [
+     "predicate X ≠ 0",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "then-pass: X − Y",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "else-pass: Z",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "result",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "rc",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "reconvergence",
+    "how"
+   ],
+   "rows": [
+    [
+     "the hardware keeps",
+     "a stack of masks for nested branches"
+    ],
+    [
+     "at a divergent branch",
+     "push: remember who goes which way, and where they meet"
+    ],
+    [
+     "at the meeting point",
+     "pop: restore the full mask"
+    ],
+    [
+     "nested ifs",
+     "each level pushes again: masks within masks"
+    ],
+    [
+     "Volta and later",
+     "a PC per thread; paths still take turns"
+    ]
+   ]
+  },
+  {
+   "id": "co",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"then-part 10 instructions, else-part 20, half the warp each\"",
+    "\"time\" = 10 + 20 = 30 \"warp instructions, whatever the split\"",
+    "\"useful lane slots\" = 16 times 10 + 16 times 20 = 480 quad \"of\" 30 times 32 = 960 quad 50%",
+    "\"if every thread had agreed: 10 or 20 instructions, all lanes busy\""
+   ]
+  },
+  {
+   "id": "wa",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "if (threadIdx.x < 16)  A(); else B();          // diverges: warp 0 splits 16 / 16",
+    "",
+    "if ((threadIdx.x / 32) % 2 == 0)  A(); else B();  // never diverges:",
+    "                                              // a whole warp agrees",
+    "",
+    "if (data[i] > 0)  A(); else B();             // depends on the data"
+   ]
+  },
+  {
+   "id": "fx",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "// every warp diverges: even and odd threads alternate",
+    "if (i % 2 == 0) even_work(i); else odd_work(i);",
+    "",
+    "// remap: the first half of the threads do the even elements",
+    "int h = n / 2;",
+    "if (i < h) even_work(2 * i);        // warps below h: all even",
+    "else       odd_work(2 * (i - h) + 1);   // warps above h: all odd"
+   ]
+  },
+  {
+   "id": "lp",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "for (k = 0; k < count[i]; k++)    // each thread has its own trip count",
+    "    work(i, k);",
+    "",
+    "// the warp keeps looping until its slowest thread is done"
+   ]
+  },
+  {
+   "id": "lpt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "4 threads of a warp",
+    "t0",
+    "t1",
+    "t2",
+    "t3",
+    "warp runs"
+   ],
+   "rows": [
+    [
+     "trip count",
+     "3",
+     "5",
+     "8",
+     "2",
+     "8 iterations"
+    ],
+    [
+     "useful iterations",
+     "3",
+     "5",
+     "8",
+     "2",
+     "18 of 4 × 8 = 32: 56%"
+    ],
+    [
+     "8 threads: 1, 1, …, 1, 40",
+     "",
+     "",
+     "",
+     "",
+     "40 iterations: 47 of 320, 15%"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "a warp of 32 threads; part A is 12 instructions, part B is 8"
+   ],
+   "rows": [
+    [
+     "a) if (threadIdx.x % 4 == 0) A(); else B();   time, and lane utilisation"
+    ],
+    [
+     "b) blockDim 128: if (threadIdx.x < 64) A(); else B();   which warps diverge?"
+    ],
+    [
+     "c) a loop whose trip counts in one warp's threads are 3, 5, 8, 2: iterations run, and useful share"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"a) 8 threads take A, 24 take B:\" quad 12 + 8 = 20 \"instructions\"",
+    "\"useful\" = 8 times 12 + 24 times 8 = 288 quad \"of\" 20 times 32 = 640 quad 45%",
+    "\"b) warps 0, 1: all threads\" < 64 \"→ A · warps 2, 3: all B · none diverges\"",
+    "\"c)\" max = 8 \"iterations\" quad (3 + 5 + 8 + 2) / (4 times 8) = 18 / 32 approx 56%"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Every thread in a CUDA kernel can follow its own branches. But the 32 threads of a warp share one instruction stream. So what happens when they disagree at an if? This is branch divergence, and it is the most common reason GPU code runs slower than expected."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Branch divergence"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A kernel with an if, what the warp does, a trace element by element, and how the threads come back together."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then what it costs, when it does not happen, loops of different lengths, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "k",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: the vector-mask example from video 6, now as a CUDA kernel, with an else added. Each thread looks at its own X."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: an if in a kernel"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "k"
+      },
+      {
+       "action": "mark_lines",
+       "target": "k",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If X is not zero, subtract Y."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "k",
+       "from": 3,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Otherwise copy Z. To the programmer, every thread simply takes its own path."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "k",
+       "from": 5,
+       "to": 6
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "each thread takes its own path, in the source code"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "wd",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: in the hardware, the warp first evaluates the condition. Every thread computes one predicate bit."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: what the warp does"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "k"
+      },
+      {
+       "action": "show",
+       "target": "wd"
+      },
+      {
+       "action": "highlight",
+       "target": "wd[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If all 32 agree, the warp runs only that side, at full speed. No cost at all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wd[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If they disagree, the warp runs the then-part with the false threads masked off."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wd[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then it runs the else-part, with the true threads masked off."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wd[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "After the if, all 32 threads continue together again. Exactly the masked execution of a vector machine, done automatically by the hardware."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wd[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "disagreement: both paths, one after the other"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "el",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: eight threads of a warp, for clarity. Here are their X values."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: element by element"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "wd"
+      },
+      {
+       "action": "show",
+       "target": "el"
+      },
+      {
+       "action": "highlight",
+       "target": "el[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The predicate: true for threads 0, 2, 4 and 7."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "el[1][1]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "el[1][2]",
+       "value": "0",
+       "delay": 0.07
+      },
+      {
+       "action": "set",
+       "target": "el[1][3]",
+       "value": "1",
+       "delay": 0.14
+      },
+      {
+       "action": "set",
+       "target": "el[1][4]",
+       "value": "0",
+       "delay": 0.21
+      },
+      {
+       "action": "set",
+       "target": "el[1][5]",
+       "value": "1",
+       "delay": 0.28
+      },
+      {
+       "action": "set",
+       "target": "el[1][6]",
+       "value": "0",
+       "delay": 0.35
+      },
+      {
+       "action": "set",
+       "target": "el[1][7]",
+       "value": "0",
+       "delay": 0.42
+      },
+      {
+       "action": "set",
+       "target": "el[1][8]",
+       "value": "1",
+       "delay": 0.49
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The then-pass: only the true threads compute X minus Y. With Y all 1s: 2, 4, 1, 6. The others sit idle."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "el[2][1]",
+       "value": "2"
+      },
+      {
+       "action": "set",
+       "target": "el[2][2]",
+       "value": "idle",
+       "delay": 0.07
+      },
+      {
+       "action": "set",
+       "target": "el[2][3]",
+       "value": "4",
+       "delay": 0.14
+      },
+      {
+       "action": "set",
+       "target": "el[2][4]",
+       "value": "idle",
+       "delay": 0.21
+      },
+      {
+       "action": "set",
+       "target": "el[2][5]",
+       "value": "1",
+       "delay": 0.28
+      },
+      {
+       "action": "set",
+       "target": "el[2][6]",
+       "value": "idle",
+       "delay": 0.35
+      },
+      {
+       "action": "set",
+       "target": "el[2][7]",
+       "value": "idle",
+       "delay": 0.42
+      },
+      {
+       "action": "set",
+       "target": "el[2][8]",
+       "value": "6",
+       "delay": 0.49
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The else-pass: now only the false threads copy Z: 8, 6, 4, 3. The true threads sit idle."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "el[3][1]",
+       "value": "idle"
+      },
+      {
+       "action": "set",
+       "target": "el[3][2]",
+       "value": "8",
+       "delay": 0.07
+      },
+      {
+       "action": "set",
+       "target": "el[3][3]",
+       "value": "idle",
+       "delay": 0.14
+      },
+      {
+       "action": "set",
+       "target": "el[3][4]",
+       "value": "6",
+       "delay": 0.21
+      },
+      {
+       "action": "set",
+       "target": "el[3][5]",
+       "value": "idle",
+       "delay": 0.28
+      },
+      {
+       "action": "set",
+       "target": "el[3][6]",
+       "value": "4",
+       "delay": 0.35
+      },
+      {
+       "action": "set",
+       "target": "el[3][7]",
+       "value": "3",
+       "delay": 0.42
+      },
+      {
+       "action": "set",
+       "target": "el[3][8]",
+       "value": "idle",
+       "delay": 0.49
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every thread ends with the right answer. But each pass kept half the lanes idle."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "el[4][1]",
+       "value": "2"
+      },
+      {
+       "action": "set",
+       "target": "el[4][2]",
+       "value": "8",
+       "delay": 0.07
+      },
+      {
+       "action": "set",
+       "target": "el[4][3]",
+       "value": "4",
+       "delay": 0.14
+      },
+      {
+       "action": "set",
+       "target": "el[4][4]",
+       "value": "6",
+       "delay": 0.21
+      },
+      {
+       "action": "set",
+       "target": "el[4][5]",
+       "value": "1",
+       "delay": 0.28
+      },
+      {
+       "action": "set",
+       "target": "el[4][6]",
+       "value": "4",
+       "delay": 0.35
+      },
+      {
+       "action": "set",
+       "target": "el[4][7]",
+       "value": "3",
+       "delay": 0.42
+      },
+      {
+       "action": "set",
+       "target": "el[4][8]",
+       "value": "6",
+       "delay": 0.49
+      },
+      {
+       "action": "highlight",
+       "target": "el[4]",
+       "delay": 0.6
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "correct results, half the lanes idle in each pass"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rc",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: how does the warp know where to come back together? The hardware keeps a stack of masks."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: reconverging"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "el"
+      },
+      {
+       "action": "show",
+       "target": "rc"
+      },
+      {
+       "action": "highlight",
+       "target": "rc[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At a divergent branch it pushes an entry: which threads go which way, and the point where the paths meet again."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rc[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At that meeting point it pops the entry and restores the full mask."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rc[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Nested ifs push again, so masks sit within masks, and the deeper the nesting, the fewer lanes are busy."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rc[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "From Volta onward, NVIDIA GPUs track a program counter per thread, which makes some tricky code, like locks between threads of a warp, safe. But the two paths of a warp still run one after the other."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rc[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a mask stack: push at the split, pop at the join"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cost",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the cost. Say the then-part is 10 instructions and the else-part 20, and half the warp goes each way."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: the cost"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rc"
+      },
+      {
+       "action": "show",
+       "target": "co"
+      },
+      {
+       "action": "highlight",
+       "target": "co[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The warp runs both: 30 instructions. And it is 30 whether 1 thread or 31 go one way."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "co[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "co[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Useful work: 16 threads times 10, plus 16 times 20: 480 lane slots, out of 30 times 32, 960. 50 percent."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "co[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "co[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Had every thread agreed, the warp would have run 10 or 20 instructions with every lane busy."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "co[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "co[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "divergent if-else costs then + else"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "wa",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: divergence happens only inside a warp. threadIdx less than 16 splits warp 0 in half: 16 threads each way. It diverges."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: only inside a warp"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "co"
+      },
+      {
+       "action": "show",
+       "target": "wa"
+      },
+      {
+       "action": "mark_lines",
+       "target": "wa",
+       "from": 1,
+       "to": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But a condition on threadIdx over 32, the warp number, is the same for all 32 threads of each warp. Even warps take A, odd warps take B, and no warp ever diverges."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "wa",
+       "from": 3,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A condition on the data depends on the data. If neighbouring elements tend to agree, as in an image with large smooth regions, warps rarely diverge."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "wa",
+       "from": 6,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So a good programmer arranges the work so that each warp's threads take the same path. An example: even and odd elements need different work. Testing i mod 2 makes every warp split in half."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "wa"
+      },
+      {
+       "action": "show",
+       "target": "fx"
+      },
+      {
+       "action": "mark_lines",
+       "target": "fx",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Instead, remap: let the first half of the threads handle all the even elements, and the second half all the odd ones. The same work, but each warp now agrees, except at most one warp at the boundary."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "fx",
+       "from": 4,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The cost of the work stays the same; the time halves. Sorting the data by condition does the same for data-dependent branches."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "make the 32 threads of a warp agree"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: loops diverge too. Here each thread runs its own number of iterations."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: uneven loops"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "fx"
+      },
+      {
+       "action": "show",
+       "target": "lp"
+      },
+      {
+       "action": "mark_lines",
+       "target": "lp",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The warp keeps looping until its slowest thread is done. Finished threads are masked off and wait."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "lp",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Four threads with trip counts 3, 5, 8 and 2: the warp runs 8 iterations. 18 useful thread-iterations out of 32: 56 percent."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "lp"
+      },
+      {
+       "action": "show",
+       "target": "lpt"
+      },
+      {
+       "action": "highlight",
+       "target": "lpt[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And a single outlier is the worst case. Seven threads need 1 iteration and one needs 40: the warp runs 40, and only 15 percent of the work is useful."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lpt[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a warp's loop runs as long as its slowest thread"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: a warp of 32 threads, part A 12 instructions, part B 8."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lpt"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Part a: threadIdx mod 4 equals 0 takes A. Part b: with 128 threads, threadIdx less than 64. Part c: a loop with trip counts 3, 5, 8 and 2. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: one thread in four, 8 of 32, takes A; the other 24 take B. The warp diverges and runs both: 20 instructions."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Useful lane slots: 8 times 12 plus 24 times 8, 288, out of 20 times 32, 640. 45 percent."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: threads 0 to 63 are exactly warps 0 and 1, which all take A. Warps 2 and 3 all take B. No warp diverges."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: the warp runs the longest, 8 iterations. 18 useful out of 32: about 56 percent."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: thinking any if costs both paths. Only a warp whose threads disagree pays. Check where the condition changes relative to the warp boundaries."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "divergence is per warp, not per kernel"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "When a warp's threads disagree, it runs each path with the others masked off, and reconverges using a stack of masks."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A divergent if-else costs both paths. Divergence only happens within a warp, and a loop runs as long as its slowest thread."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: the GPU's memory hierarchy. Registers, shared memory, global memory, and the special constant and texture memories."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: the GPU memory hierarchy"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

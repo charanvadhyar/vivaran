@@ -1,0 +1,1178 @@
+{
+ "version": 1,
+ "title": "Memory coalescing",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "One warp, 32 addresses"
+    ],
+    [
+     2,
+     "Sectors and transactions"
+    ],
+    [
+     3,
+     "Five access patterns"
+    ],
+    [
+     4,
+     "What it costs in bandwidth"
+    ],
+    [
+     5,
+     "Arrays of structures"
+    ],
+    [
+     6,
+     "Rows and columns"
+    ],
+    [
+     7,
+     "Transpose with a shared tile"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "w",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "a warp executes a load",
+    ""
+   ],
+   "rows": [
+    [
+     "x = A[i];",
+     "32 threads, 32 addresses, in one instruction"
+    ],
+    [
+     "the memory system sees",
+     "one request with 32 addresses"
+    ],
+    [
+     "DRAM delivers",
+     "whole aligned blocks of bytes, not single words"
+    ],
+    [
+     "coalescing",
+     "merging the 32 addresses into as few blocks as possible"
+    ]
+   ]
+  },
+  {
+   "id": "sc",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"sector\" = 32 \"aligned bytes\" quad \"(a 128-byte cache line holds 4)\"",
+    "\"sectors for a warp\" = \"distinct\" floor(\"byte address\" / 32)",
+    "\"efficiency\" = \"bytes the threads asked for\" / (\"sectors\" times 32)",
+    "32 \"floats\" = 128 \"bytes\" quad -> \"at best 4 sectors\""
+   ]
+  },
+  {
+   "id": "pt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "pattern (float A[])",
+    "thread t reads byte",
+    "sectors",
+    "efficiency"
+   ],
+   "rows": [
+    [
+     "A[t]",
+     "4t",
+     "",
+     ""
+    ],
+    [
+     "A[t + 1]",
+     "4t + 4",
+     "",
+     ""
+    ],
+    [
+     "A[2t]",
+     "8t",
+     "",
+     ""
+    ],
+    [
+     "A[4t]",
+     "16t",
+     "",
+     ""
+    ],
+    [
+     "A[32t] or worse",
+     "128t",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "bw",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"useful bandwidth\" = \"peak\" times \"efficiency\"",
+    "\"peak 224 GB/s\": quad A[t] -> 224 quad A[4t] -> 224 times 0.25 = 56 \"GB/s\"",
+    "\"a memory-bound kernel runs 4 times slower\"",
+    "\"the roofline's bandwidth is the useful bandwidth\""
+   ]
+  },
+  {
+   "id": "aos",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "// array of structures: 16 bytes per particle",
+    "struct P { float x, y, z, w; };",
+    "P p[N];        p[i].x   // thread t reads byte 16t: 16 sectors, 25%",
+    "",
+    "// structure of arrays: each field is its own array",
+    "struct Ps { float x[N], y[N], z[N], w[N]; };",
+    "Ps q;          q.x[i]   // thread t reads byte 4t: 4 sectors, 100%"
+   ]
+  },
+  {
+   "id": "rc",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "// N x N matrix of floats, row-major, N = 1024",
+    "int t = blockIdx.x * blockDim.x + threadIdx.x;",
+    "",
+    "// one thread per row: thread t walks its row",
+    "for (k = 0; k < N; k++) sum += A[t * N + k];   // warp stride N: 32 sectors",
+    "",
+    "// one thread per column: thread t walks its column",
+    "for (k = 0; k < N; k++) sum += A[k * N + t];   // warp stride 1: 4 sectors"
+   ]
+  },
+  {
+   "id": "tr",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "// naive: out[x][y] = in[y][x]",
+    "out[x * N + y] = in[y * N + x];      // read coalesced, write stride N",
+    "",
+    "__shared__ float tile[32][33];       // 33: no bank conflicts (video 14)",
+    "tile[ty][tx] = in[(by + ty) * N + bx + tx];     // coalesced read",
+    "__syncthreads();",
+    "out[(bx + ty) * N + by + tx] = tile[tx][ty];    // coalesced write"
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "a warp of 32 threads, 32-byte sectors; thread t = 0 … 31"
+   ],
+   "rows": [
+    [
+     "a) double D[]: D[t], then D[t + 2]"
+    ],
+    [
+     "b) struct { float x, y, z; } S[]: S[t].x"
+    ],
+    [
+     "c) float A[1024][1024], row-major: A[t][0]"
+    ],
+    [
+     "for each: sectors and efficiency.  d) useful bandwidth for c, peak 300 GB/s"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "access",
+    "bytes",
+    "sectors",
+    "efficiency"
+   ],
+   "rows": [
+    [
+     "D[t]",
+     "8t … 8t + 7: 0 to 255",
+     "8",
+     "100%"
+    ],
+    [
+     "D[t + 2]",
+     "16 to 271",
+     "9",
+     "256 / 288 = 88.9%"
+    ],
+    [
+     "S[t].x",
+     "12t: 0 to 375",
+     "12",
+     "128 / 384 = 33%"
+    ],
+    [
+     "A[t][0]",
+     "4096t: one per sector",
+     "32",
+     "128 / 1024 = 12.5%"
+    ],
+    [
+     "d) useful bandwidth",
+     "300 × 0.125",
+     "",
+     "37.5 GB/s"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Two kernels can do the same arithmetic on the same data, and one runs eight times slower. Often the only difference is the order in which threads touch memory. This video shows how a GPU combines a warp's memory accesses."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Memory coalescing"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A warp's 32 addresses, how memory delivers them in sectors, five access patterns, and what they cost."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then arrays of structures, rows and columns of a matrix, a transpose using shared memory, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "warp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: when a warp executes a load, its 32 threads each supply an address, all in one instruction."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: one warp, 32 addresses"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "w"
+      },
+      {
+       "action": "highlight",
+       "target": "w[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the memory system receives a single request carrying 32 addresses."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "w[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But DRAM does not deliver single words. It delivers whole aligned blocks of bytes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "w[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Coalescing means merging those 32 addresses into as few blocks as possible. If the addresses are close together, a few blocks serve the whole warp."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "w[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a warp's 32 addresses → as few blocks as possible"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sectors",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: on recent NVIDIA GPUs, the block is a 32-byte sector. Four sectors make a 128-byte cache line."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: sectors"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "w"
+      },
+      {
+       "action": "show",
+       "target": "sc"
+      },
+      {
+       "action": "highlight",
+       "target": "sc[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To count the sectors a warp needs, divide each byte address by 32, round down, and count the distinct results."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "sc[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "sc[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Efficiency is the bytes the threads asked for, divided by the bytes actually moved: sectors times 32."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "sc[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "sc[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "32 floats are 128 bytes, so the best a warp can do is 4 sectors."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "sc[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "sc[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "efficiency = bytes used / (sectors × 32)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "patterns",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: five patterns on an array of floats. A of t: thread t reads bytes 4t to 4t plus 3. Bytes 0 to 127: exactly 4 sectors. 100 percent."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: five access patterns"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sc"
+      },
+      {
+       "action": "show",
+       "target": "pt"
+      },
+      {
+       "action": "highlight",
+       "target": "pt[0]"
+      },
+      {
+       "action": "set",
+       "target": "pt[0][2]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "pt[0][3]",
+       "value": "100%",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A of t plus 1: bytes 4 to 131. The range is still 128 bytes, but it now crosses into a fifth sector. 128 over 160: 80 percent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pt[1]"
+      },
+      {
+       "action": "set",
+       "target": "pt[1][2]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "pt[1][3]",
+       "value": "80%",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A of 2t: every other float, bytes 0 to 255. 8 sectors for 128 useful bytes: 50 percent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pt[2]"
+      },
+      {
+       "action": "set",
+       "target": "pt[2][2]",
+       "value": "8"
+      },
+      {
+       "action": "set",
+       "target": "pt[2][3]",
+       "value": "50%",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A of 4t: one float in every 16 bytes. 16 sectors: 25 percent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pt[3]"
+      },
+      {
+       "action": "set",
+       "target": "pt[3][2]",
+       "value": "16"
+      },
+      {
+       "action": "set",
+       "target": "pt[3][3]",
+       "value": "25%",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A of 32t, or any stride of 8 floats or more: every thread gets its own sector. 32 sectors, 4 useful bytes in each: 12.5 percent. Random addresses are just as bad."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pt[4]"
+      },
+      {
+       "action": "set",
+       "target": "pt[4][2]",
+       "value": "32"
+      },
+      {
+       "action": "set",
+       "target": "pt[4][3]",
+       "value": "12.5%",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The rule: consecutive threads should read consecutive addresses. Then the warp's request is one contiguous, aligned block."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pt[0]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "thread t → element t: coalesced"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bw",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: what this costs. The bandwidth that does useful work is the peak times the efficiency."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: the cost"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pt"
+      },
+      {
+       "action": "show",
+       "target": "bw"
+      },
+      {
+       "action": "highlight",
+       "target": "bw[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A GPU with a peak of 224 gigabytes per second gets all of it with A of t, but only 56 with A of 4t."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bw[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "bw[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A kernel limited by memory, like most simple kernels, then runs four times slower, with exactly the same instructions."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bw[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "bw[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In the roofline model from video 10, the slanted roof should use this useful bandwidth, not the peak."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bw[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "bw[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "useful bandwidth = peak × efficiency"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "aos",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the most common cause in real code. An array of structures: each particle holds x, y, z and w, 16 bytes."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: arrays of structures"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bw"
+      },
+      {
+       "action": "show",
+       "target": "aos"
+      },
+      {
+       "action": "mark_lines",
+       "target": "aos",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A kernel that reads only x makes thread t read byte 16t: a stride of 4 floats. 16 sectors, 25 percent."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "aos",
+       "from": 3,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Turn it inside out: a structure of arrays, one array per field."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "aos",
+       "from": 5,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the x values are contiguous. Thread t reads byte 4t: 4 sectors, 100 percent. Same data, four times the useful bandwidth."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "aos",
+       "from": 7,
+       "to": 7
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "GPUs prefer structures of arrays"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rc",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a matrix stored row by row, 1024 by 1024 floats. Each thread sums one line of the matrix."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: rows and columns"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "aos"
+      },
+      {
+       "action": "show",
+       "target": "rc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "rc",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If each thread walks its own row, then at each step k, thread t reads A of t times N plus k. Neighbouring threads are N floats apart: 32 sectors, 12.5 percent."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rc",
+       "from": 4,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If each thread walks its own column, at each step thread t reads A of k times N plus t. Neighbouring threads read neighbouring floats: 4 sectors."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rc",
+       "from": 7,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This is the opposite of a CPU, where one thread walking a row is the cache-friendly choice. On a GPU, what matters is what the 32 threads do at the same moment."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "look across the warp, not along a thread"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tr",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: some kernels cannot be coalesced both ways. A transpose reads in of y, x and writes out of x, y."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: transpose with a tile"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rc"
+      },
+      {
+       "action": "show",
+       "target": "tr"
+      },
+      {
+       "action": "mark_lines",
+       "target": "tr",
+       "from": 1,
+       "to": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With threads running along x, the read is coalesced, but the write has stride N: 32 sectors per warp."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tr",
+       "from": 2,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The fix uses shared memory. A block declares a 32 by 33 tile; the 33 avoids bank conflicts, as in the last video."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tr",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The block reads a 32 by 32 square of the input, row by row: coalesced."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tr",
+       "from": 5,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then it writes the square out row by row, reading the tile by column. The transposing happens in fast shared memory, and both global accesses are coalesced."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tr",
+       "from": 7,
+       "to": 7
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "shared memory turns strided access into coalesced"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question. A warp of 32 threads, and 32-byte sectors."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tr"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For each access, find the sectors and the efficiency; then the useful bandwidth for c, with a peak of 300 gigabytes per second. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: a double is 8 bytes, so 32 doubles are 256 bytes, 0 to 255: 8 sectors, 100 percent."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "D of t plus 2 starts at byte 16 and ends at 271. That reaches sector 8: 9 sectors. 256 over 288: 88.9 percent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: each structure is 12 bytes, so thread t reads byte 12t. The last x ends at byte 375: sectors 0 to 11, 12 of them. 128 useful bytes out of 384: one third."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: rows are 4096 bytes apart, so each thread needs its own sector. 32 sectors, 12.5 percent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: 300 times 0.125: 37.5 gigabytes per second of useful bandwidth."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[4][3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: counting addresses instead of sectors. A of t plus 1 touches 32 addresses, but costs 5 sectors, not 4."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "count distinct sectors, not threads"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A warp's 32 addresses are served in 32-byte sectors. Efficiency is useful bytes over bytes moved, and useful bandwidth is the peak times that."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Use structures of arrays, have neighbouring threads touch neighbouring elements, and use a shared tile when one side must be strided."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: which loops can run in parallel at all. Loop-carried dependences."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: loop-carried dependences"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

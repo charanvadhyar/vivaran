@@ -1,0 +1,1169 @@
+{
+ "version": 1,
+ "title": "Loop-carried dependences",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Can the iterations run at once?"
+    ],
+    [
+     2,
+     "Carried, or within one iteration"
+    ],
+    [
+     3,
+     "Following the chain"
+    ],
+    [
+     4,
+     "A carried dependence that is not a cycle"
+    ],
+    [
+     5,
+     "Dependence distance"
+    ],
+    [
+     6,
+     "True, anti and output dependences"
+    ],
+    [
+     7,
+     "When the compiler cannot tell"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "ok",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "for (i = 999; i >= 0; i--)",
+    "    x[i] = x[i] + s;          // iteration i touches only x[i]",
+    "",
+    "for (i = 1; i < 1000; i++)",
+    "    x[i] = x[i - 1] + s;      // iteration i needs iteration i - 1"
+   ]
+  },
+  {
+   "id": "e1",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "for (i = 0; i < 100; i++) {",
+    "    A[i+1] = A[i] + C[i];      /* S1 */",
+    "    B[i+1] = B[i] + A[i+1];    /* S2 */",
+    "}"
+   ]
+  },
+  {
+   "id": "e1d",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "dependence",
+    "value",
+    "kind"
+   ],
+   "rows": [
+    [
+     "S1 → S1",
+     "A[i] was written as A[i+1] last iteration",
+     "loop-carried"
+    ],
+    [
+     "S2 → S2",
+     "B[i] was written as B[i+1] last iteration",
+     "loop-carried"
+    ],
+    [
+     "S1 → S2",
+     "A[i+1] written earlier in the same iteration",
+     "within the iteration"
+    ]
+   ]
+  },
+  {
+   "id": "tr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "iteration",
+    "S1 reads",
+    "S1 writes",
+    "S2 reads",
+    "S2 writes"
+   ],
+   "rows": [
+    [
+     "0",
+     "A[0]",
+     "A[1]",
+     "B[0], A[1]",
+     "B[1]"
+    ],
+    [
+     "1",
+     "A[1]",
+     "A[2]",
+     "B[1], A[2]",
+     "B[2]"
+    ],
+    [
+     "2",
+     "A[2]",
+     "A[3]",
+     "B[2], A[3]",
+     "B[3]"
+    ],
+    [
+     "3",
+     "A[3]",
+     "A[4]",
+     "B[3], A[4]",
+     "B[4]"
+    ]
+   ]
+  },
+  {
+   "id": "e2",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "for (i = 0; i < 100; i++) {",
+    "    A[i] = A[i] + B[i];        /* S1: uses B[i] from S2 last time */",
+    "    B[i+1] = C[i] + D[i];      /* S2: uses nothing from S1 */",
+    "}",
+    "",
+    "A[0] = A[0] + B[0];                           // first S1 on its own",
+    "for (i = 0; i < 99; i++) {",
+    "    B[i+1] = C[i] + D[i];",
+    "    A[i+1] = A[i+1] + B[i+1];   // now within one iteration",
+    "}",
+    "B[100] = C[99] + D[99];                       // last S2 on its own"
+   ]
+  },
+  {
+   "id": "ds",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "for (i = 3; i < 1000; i++)",
+    "    A[i] = A[i-3] + B[i];      // distance 3",
+    "",
+    "// A[3], A[4], A[5] need only A[0], A[1], A[2]: independent",
+    "// A[6], A[7], A[8] need A[3], A[4], A[5]",
+    "// so 3 at a time can run in parallel, but not 4"
+   ]
+  },
+  {
+   "id": "ty",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "kind",
+    "pattern",
+    "example",
+    "real?"
+   ],
+   "rows": [
+    [
+     "true (RAW)",
+     "write, then read",
+     "X[i] = …;  … = X[i];",
+     "yes: data flows"
+    ],
+    [
+     "anti (WAR)",
+     "read, then write",
+     "… = X[i];  X[i] = …;",
+     "no: a name clash"
+    ],
+    [
+     "output (WAW)",
+     "write, then write",
+     "X[i] = …;  X[i] = …;",
+     "no: a name clash"
+    ]
+   ]
+  },
+  {
+   "id": "al",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "void add(float *x, float *y, int n) {",
+    "    for (i = 0; i < n; i++)",
+    "        x[i] = y[i] + 1;        // safe only if x and y do not overlap",
+    "}",
+    "add(p + 1, p, n);              // overlap: x[i] is y[i+1], a carried dependence",
+    "",
+    "void add(float *restrict x, float *restrict y, int n);   // promise: no overlap"
+   ]
+  },
+  {
+   "id": "q",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "// a)",
+    "for (i = 0; i < 100; i++) {",
+    "    A[i] = B[i] + C[i];     /* S1 */",
+    "    D[i] = A[i] * E[i];     /* S2 */",
+    "    B[i+1] = D[i] + 1;      /* S3 */",
+    "}",
+    "// b) for (i = 0; i < 100; i++) A[i+4] = A[i] * 2;",
+    "// c) for (i = 0; i < 100; i++) { A[i] = B[i] + 1; B[i+1] = C[i] * 2; }",
+    "// for each: dependences, which are carried, can it run in parallel?"
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "loop",
+    "dependences",
+    "parallel?"
+   ],
+   "rows": [
+    [
+     "a",
+     "S1 → S2 (A[i]), S2 → S3 (D[i]): within; S3 → S1 (B[i]): carried",
+     "no: S3 → S1 → S2 → S3 is a cycle"
+    ],
+    [
+     "b",
+     "A[i+4] read 4 iterations later: carried, distance 4",
+     "4 at a time"
+    ],
+    [
+     "c",
+     "S2 → S1 (B[i]): carried, but no cycle",
+     "yes, after the rewrite"
+    ]
+   ]
+  },
+  {
+   "id": "qc",
+   "type": "code",
+   "region": "center",
+   "language": "c",
+   "lines": [
+    "A[0] = B[0] + 1;",
+    "for (i = 0; i < 99; i++) {",
+    "    B[i+1] = C[i] * 2;",
+    "    A[i+1] = B[i+1] + 1;      // no carried dependence: fully parallel",
+    "}",
+    "B[100] = C[99] * 2;"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Vector units, SIMD instructions and GPUs all need the same thing: loop iterations that can run at the same time. This video shows how to tell, by finding the dependences between iterations."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Loop-carried dependences"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The basic question, dependences carried between iterations, following the chain, and a dependence that can be removed by rewriting."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then dependence distance, the three kinds of dependence, pointers that hide dependences, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ok",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: in this loop, iteration i reads and writes only x of i. No iteration needs another, so all 1000 can run at once."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: can the iterations run at once?"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "ok"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ok",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In this one, iteration i reads x of i minus 1, written by the iteration before. Each must wait for the last: the loop is sequential."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ok",
+       "from": 4,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A dependence from one iteration to a later one is called loop-carried. Loop-level parallelism exists when there are no loop-carried dependences."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "parallel loop = no loop-carried dependence"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "e1",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the textbook's first example. Two statements, S1 and S2."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: carried or within"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ok"
+      },
+      {
+       "action": "show",
+       "target": "e1"
+      },
+      {
+       "action": "mark_lines",
+       "target": "e1",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "S1 reads A of i, and S1 itself wrote that value, as A of i plus 1, in the previous iteration."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "e1",
+       "from": 2,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "S2 does the same with B: it reads B of i, written by S2 last time."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "e1",
+       "from": 3,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And S2 reads A of i plus 1, which S1 wrote earlier in the same iteration."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "e1"
+      },
+      {
+       "action": "show",
+       "target": "e1d"
+      },
+      {
+       "action": "highlight",
+       "target": "e1d[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So two dependences are loop-carried, S1 on itself and S2 on itself. One is within a single iteration, and does not stop the iterations from running at once."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "e1d[0..=1]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "S1 → S1 and S2 → S2 are carried: sequential"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: to see it, list what each iteration reads and writes. Iteration 0 writes A of 1."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: following the chain"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "e1d"
+      },
+      {
+       "action": "show",
+       "target": "tr"
+      },
+      {
+       "action": "highlight",
+       "target": "tr[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Iteration 1 reads A of 1. So it cannot start until iteration 0 has finished S1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[1][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The same holds for every pair: A of 2, A of 3, A of 4. A chain through all 100 iterations."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[1][2]"
+      },
+      {
+       "action": "highlight",
+       "target": "tr[2][1]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "tr[2][2]",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "tr[3][1]",
+       "delay": 0.9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Compare S2 reading A of 1 in iteration 0: written by S1 in the same row. A dependence inside one row does not stop the rows from running together; each row just runs S1 before S2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[0][2]"
+      },
+      {
+       "action": "highlight",
+       "target": "tr[0][3]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And for B too. The value read in one row was written in the row above. That is a loop-carried dependence, seen in a table."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[0][4]"
+      },
+      {
+       "action": "highlight",
+       "target": "tr[1][3]",
+       "delay": 0.3
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a value written in one row, read in the next"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "e2",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: a second example. S1 reads B of i, which S2 wrote in the previous iteration. That is loop-carried."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: carried, but no cycle"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tr"
+      },
+      {
+       "action": "show",
+       "target": "e2"
+      },
+      {
+       "action": "mark_lines",
+       "target": "e2",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But S2 uses nothing from S1, and nothing from itself. The dependence goes one way, S2 to S1, with no cycle back."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "e2",
+       "from": 3,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the loop can be rewritten. Do the first S1 on its own."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "e2",
+       "from": 6,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Inside the loop, put S2 first, then the next iteration's S1. Now S1 reads B of i plus 1, written just before, in the same iteration."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "e2",
+       "from": 7,
+       "to": 10
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Finish with the last S2 on its own. The new loop has no carried dependence, so its 99 iterations can run in parallel."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "e2",
+       "from": 11,
+       "to": 11
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "no cycle: rewrite and parallelise"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dist",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: here A of i depends on A of i minus 3. The dependence distance is 3."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: dependence distance"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "e2"
+      },
+      {
+       "action": "show",
+       "target": "ds"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ds",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A of 3, 4 and 5 need only A of 0, 1 and 2, which already exist. Those three can be computed together."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ds",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A of 6, 7 and 8 need A of 3, 4 and 5: the next group of three."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ds",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the loop runs in parallel 3 at a time, but not 4: a vector of 4 would read A of 6 before it is written. A distance of d allows vectors of length d."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ds",
+       "from": 6,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In practice a distance of 3 helps little: a 64-element vector register, or a warp of 32, would be mostly idle. A distance of 64 or more lets a whole vector, or a whole warp, run at once."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "distance d: d iterations at a time"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "types",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: dependences come in three kinds. A true dependence: write, then read. Data really flows from one to the other."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: three kinds"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ds"
+      },
+      {
+       "action": "show",
+       "target": "ty"
+      },
+      {
+       "action": "highlight",
+       "target": "ty[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An antidependence: read, then write. The later write must not overwrite the value before it is read."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ty[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An output dependence: two writes to the same place. The final value must come from the later one."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ty[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Only true dependences are real. Anti and output dependences come from reusing a name, and renaming removes them. That is the next video."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ty[1][3]"
+      },
+      {
+       "action": "highlight",
+       "target": "ty[2][3]",
+       "delay": 0.3
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "only true dependences are real"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "alias",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: with pointers, the compiler often cannot tell. This function looks parallel."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: when the compiler cannot tell"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ty"
+      },
+      {
+       "action": "show",
+       "target": "al"
+      },
+      {
+       "action": "mark_lines",
+       "target": "al",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But if it is called with x one element past y, then x of i is y of i plus 1. Each iteration writes what the next one reads: a carried dependence."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "al",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the compiler must assume the worst and not vectorise, unless the programmer promises there is no overlap, with the restrict keyword."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "al",
+       "from": 7,
+       "to": 7
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "unknown pointers: assume a dependence"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: three loops."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "al"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 1,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For each, find the dependences, say which are carried, and whether the loop can run in parallel. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 7,
+       "to": 9
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Loop a: S2 reads A of i from S1, and S3 reads D of i from S2. Both are within one iteration."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But S1 reads B of i, which S3 wrote last iteration. Carried. And it closes a cycle: S3, then S1, then S2, then S3 again. Loop a is sequential."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Loop b: A of i plus 4 is read 4 iterations later. Carried, with distance 4: it runs 4 iterations at a time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Loop c: S1 reads B of i from S2's last iteration. Carried, but S2 depends on nothing, so there is no cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Rewrite it as in stage 4: the first S1 alone, then S2 followed by the next S1, then the last S2 alone. The loop is now fully parallel."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "qc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "qc",
+       "from": 1,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: calling every carried dependence fatal. Look for a cycle first."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "carried + cycle = sequential"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qc"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A loop is parallel when no iteration needs a value from another. Tables of reads and writes show the carried dependences, and a carried dependence without a cycle can be rewritten away."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A distance d allows d iterations at once. Only true dependences are real, and unknown pointers force the compiler to assume the worst."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: a test that decides whether a dependence can exist, and how to remove name dependences. The GCD test."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: the GCD test"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
