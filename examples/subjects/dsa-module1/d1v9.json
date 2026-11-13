@@ -1,0 +1,1405 @@
+{
+ "version": 1,
+ "title": "Singly linked lists",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Nodes and pointers"
+    ],
+    [
+     2,
+     "Walking the list"
+    ],
+    [
+     3,
+     "Inserting"
+    ],
+    [
+     4,
+     "Deleting"
+    ],
+    [
+     5,
+     "Reversing in place"
+    ],
+    [
+     6,
+     "Arrays or linked lists?"
+    ],
+    [
+     7,
+     "Two-pointer tricks"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "ll",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "hd",
+     "label": "head",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "a",
+     "label": "10",
+     "at": [
+      2,
+      1
+     ]
+    },
+    {
+     "id": "b",
+     "label": "20",
+     "at": [
+      4,
+      1
+     ]
+    },
+    {
+     "id": "c",
+     "label": "30",
+     "at": [
+      6,
+      1
+     ]
+    },
+    {
+     "id": "d",
+     "label": "40",
+     "at": [
+      8,
+      1
+     ]
+    },
+    {
+     "id": "nul",
+     "label": "null",
+     "at": [
+      10,
+      1
+     ],
+     "shape": "pill"
+    }
+   ],
+   "edges": [
+    {
+     "from": "hd",
+     "to": "a"
+    },
+    {
+     "from": "a",
+     "to": "b"
+    },
+    {
+     "from": "b",
+     "to": "c"
+    },
+    {
+     "from": "c",
+     "to": "d"
+    },
+    {
+     "from": "d",
+     "to": "nul"
+    }
+   ]
+  },
+  {
+   "id": "nd",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "a node",
+    ""
+   ],
+   "rows": [
+    [
+     "data",
+     "the value stored"
+    ],
+    [
+     "next",
+     "the address of the next node, or null at the end"
+    ],
+    [
+     "head",
+     "a pointer to the first node: the only entry point"
+    ],
+    [
+     "nodes live anywhere in memory",
+     "no shifting, no fixed size, but no A[i]"
+    ]
+   ]
+  },
+  {
+   "id": "tc",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "SEARCH(head, x)",
+    "    p = head",
+    "    while p != null and p.data != x",
+    "        p = p.next",
+    "    return p              // null if x is absent",
+    "",
+    "// every operation that needs position k walks k nodes: Θ(n) worst"
+   ]
+  },
+  {
+   "id": "rv",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "z",
+     "label": "null",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n1",
+     "label": "1",
+     "at": [
+      2,
+      1
+     ]
+    },
+    {
+     "id": "n2",
+     "label": "2",
+     "at": [
+      4,
+      1
+     ]
+    },
+    {
+     "id": "n3",
+     "label": "3",
+     "at": [
+      6,
+      1
+     ]
+    },
+    {
+     "id": "n4",
+     "label": "4",
+     "at": [
+      8,
+      1
+     ]
+    },
+    {
+     "id": "zz",
+     "label": "null",
+     "at": [
+      10,
+      1
+     ],
+     "shape": "pill"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n1",
+     "to": "n2"
+    },
+    {
+     "from": "n2",
+     "to": "n3"
+    },
+    {
+     "from": "n3",
+     "to": "n4"
+    },
+    {
+     "from": "n4",
+     "to": "zz"
+    }
+   ]
+  },
+  {
+   "id": "pv",
+   "type": "pointer",
+   "label": "prev",
+   "target": "rv.z"
+  },
+  {
+   "id": "cu",
+   "type": "pointer",
+   "label": "curr",
+   "target": "rv.n1"
+  },
+  {
+   "id": "rc",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "REVERSE(head)",
+    "    prev = null;  curr = head",
+    "    while curr != null",
+    "        next = curr.next      // remember the rest",
+    "        curr.next = prev      // turn the arrow round",
+    "        prev = curr;  curr = next",
+    "    return prev               // the new head"
+   ]
+  },
+  {
+   "id": "cmp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "operation",
+    "array",
+    "singly linked list"
+   ],
+   "rows": [
+    [
+     "access element k",
+     "Θ(1)",
+     "Θ(k)"
+    ],
+    [
+     "insert or delete at the front",
+     "Θ(n): shift",
+     "Θ(1)"
+    ],
+    [
+     "insert after a known node",
+     "Θ(n): shift",
+     "Θ(1)"
+    ],
+    [
+     "insert at the end",
+     "Θ(1) if there is room",
+     "Θ(1) with a tail pointer"
+    ],
+    [
+     "extra memory",
+     "none (unused capacity)",
+     "one pointer per node"
+    ],
+    [
+     "cache behaviour",
+     "contiguous: fast",
+     "scattered: slower"
+    ]
+   ]
+  },
+  {
+   "id": "tp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "slow and fast pointers",
+    ""
+   ],
+   "rows": [
+    [
+     "slow moves 1, fast moves 2",
+     "when fast reaches the end, slow is at the middle"
+    ],
+    [
+     "1 → 2 → 3 → 4 → 5 → 6 → 7",
+     "middle: 4, after 3 moves"
+    ],
+    [
+     "cycle check (Floyd)",
+     "if fast ever meets slow, the list has a cycle"
+    ],
+    [
+     "k-th from the end",
+     "start one pointer k nodes ahead, move both"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question: start with 10 → 20 → 30 → 40"
+   ],
+   "rows": [
+    [
+     "a) insert 5 at the head; insert 25 after 20; delete 30. Draw the list."
+    ],
+    [
+     "b) reverse it: the final list, and how many next pointers change?"
+    ],
+    [
+     "c) where does the slow pointer stop on 1 → 2 → 3 → 4?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a",
+     "new.next = head; head = new",
+     "5 → 10 → 20 → 30 → 40"
+    ],
+    [
+     "a",
+     "new.next = p.next; p.next = new  (p at 20)",
+     "5 → 10 → 20 → 25 → 30 → 40"
+    ],
+    [
+     "a",
+     "q at 25: q.next = q.next.next",
+     "5 → 10 → 20 → 25 → 40"
+    ],
+    [
+     "b",
+     "every node's next is turned round: 5 changes",
+     "40 → 25 → 20 → 10 → 5"
+    ],
+    [
+     "c",
+     "fast: 1 → 3 → null after 4; slow: 1 → 2 → 3",
+     "3 (the second of the two middles)"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Arrays are fast to read but slow to change, because their elements sit side by side. A linked list breaks that rule: each element can live anywhere, and points to the next. This video builds one, inserts, deletes and reverses it."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Singly linked lists"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Nodes and pointers, walking the list, inserting, and deleting."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then reversing a list in place, arrays against linked lists, two-pointer tricks, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "node",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a linked list is a chain of nodes. Each node holds data, and next, the address of the following node."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: nodes and pointers"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "nd"
+      },
+      {
+       "action": "highlight",
+       "target": "nd[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "head points to the first node: it is the only way in. The last node's next is null."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nd[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here is the list 10, 20, 30, 40."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "nd"
+      },
+      {
+       "action": "show",
+       "target": "ll"
+      },
+      {
+       "action": "highlight",
+       "target": "ll.hd"
+      },
+      {
+       "action": "highlight",
+       "target": "ll.a",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The nodes can be anywhere in memory, so nothing ever shifts and there is no fixed size. The price: there is no A of i. To reach the fourth node, you must follow three arrows."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ll.d"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "node = data + next · head = the way in"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "walk",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: walking the list. Start a pointer p at head."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: walking the list"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ll"
+      },
+      {
+       "action": "show",
+       "target": "tc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "tc",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "While p is not null and its data is not x, move p to p dot next."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tc",
+       "from": 3,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Return p: the node holding x, or null if the walk fell off the end."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tc",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Searching, counting, printing, and reaching position k all walk the list: Theta of n in the worst case. Even sorted, a linked list cannot use binary search, because it cannot jump to the middle."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tc",
+       "from": 7,
+       "to": 7
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "no random access: walking is Θ(n)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ins",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: insert 5 at the front. Make a node, point its next at the current first node, 10."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: inserting"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tc"
+      },
+      {
+       "action": "show",
+       "target": "ll"
+      },
+      {
+       "action": "add_node",
+       "target": "ll",
+       "id": "e",
+       "label": "5",
+       "at": [
+        1,
+        0
+       ]
+      },
+      {
+       "action": "add_edge",
+       "target": "ll",
+       "from": "e",
+       "to": "a",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then move head to the new node. Two pointer changes: Theta of 1, however long the list."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "ll.hd->a"
+      },
+      {
+       "action": "add_edge",
+       "target": "ll",
+       "from": "hd",
+       "to": "e",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "ll.e",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The order matters. Move head first, and the rest of the list is lost: nothing points to 10 any more."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ll.a"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert 25 after 20. Point the new node at 20's successor, 30, then point 20 at the new node."
+     },
+     "do": [
+      {
+       "action": "add_node",
+       "target": "ll",
+       "id": "f",
+       "label": "25",
+       "at": [
+        5,
+        0
+       ]
+      },
+      {
+       "action": "add_edge",
+       "target": "ll",
+       "from": "f",
+       "to": "c",
+       "delay": 0.3
+      },
+      {
+       "action": "remove",
+       "target": "ll.b->c",
+       "delay": 0.5
+      },
+      {
+       "action": "add_edge",
+       "target": "ll",
+       "from": "b",
+       "to": "f",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Again Theta of 1, once you hold a pointer to 20. Finding 20 is the walk that costs Theta of n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ll.f"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "new.next = p.next, then p.next = new"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "del",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: delete 30. We need the node before it, here 25, because that is the pointer that must change."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: deleting"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "highlight",
+       "target": "ll.f"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Set 25's next to 30's next, which is 40. Nothing points to 30 any more: it is unlinked, and its memory can be freed."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "ll.f->c"
+      },
+      {
+       "action": "add_edge",
+       "target": "ll",
+       "from": "f",
+       "to": "d",
+       "delay": 0.3
+      },
+      {
+       "action": "dim",
+       "target": "ll.c",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Remove it."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "ll.c"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Deleting the first node is the special case: there is no node before it, so head itself moves to head dot next. Forgetting this case is the classic bug."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ll.hd"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "delete: prev.next = prev.next.next"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rev",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: reverse a list in place, using three pointers: prev, curr and next."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: reversing in place"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ll"
+      },
+      {
+       "action": "show",
+       "target": "rc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "rc",
+       "from": 1,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "prev starts at null, curr at the head. Each pass saves curr's next, turns curr's arrow round to point at prev, then moves both pointers one step."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rc",
+       "from": 3,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The list 1, 2, 3, 4. prev is null, curr is 1."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rc"
+      },
+      {
+       "action": "show",
+       "target": "rv"
+      },
+      {
+       "action": "show",
+       "target": "pv"
+      },
+      {
+       "action": "show",
+       "target": "cu"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pass 1: save next, 2. Point 1 back at null. prev moves to 1, curr to 2."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "rv.n1->n2"
+      },
+      {
+       "action": "add_edge",
+       "target": "rv",
+       "from": "n1",
+       "to": "z",
+       "delay": 0.3
+      },
+      {
+       "action": "point",
+       "target": "pv",
+       "to": "rv.n1",
+       "delay": 0.6
+      },
+      {
+       "action": "point",
+       "target": "cu",
+       "to": "rv.n2",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pass 2: point 2 back at 1. prev moves to 2, curr to 3."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "rv.n2->n3"
+      },
+      {
+       "action": "add_edge",
+       "target": "rv",
+       "from": "n2",
+       "to": "n1",
+       "delay": 0.3
+      },
+      {
+       "action": "point",
+       "target": "pv",
+       "to": "rv.n2",
+       "delay": 0.6
+      },
+      {
+       "action": "point",
+       "target": "cu",
+       "to": "rv.n3",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pass 3: point 3 back at 2. Pass 4: point 4 back at 3."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "rv.n3->n4"
+      },
+      {
+       "action": "add_edge",
+       "target": "rv",
+       "from": "n3",
+       "to": "n2",
+       "delay": 0.2
+      },
+      {
+       "action": "remove",
+       "target": "rv.n4->zz",
+       "delay": 0.4
+      },
+      {
+       "action": "add_edge",
+       "target": "rv",
+       "from": "n4",
+       "to": "n3",
+       "delay": 0.5
+      },
+      {
+       "action": "point",
+       "target": "pv",
+       "to": "rv.n4",
+       "delay": 0.7
+      },
+      {
+       "action": "point",
+       "target": "cu",
+       "to": "rv.zz",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "curr is null, so the loop stops. prev, at 4, is the new head: 4, 3, 2, 1. One pass, Theta of n time, and Theta of 1 extra space."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "rv.n4"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "save next · turn the arrow · advance"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cmp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: arrays or linked lists? Access by position: the array wins, Theta of 1 against Theta of k."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: arrays or linked lists?"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rv"
+      },
+      {
+       "action": "hide",
+       "target": "pv"
+      },
+      {
+       "action": "hide",
+       "target": "cu"
+      },
+      {
+       "action": "show",
+       "target": "cmp"
+      },
+      {
+       "action": "highlight",
+       "target": "cmp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert or delete at the front, or after a node you already hold: the list wins, Theta of 1 against shifting."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At the end, both are Theta of 1, if the list keeps a tail pointer."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And memory: a list pays one pointer per node, and its scattered nodes are slower for the cache. Arrays win when you mostly read; lists when you often insert and delete."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp[4..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "read a lot: array · change a lot: list"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "two",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: two pointers moving at different speeds solve several classic problems. Move slow one node and fast two nodes at a time."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: two-pointer tricks"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cmp"
+      },
+      {
+       "action": "show",
+       "target": "tp"
+      },
+      {
+       "action": "highlight",
+       "target": "tp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "When fast reaches the end, slow is at the middle. On 1 to 7: fast visits 1, 3, 5, 7; slow visits 1, 2, 3, 4. Middle: 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If the list has a cycle, fast never reaches null; instead it laps slow and they meet. That is Floyd's cycle check."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And to find the k-th node from the end in one pass, start one pointer k nodes ahead and move both until the leader falls off."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tp[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "fast and slow: middle, cycle, k-th from end"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question on 10, 20, 30, 40."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tp"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert, insert, delete, then reverse and count the pointer changes, and find where the slow pointer stops on a list of 4. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert 5 at the head: point it at 10, then move head. 5, 10, 20, 30, 40."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert 25 after 20: new dot next is 30, then 20 dot next is the new node."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Delete 30: stand at 25, and set its next to 40. 5, 10, 20, 25, 40."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: reversing turns every node's next round: 5 pointer changes, plus head. 40, 25, 20, 10, 5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[3][2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: on 1, 2, 3, 4, fast goes 1, then 3, then off the end; slow goes 1, 2, 3. It stops at 3, the second of the two middle nodes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: in insertion, changing p dot next before saving where it pointed. Link the new node first."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "link the new node before breaking the old link"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A node holds data and a next pointer, and head is the way in. Walking is Theta of n, but inserting and deleting next to a known node is Theta of 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three pointers reverse a list in one pass. Arrays win at reading, lists at changing, and fast and slow pointers find middles and cycles."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: lists with two pointers per node, lists that loop back, and two applications: polynomials and a music playlist."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: doubly and circular lists"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

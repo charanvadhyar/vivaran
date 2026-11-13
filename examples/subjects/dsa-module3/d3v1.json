@@ -1,0 +1,1476 @@
+{
+ "version": 1,
+ "title": "Divide and conquer: merge sort",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Divide and conquer"
+    ],
+    [
+     2,
+     "Merging two sorted lists"
+    ],
+    [
+     3,
+     "MERGE-SORT"
+    ],
+    [
+     4,
+     "The whole sort, level by level"
+    ],
+    [
+     5,
+     "The running time: a recurrence"
+    ],
+    [
+     6,
+     "Properties, and when to use it"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "dc",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "divide and conquer",
+    ""
+   ],
+   "rows": [
+    [
+     "divide",
+     "split the problem into smaller problems of the same kind"
+    ],
+    [
+     "conquer",
+     "solve each one recursively; tiny ones directly"
+    ],
+    [
+     "combine",
+     "build the answer from the smaller answers"
+    ],
+    [
+     "merge sort",
+     "divide: halve the array  ·  conquer: sort each half  ·  combine: merge"
+    ],
+    [
+     "this module",
+     "merge sort, quicksort, Karatsuba, Strassen, fake coin"
+    ]
+   ]
+  },
+  {
+   "id": "mc",
+   "type": "code",
+   "region": "left",
+   "language": "text",
+   "lines": [
+    "MERGE(A, p, q, r)",
+    "    n1 = q − p + 1;   n2 = r − q",
+    "    copy A[p .. q] into L[1 .. n1],  A[q+1 .. r] into R[1 .. n2]",
+    "    L[n1 + 1] = ∞;   R[n2 + 1] = ∞          // sentinels",
+    "    i = 1;   j = 1",
+    "    for k = p to r",
+    "        if L[i] ≤ R[j]",
+    "            A[k] = L[i];   i = i + 1",
+    "        else A[k] = R[j];   j = j + 1"
+   ]
+  },
+  {
+   "id": "la",
+   "type": "array",
+   "region": "left",
+   "values": [
+    2,
+    4,
+    5,
+    7,
+    "∞"
+   ]
+  },
+  {
+   "id": "ra",
+   "type": "array",
+   "region": "left",
+   "values": [
+    1,
+    2,
+    3,
+    6,
+    "∞"
+   ]
+  },
+  {
+   "id": "aa",
+   "type": "array",
+   "region": "right",
+   "values": [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ]
+  },
+  {
+   "id": "pi",
+   "type": "pointer",
+   "label": "i",
+   "target": "la[0]"
+  },
+  {
+   "id": "pj",
+   "type": "pointer",
+   "label": "j",
+   "target": "ra[0]"
+  },
+  {
+   "id": "pk",
+   "type": "pointer",
+   "label": "k",
+   "target": "aa[0]"
+  },
+  {
+   "id": "ms",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "MERGE-SORT(A, p, r)",
+    "    if p < r                          // more than one element",
+    "        q = ⌊(p + r) / 2⌋                // divide",
+    "        MERGE-SORT(A, p, q)             // conquer the left half",
+    "        MERGE-SORT(A, q + 1, r)         // conquer the right half",
+    "        MERGE(A, p, q, r)               // combine",
+    "",
+    "first call:  MERGE-SORT(A, 1, n)"
+   ]
+  },
+  {
+   "id": "lv",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "level",
+    "after dividing",
+    "after merging"
+   ],
+   "rows": [
+    [
+     "0",
+     "",
+     ""
+    ],
+    [
+     "1",
+     "",
+     ""
+    ],
+    [
+     "2",
+     "",
+     ""
+    ],
+    [
+     "3",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "rec",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "T(n) = 2 T(n slash 2) + c n, quad T(1) = c",
+    "\"level\" 0: c n quad \"level\" 1: 2 dot c n/2 = c n quad \"level\" 2: 4 dot c n/4 = c n",
+    "\"levels: \" log_2 n + 1 quad \"each costs \" c n",
+    "T(n) = c n (log_2 n + 1) = Theta(n log n)",
+    "\"master method, case 2: \" a = 2, b = 2, n^(log_2 2) = n = f(n) arrow.r.double Theta(n log n)"
+   ]
+  },
+  {
+   "id": "pr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "merge sort",
+    ""
+   ],
+   "rows": [
+    [
+     "time",
+     "Θ(n log n): best, average and worst alike"
+    ],
+    [
+     "extra space",
+     "Θ(n) for L and R: not in place"
+    ],
+    [
+     "stable",
+     "yes: ties take L first (the ≤ in MERGE)"
+    ],
+    [
+     "n = 1024",
+     "about 10,240 steps against insertion sort's 523,776 comparisons, worst"
+    ],
+    [
+     "good for",
+     "linked lists, and files too big for memory (external sorting)"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "sort ⟨38, 27, 43, 3, 9, 82, 10⟩ with MERGE-SORT (q = ⌊(p + r)/2⌋)"
+    ],
+    [
+     "a) draw the tree of splits and merges"
+    ],
+    [
+     "b) how many comparisons does the final merge make, without sentinels?"
+    ],
+    [
+     "c) how many comparisons in the whole sort?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a) divide",
+     "q = 4: ⟨38 27 43 3⟩ | ⟨9 82 10⟩, then ⟨38 27⟩ ⟨43 3⟩ ⟨9 82⟩ ⟨10⟩",
+     ""
+    ],
+    [
+     "a) merge",
+     "⟨27 38⟩ ⟨3 43⟩ ⟨9 82⟩ → ⟨3 27 38 43⟩ ⟨9 10 82⟩",
+     "⟨3 9 10 27 38 43 82⟩"
+    ],
+    [
+     "b)",
+     "3<9, 9<27, 10<27, 27<82, 38<82, 43<82: left half used up",
+     "6"
+    ],
+    [
+     "c)",
+     "1 + 1 + 3 for the left, 1 + 2 for the right, 6 at the top",
+     "14"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Insertion sort needs about n squared over 4 comparisons on average: for a million items, 250 billion. Merge sort needs about 20 million. The idea behind it, divide and conquer, runs through this whole module."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Divide and conquer: merge sort"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Divide and conquer, merging, the algorithm, and a full trace."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the running time, its properties, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dc",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: divide and conquer has three parts. Divide the problem into smaller problems of the same kind."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: divide and conquer"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "dc"
+      },
+      {
+       "action": "highlight",
+       "target": "dc[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Conquer them by solving each recursively, and the tiny ones directly."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dc[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Combine their answers into the answer to the original problem."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dc[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For merge sort: divide the array into two halves. Sort each half recursively. Combine by merging the two sorted halves into one."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dc[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This module uses the same pattern for quicksort, fast multiplication of numbers and matrices, and the fake coin puzzle from the lab."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dc[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "divide · conquer · combine"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "merge",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the heart of merge sort is MERGE, from Cormen. It copies the two sorted halves into arrays L and R."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: merging"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "dc"
+      },
+      {
+       "action": "show",
+       "target": "mc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "mc",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And puts infinity at the end of each, as a sentinel: a card that never wins, so neither list ever runs out."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "mc",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then it fills A one place at a time: compare the front of L with the front of R, and copy the smaller. Ties take L."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "mc",
+       "from": 5,
+       "to": 9
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "each step: copy the smaller front element"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cormen's example: L holds 2, 4, 5, 7, and R holds 1, 2, 3, 6. i and j point at the fronts, and k at the next free place in A."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "mc"
+      },
+      {
+       "action": "show",
+       "target": "la"
+      },
+      {
+       "action": "show",
+       "target": "ra"
+      },
+      {
+       "action": "show",
+       "target": "aa"
+      },
+      {
+       "action": "show",
+       "target": "pi"
+      },
+      {
+       "action": "show",
+       "target": "pj"
+      },
+      {
+       "action": "show",
+       "target": "pk"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "1 is smaller than 2: take 1 from R."
+     },
+     "do": [
+      {
+       "action": "compare",
+       "a": "la[0]",
+       "b": "ra[0]"
+      },
+      {
+       "action": "set",
+       "target": "aa[0]",
+       "value": 1,
+       "delay": 0.4
+      },
+      {
+       "action": "point",
+       "target": "pj",
+       "to": "ra[1]",
+       "delay": 0.6
+      },
+      {
+       "action": "point",
+       "target": "pk",
+       "to": "aa[1]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2 against 2: a tie, so take 2 from L."
+     },
+     "do": [
+      {
+       "action": "compare",
+       "a": "la[0]",
+       "b": "ra[1]"
+      },
+      {
+       "action": "set",
+       "target": "aa[1]",
+       "value": 2,
+       "delay": 0.4
+      },
+      {
+       "action": "point",
+       "target": "pi",
+       "to": "la[1]",
+       "delay": 0.6
+      },
+      {
+       "action": "point",
+       "target": "pk",
+       "to": "aa[2]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 against 2: take 2 from R."
+     },
+     "do": [
+      {
+       "action": "compare",
+       "a": "la[1]",
+       "b": "ra[1]"
+      },
+      {
+       "action": "set",
+       "target": "aa[2]",
+       "value": 2,
+       "delay": 0.4
+      },
+      {
+       "action": "point",
+       "target": "pj",
+       "to": "ra[2]",
+       "delay": 0.6
+      },
+      {
+       "action": "point",
+       "target": "pk",
+       "to": "aa[3]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 against 3: take 3 from R."
+     },
+     "do": [
+      {
+       "action": "compare",
+       "a": "la[1]",
+       "b": "ra[2]"
+      },
+      {
+       "action": "set",
+       "target": "aa[3]",
+       "value": 3,
+       "delay": 0.4
+      },
+      {
+       "action": "point",
+       "target": "pj",
+       "to": "ra[3]",
+       "delay": 0.6
+      },
+      {
+       "action": "point",
+       "target": "pk",
+       "to": "aa[4]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "4 against 6: take 4 from L."
+     },
+     "do": [
+      {
+       "action": "compare",
+       "a": "la[1]",
+       "b": "ra[3]"
+      },
+      {
+       "action": "set",
+       "target": "aa[4]",
+       "value": 4,
+       "delay": 0.4
+      },
+      {
+       "action": "point",
+       "target": "pi",
+       "to": "la[2]",
+       "delay": 0.6
+      },
+      {
+       "action": "point",
+       "target": "pk",
+       "to": "aa[5]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 against 6: take 5 from L."
+     },
+     "do": [
+      {
+       "action": "compare",
+       "a": "la[2]",
+       "b": "ra[3]"
+      },
+      {
+       "action": "set",
+       "target": "aa[5]",
+       "value": 5,
+       "delay": 0.4
+      },
+      {
+       "action": "point",
+       "target": "pi",
+       "to": "la[3]",
+       "delay": 0.6
+      },
+      {
+       "action": "point",
+       "target": "pk",
+       "to": "aa[6]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "7 against 6: take 6 from R. R is now down to its sentinel."
+     },
+     "do": [
+      {
+       "action": "compare",
+       "a": "la[3]",
+       "b": "ra[3]"
+      },
+      {
+       "action": "set",
+       "target": "aa[6]",
+       "value": 6,
+       "delay": 0.4
+      },
+      {
+       "action": "point",
+       "target": "pj",
+       "to": "ra[4]",
+       "delay": 0.6
+      },
+      {
+       "action": "point",
+       "target": "pk",
+       "to": "aa[7]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "7 against infinity: take 7. Eight steps for eight elements: the merge is linear, Theta of n."
+     },
+     "do": [
+      {
+       "action": "compare",
+       "a": "la[3]",
+       "b": "ra[4]"
+      },
+      {
+       "action": "set",
+       "target": "aa[7]",
+       "value": 7,
+       "delay": 0.4
+      },
+      {
+       "action": "point",
+       "target": "pi",
+       "to": "la[4]",
+       "delay": 0.6
+      },
+      {
+       "action": "mark",
+       "target": "aa"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "merging n elements: Θ(n)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ms",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: now the whole algorithm. If the range from p to r has more than one element:"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: MERGE-SORT"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "la"
+      },
+      {
+       "action": "hide",
+       "target": "ra"
+      },
+      {
+       "action": "hide",
+       "target": "aa"
+      },
+      {
+       "action": "hide",
+       "target": "pi"
+      },
+      {
+       "action": "hide",
+       "target": "pj"
+      },
+      {
+       "action": "hide",
+       "target": "pk"
+      },
+      {
+       "action": "show",
+       "target": "ms"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ms",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Divide: q is the midpoint, rounded down."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ms",
+       "from": 3,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Conquer: sort the left half, p to q, and the right half, q plus 1 to r, by the same procedure."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ms",
+       "from": 4,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Combine: merge them. A single element is already sorted, so the recursion stops there."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ms",
+       "from": 6,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The first call sorts the whole array, from 1 to n."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ms",
+       "from": 8,
+       "to": 8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "split at the middle, sort both halves, merge"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tree",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: sort 5, 2, 4, 7, 1, 3, 2, 6. Level 0 is the whole array: one call."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: the whole sort"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ms"
+      },
+      {
+       "action": "show",
+       "target": "lv"
+      },
+      {
+       "action": "set",
+       "target": "lv[0][1]",
+       "value": "5 2 4 7 1 3 2 6"
+      },
+      {
+       "action": "highlight",
+       "target": "lv[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each call splits its part in two: two pieces of 4, then four pieces of 2."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "lv[1][1]",
+       "value": "5 2 4 7  |  1 3 2 6"
+      },
+      {
+       "action": "set",
+       "target": "lv[2][1]",
+       "value": "5 2  |  4 7  |  1 3  |  2 6",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "lv[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then eight single elements. Three levels of halving, from 8 to 1. A single element is already sorted."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "lv[3][1]",
+       "value": "5  |  2  |  4  |  7  |  1  |  3  |  2  |  6"
+      },
+      {
+       "action": "set",
+       "target": "lv[3][2]",
+       "value": "5  |  2  |  4  |  7  |  1  |  3  |  2  |  6",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "lv[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the merges, from the bottom up. 5 and 2 become 2, 5. 4, 7 stays. 1, 3 stays. 2, 6 stays."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "lv[2][2]",
+       "value": "2 5  |  4 7  |  1 3  |  2 6"
+      },
+      {
+       "action": "highlight",
+       "target": "lv[2][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next level: 2, 5 merged with 4, 7 gives 2, 4, 5, 7. And 1, 3 with 2, 6 gives 1, 2, 3, 6: exactly the L and R we merged in stage 2."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "lv[1][2]",
+       "value": "2 4 5 7  |  1 2 3 6"
+      },
+      {
+       "action": "highlight",
+       "target": "lv[1][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The top merge gives 1, 2, 2, 3, 4, 5, 6, 7. Every level does merges totalling n elements of work."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "lv[0][2]",
+       "value": "1 2 2 3 4 5 6 7"
+      },
+      {
+       "action": "highlight",
+       "target": "lv[0][2]"
+      },
+      {
+       "action": "mark",
+       "target": "lv[0][2]",
+       "delay": 0.4
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "each level merges n elements in all"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One detail: the computer does not work level by level as drawn. The calls go depth first: the left half, 5, 2, 4, 7, is completely sorted before the right half is even split. The merges are the same; only their order differs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lv[1]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "time",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the running time. Two half-size subproblems, plus a merge that costs c n: T of n equals 2 T of n over 2, plus c n."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: the recurrence"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lv"
+      },
+      {
+       "action": "show",
+       "target": "rec"
+      },
+      {
+       "action": "highlight",
+       "target": "rec[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Draw it as a recursion tree. The top costs c n. The next level has 2 problems of size n over 2: c n again. Then 4 of size n over 4: c n again."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rec[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "rec[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Halving from n down to 1 takes log n steps, so there are log n plus 1 levels, each costing c n."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rec[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "rec[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Total: c n times log n plus 1, which is Theta of n log n. For our 8 elements: 4 levels of 8."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rec[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "rec[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The master method from Module 1 says the same: a and b are both 2, n to the log base 2 of 2 is n, which matches f of n. Case 2: Theta of n log n."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rec[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "rec[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "T(n) = 2T(n/2) + Θ(n) = Θ(n log n)"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What that means in practice: double n, and the time only slightly more than doubles. A million elements take 20 levels of a million steps each."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rec[3]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "prop",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: merge sort takes Theta of n log n on every input: sorted, reversed or random. There is no bad case."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: properties"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rec"
+      },
+      {
+       "action": "show",
+       "target": "pr"
+      },
+      {
+       "action": "highlight",
+       "target": "pr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Its cost: the extra arrays L and R, Theta of n space. It does not sort in place."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It is stable: equal keys keep their order, because a tie takes the left one first."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For 1024 elements: about 10 thousand steps, against more than half a million comparisons for insertion sort in the worst case."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It suits linked lists, which need no extra array to merge, and data too big for memory, merged in sorted runs from disk."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "always n log n; stable; needs Θ(n) extra"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For small pieces, below about 20 elements, insertion sort is actually faster, because it has less overhead. Real libraries switch to it at the bottom of the recursion."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[3]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pr"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Draw the tree, count the comparisons in the final merge, and in the whole sort. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: with 7 elements, q is 4, so the left part gets 4: 38, 27, 43, 3, and the right gets 9, 82, 10. Split again into pairs, and 10 on its own."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Merging up: 27, 38 and 3, 43 give 3, 27, 38, 43. On the right, 9, 82 and 10 give 9, 10, 82. The top merge gives 3, 9, 10, 27, 38, 43, 82."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: compare 3 with 9, then 27 with 9, 27 with 10, 27 with 82, 38 with 82, 43 with 82. The left half is used up, and 82 is copied without a comparison: 6."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: the left side costs 1, 1 and 3; the right side 1 and 2; the top 6. 14 comparisons in all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[3][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: counting a comparison for every element copied. Once one list runs out, the rest is copied for free."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "no comparisons once a list is exhausted"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Divide and conquer: split, solve recursively, combine. Merge sort halves the array and merges the sorted halves in linear time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The recurrence 2 T of n over 2 plus n gives Theta of n log n, always, at the price of Theta of n extra space."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: a sort that does its work before the recursion instead of after. Quicksort."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: quicksort"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

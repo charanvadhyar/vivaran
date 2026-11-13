@@ -1,0 +1,1487 @@
+{
+ "version": 1,
+ "title": "Depth-first search",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Go deep, then back up"
+    ],
+    [
+     2,
+     "The algorithm, with timestamps"
+    ],
+    [
+     3,
+     "A trace"
+    ],
+    [
+     4,
+     "Four kinds of edge"
+    ],
+    [
+     5,
+     "Cycles and back edges"
+    ],
+    [
+     6,
+     "Topological sort"
+    ],
+    [
+     7,
+     "DFS against BFS"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "lab",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "A",
+     "at": [
+      2,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "B",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "C",
+     "at": [
+      3,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "D",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "E",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "F",
+     "at": [
+      4,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "G",
+     "at": [
+      0,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "H",
+     "at": [
+      2,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "I",
+     "at": [
+      4,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "J",
+     "at": [
+      2,
+      4
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "A",
+     "to": "B"
+    },
+    {
+     "from": "A",
+     "to": "C"
+    },
+    {
+     "from": "B",
+     "to": "D"
+    },
+    {
+     "from": "B",
+     "to": "E"
+    },
+    {
+     "from": "C",
+     "to": "E"
+    },
+    {
+     "from": "C",
+     "to": "F"
+    },
+    {
+     "from": "D",
+     "to": "G"
+    },
+    {
+     "from": "E",
+     "to": "H"
+    },
+    {
+     "from": "F",
+     "to": "I"
+    },
+    {
+     "from": "G",
+     "to": "J"
+    },
+    {
+     "from": "H",
+     "to": "J"
+    },
+    {
+     "from": "I",
+     "to": "J"
+    }
+   ]
+  },
+  {
+   "id": "lo",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "DFS from A",
+    "alphabetical"
+   ],
+   "rows": [
+    [
+     "visit order",
+     "A B D G J H E C F I"
+    ],
+    [
+     "backs up when",
+     "all neighbours visited"
+    ],
+    [
+     "tree edges",
+     "one long path here"
+    ]
+   ]
+  },
+  {
+   "id": "code",
+   "type": "code",
+   "region": "right",
+   "language": "text",
+   "lines": [
+    "DFS(G)",
+    "  for each u: u.color = WHITE;  time = 0",
+    "  for each u: if u.color == WHITE: VISIT(u)",
+    "VISIT(u)",
+    "  time = time + 1;  u.d = time;  u.color = GRAY",
+    "  for each v in Adj[u]",
+    "      if v.color == WHITE: v.π = u;  VISIT(v)",
+    "  u.color = BLACK;  time = time + 1;  u.f = time"
+   ]
+  },
+  {
+   "id": "g",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "directed": true,
+   "nodes": [
+    {
+     "id": "u",
+     "label": "u",
+     "at": [
+      0,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "v",
+     "label": "v",
+     "at": [
+      1,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "w",
+     "label": "w",
+     "at": [
+      2,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "x",
+     "label": "x",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "y",
+     "label": "y",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "z",
+     "label": "z",
+     "at": [
+      2,
+      1
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "u",
+     "to": "v"
+    },
+    {
+     "from": "u",
+     "to": "x"
+    },
+    {
+     "from": "v",
+     "to": "y"
+    },
+    {
+     "from": "w",
+     "to": "y"
+    },
+    {
+     "from": "w",
+     "to": "z"
+    },
+    {
+     "from": "x",
+     "to": "v"
+    },
+    {
+     "from": "y",
+     "to": "x"
+    }
+   ]
+  },
+  {
+   "id": "ek",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "kind",
+    "v was",
+    "here"
+   ],
+   "rows": [
+    [
+     "tree",
+     "white",
+     "u→v, v→y, y→x, w→z"
+    ],
+    [
+     "back",
+     "gray: an open ancestor",
+     "x→v"
+    ],
+    [
+     "forward",
+     "black descendant",
+     "u→x"
+    ],
+    [
+     "cross",
+     "black, elsewhere",
+     "w→y"
+    ]
+   ]
+  },
+  {
+   "id": "cy",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "facts",
+    ""
+   ],
+   "rows": [
+    [
+     "parenthesis theorem",
+     "[d, f] intervals nest or are disjoint"
+    ],
+    [
+     "directed cycle",
+     "⇔ DFS finds a back edge"
+    ],
+    [
+     "here",
+     "x → v closes v → y → x → v"
+    ],
+    [
+     "undirected",
+     "a back edge (not to the parent) = a cycle"
+    ]
+   ]
+  },
+  {
+   "id": "ts",
+   "type": "diagram",
+   "region": "left",
+   "layout": "layers",
+   "directed": true,
+   "nodes": [
+    {
+     "id": "A",
+     "label": "A 10",
+     "shape": "circle"
+    },
+    {
+     "id": "B",
+     "label": "B 7",
+     "shape": "circle"
+    },
+    {
+     "id": "C",
+     "label": "C 9",
+     "shape": "circle"
+    },
+    {
+     "id": "D",
+     "label": "D 6",
+     "shape": "circle"
+    },
+    {
+     "id": "E",
+     "label": "E 5",
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "A",
+     "to": "B"
+    },
+    {
+     "from": "A",
+     "to": "C"
+    },
+    {
+     "from": "B",
+     "to": "D"
+    },
+    {
+     "from": "C",
+     "to": "D"
+    },
+    {
+     "from": "D",
+     "to": "E"
+    }
+   ]
+  },
+  {
+   "id": "tt",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "TOPOLOGICAL-SORT(G), G a DAG",
+    ""
+   ],
+   "rows": [
+    [
+     "run DFS",
+     "record each finish time"
+    ],
+    [
+     "as each vertex finishes",
+     "put it at the front of a list"
+    ],
+    [
+     "finish times here",
+     "E 5, D 6, B 7, C 9, A 10"
+    ],
+    [
+     "decreasing finish",
+     "A C B D E"
+    ],
+    [
+     "why",
+     "every edge u → v has u.f > v.f in a DAG"
+    ]
+   ]
+  },
+  {
+   "id": "vs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "BFS",
+    "DFS"
+   ],
+   "rows": [
+    [
+     "frontier kept in",
+     "a queue",
+     "a stack (or the recursion)"
+    ],
+    [
+     "order",
+     "level by level",
+     "one branch to its end, then back"
+    ],
+    [
+     "gives",
+     "shortest hop counts",
+     "d/f times, edge kinds, parenthesis structure"
+    ],
+    [
+     "used for",
+     "shortest paths, k-hop reach, diameter",
+     "cycles, topological order, components, mazes"
+    ],
+    [
+     "cost (lists)",
+     "O(n + m)",
+     "O(n + m)"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question: directed graph, edges 1→2, 1→3, 2→4, 3→4, 4→5, 5→2"
+   ],
+   "rows": [
+    [
+     "a) DFS from 1, smaller numbers first: d and f of every vertex"
+    ],
+    [
+     "b) classify every edge   c) does the graph have a cycle? can it be sorted topologically?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a) d / f",
+     "1: 1/10 · 2: 2/7 · 4: 3/6 · 5: 4/5 · 3: 8/9"
+    ],
+    [
+     "b) tree",
+     "1→2, 2→4, 4→5, 1→3"
+    ],
+    [
+     "b) back",
+     "5→2: 2 is still gray"
+    ],
+    [
+     "b) cross",
+     "3→4: 4 already finished, not 3's descendant"
+    ],
+    [
+     "c)",
+     "a back edge: cycle 2 → 4 → 5 → 2; not a DAG, no topological order"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Breadth-first search spreads out in rings. Depth-first search does the opposite: it follows one path as far as it can, then backs up and tries the next branch, like exploring a maze with one hand on the wall."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Depth-first search"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The order in which it finishes vertices reveals cycles and dependency orders. This video traces it and puts it to work."
+     }
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The idea, the algorithm with discovery and finish times, a trace, and the four kinds of edge."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then cycles, topological sorting, DFS against BFS, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "idea",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: on the lab's network, start at A and always take the alphabetically first unvisited neighbour. A, then B, then D, then G, then J."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: go deep"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "lab"
+      },
+      {
+       "action": "show",
+       "target": "lo"
+      },
+      {
+       "action": "mark",
+       "target": "lab.A"
+      },
+      {
+       "action": "mark",
+       "target": "lab.B",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "lab.D",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "lab.G",
+       "delay": 0.6
+      },
+      {
+       "action": "mark",
+       "target": "lab.J",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "From J, G is done, so go to H, then E. From E, B is done, so C; then F; then I."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "lab.H"
+      },
+      {
+       "action": "mark",
+       "target": "lab.E",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "lab.C",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "lab.F",
+       "delay": 0.6
+      },
+      {
+       "action": "mark",
+       "target": "lab.I",
+       "delay": 0.8
+      },
+      {
+       "action": "highlight",
+       "target": "lo[0]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At I every neighbour is visited, so DFS backs up, all the way to A, finding nothing new. A completely different order from BFS's A to J by distance."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lo[1..=2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "follow one path to its end, then back up"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "algo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: Cormen's DFS colours vertices white, undiscovered; gray, discovered but not finished; and black, finished. It also stamps two times on each vertex."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: the algorithm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lab"
+      },
+      {
+       "action": "hide",
+       "target": "lo"
+      },
+      {
+       "action": "show",
+       "target": "code"
+      },
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On entering a vertex, the clock ticks and the discovery time d is recorded; the vertex turns gray."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every white neighbour is visited recursively, with u as its parent."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 6,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "When all neighbours are done, the clock ticks again and the finish time f is recorded; the vertex turns black. The outer loop restarts from any vertex still white, so every vertex is reached."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 8,
+       "to": 8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "d on entry, f on exit"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: Cormen's directed example: six vertices, u, v, w, x, y, z. Start at u."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: a trace"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "show",
+       "target": "g"
+      },
+      {
+       "action": "highlight",
+       "target": "g.u"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "u is discovered at time 1. Its first neighbour v: time 2. v's neighbour y: time 3. y's neighbour x: time 4."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "g.u",
+       "value": "u 1/"
+      },
+      {
+       "action": "set",
+       "target": "g.v",
+       "value": "v 2/",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "g.y",
+       "value": "y 3/",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "g.x",
+       "value": "x 4/",
+       "delay": 0.75
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "x's only neighbour, v, is gray: still open. Nothing to visit, so x finishes at 5. Then y finishes at 6, v at 7."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "g.x",
+       "value": "x 4/5"
+      },
+      {
+       "action": "set",
+       "target": "g.y",
+       "value": "y 3/6",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "g.v",
+       "value": "v 2/7",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Back at u, its other neighbour x is already black. u finishes at 8."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "g.u",
+       "value": "u 1/8"
+      },
+      {
+       "action": "mark",
+       "target": "g.u",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "w is still white, so DFS starts again there: discovered at 9. y is black; z is new, 10, and finishes at 11. w finishes at 12."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "g.w",
+       "value": "w 9/"
+      },
+      {
+       "action": "set",
+       "target": "g.z",
+       "value": "z 10/11",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "g.w",
+       "value": "w 9/12",
+       "delay": 0.8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "u 1/8 · v 2/7 · y 3/6 · x 4/5 · w 9/12 · z 10/11"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "edges",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: each edge u to v is classified by v's colour when it is examined. Tree edges reach a white vertex: they form the DFS forest."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: four kinds of edge"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "code"
+      },
+      {
+       "action": "show",
+       "target": "ek"
+      },
+      {
+       "action": "highlight",
+       "target": "ek[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "g.u->v",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "g.v->y",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "g.y->x",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "g.w->z",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A back edge reaches a gray vertex, an ancestor that is still open: x to v."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ek[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "g.x->v",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A forward edge reaches a black descendant: u to x, since x was finished inside u's interval."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ek[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "g.u->x",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A cross edge reaches a black vertex that is not a descendant: w to y, into the first tree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ek[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "g.w->y",
+       "delay": 0.3
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "white: tree · gray: back · black: forward or cross"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cycle",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the times obey the parenthesis theorem: two intervals from d to f are either nested or disjoint. v's interval, 2 to 7, lies inside u's, 1 to 8, exactly because v is u's descendant."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: cycles"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ek"
+      },
+      {
+       "action": "show",
+       "target": "cy"
+      },
+      {
+       "action": "highlight",
+       "target": "cy[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A directed graph has a cycle exactly when DFS finds a back edge."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cy[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here, x to v is a back edge, and it closes the cycle v, y, x, v."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cy[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "g.x->v",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In an undirected graph there are only tree and back edges; any back edge other than the one to your own parent means a cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cy[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "back edge ⇔ cycle"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "topo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a directed acyclic graph, a DAG, can describe dependencies: A must happen before B and C, both before D, and D before E. A topological sort lists the vertices so every edge points forward."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: topological sort"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "g"
+      },
+      {
+       "action": "hide",
+       "target": "cy"
+      },
+      {
+       "action": "show",
+       "target": "ts"
+      },
+      {
+       "action": "show",
+       "target": "tt"
+      },
+      {
+       "action": "highlight",
+       "target": "tt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Run DFS and, as each vertex finishes, put it at the front of a list."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "From A: B, then D, then E. E finishes at 5, D at 6, B at 7. Then C, at 9, and A at 10."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Decreasing finish time: A, C, B, D, E. In a DAG every edge goes from a later finish to an earlier one, so this order respects every dependency. Theta of n plus m."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tt[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "topological order = decreasing finish time"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vs",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: DFS against BFS. BFS keeps its frontier in a queue; DFS in a stack, here the recursion."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: DFS against BFS"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ts"
+      },
+      {
+       "action": "hide",
+       "target": "tt"
+      },
+      {
+       "action": "show",
+       "target": "vs"
+      },
+      {
+       "action": "highlight",
+       "target": "vs[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "BFS gives shortest hop counts; DFS gives discovery and finish times, edge kinds and nesting."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So BFS answers distance questions, and DFS answers structure questions: cycles, orderings, connected and strongly connected components, maze solving. Both cost O of n plus m with adjacency lists."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "BFS: distances · DFS: structure"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question on a directed graph of five vertices."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "vs"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find every discovery and finish time, classify every edge, and decide whether a topological order exists. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "From 1 at time 1: 2 at time 2, 4 at 3, 5 at 4. 5's edge to 2 meets a gray vertex. 5 finishes at 5, 4 at 6, 2 at 7. Then 3 at 8; its edge to 4 meets a black vertex; 3 finishes at 9, and 1 at 10."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Tree edges: 1 to 2, 2 to 4, 4 to 5, and 1 to 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 to 2 is a back edge, because 2 was gray. 3 to 4 is a cross edge: 4 was already finished and is not 3's descendant."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: the back edge means a cycle, 2, 4, 5, 2. So it is not a DAG, and no topological order exists."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[4][1]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: calling 3 to 4 a forward edge. Forward edges go to a descendant; check the intervals: 4's interval, 3 to 6, is not inside 3's, 8 to 9."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "forward needs nested intervals"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "DFS goes deep and backs up, stamping discovery and finish times; colours classify edges as tree, back, forward or cross."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A back edge means a cycle; decreasing finish times give a topological order; and DFS answers structure questions in O of n plus m, as BFS answers distance questions."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: shortest paths when edges have weights, even negative ones. The Bellman-Ford algorithm."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: Bellman-Ford"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

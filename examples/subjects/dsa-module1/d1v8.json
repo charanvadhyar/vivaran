@@ -1,0 +1,1390 @@
+{
+ "version": 1,
+ "title": "Queues",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "First in, first out"
+    ],
+    [
+     2,
+     "A queue in an array, and its flaw"
+    ],
+    [
+     3,
+     "The circular queue"
+    ],
+    [
+     4,
+     "Full or empty?"
+    ],
+    [
+     5,
+     "A linked queue and a deque"
+    ],
+    [
+     6,
+     "Priority queues"
+    ],
+    [
+     7,
+     "The printer queue"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "ops",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "operation",
+    "does",
+    "cost"
+   ],
+   "rows": [
+    [
+     "enqueue(x)",
+     "add x at the rear",
+     "Θ(1)"
+    ],
+    [
+     "dequeue()",
+     "remove and return the front",
+     "Θ(1)"
+    ],
+    [
+     "front()",
+     "look at the front",
+     "Θ(1)"
+    ],
+    [
+     "isEmpty(), isFull()",
+     "",
+     "Θ(1)"
+    ],
+    [
+     "in at the rear, out at the front",
+     "first in, first out: FIFO",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "qa1",
+   "type": "array",
+   "region": "center",
+   "values": [
+    "",
+    "",
+    "",
+    "",
+    ""
+   ]
+  },
+  {
+   "id": "fp",
+   "type": "pointer",
+   "label": "front",
+   "target": "qa1[0]"
+  },
+  {
+   "id": "rp",
+   "type": "pointer",
+   "label": "rear",
+   "target": "qa1[0]"
+  },
+  {
+   "id": "cq",
+   "type": "array",
+   "region": "center",
+   "values": [
+    "",
+    "",
+    "",
+    "",
+    ""
+   ]
+  },
+  {
+   "id": "hp",
+   "type": "pointer",
+   "label": "head",
+   "target": "cq[0]"
+  },
+  {
+   "id": "tp",
+   "type": "pointer",
+   "label": "tail",
+   "target": "cq[0]"
+  },
+  {
+   "id": "fe",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "circular queue of n cells",
+    "test"
+   ],
+   "rows": [
+    [
+     "next index",
+     "(i + 1) mod n"
+    ],
+    [
+     "empty",
+     "head == tail"
+    ],
+    [
+     "full",
+     "head == (tail + 1) mod n: one cell is always left unused"
+    ],
+    [
+     "number of elements",
+     "(tail − head + n) mod n"
+    ],
+    [
+     "why waste a cell?",
+     "otherwise head == tail would mean both full and empty"
+    ]
+   ]
+  },
+  {
+   "id": "ld",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "structure",
+    "operations",
+    "notes"
+   ],
+   "rows": [
+    [
+     "linked queue",
+     "enqueue at rear, dequeue at front",
+     "two pointers, no fixed size, Θ(1)"
+    ],
+    [
+     "deque",
+     "insert and delete at both ends",
+     "double-ended queue"
+    ],
+    [
+     "input-restricted deque",
+     "insert at one end only",
+     "delete at both"
+    ],
+    [
+     "output-restricted deque",
+     "delete at one end only",
+     "insert at both"
+    ]
+   ]
+  },
+  {
+   "id": "pq",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "priority queue built on",
+    "insert",
+    "remove the highest priority"
+   ],
+   "rows": [
+    [
+     "unsorted array",
+     "Θ(1): append",
+     "Θ(n): search for it"
+    ],
+    [
+     "sorted array",
+     "Θ(n): shift to make room",
+     "Θ(1): it is at the end"
+    ],
+    [
+     "binary heap (Module 2)",
+     "Θ(log n)",
+     "Θ(log n)"
+    ]
+   ]
+  },
+  {
+   "id": "pr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "job",
+    "arrives",
+    "minutes",
+    "starts",
+    "finishes",
+    "waits"
+   ],
+   "rows": [
+    [
+     "J1",
+     "0",
+     "3",
+     "",
+     "",
+     ""
+    ],
+    [
+     "J2",
+     "1",
+     "2",
+     "",
+     "",
+     ""
+    ],
+    [
+     "J3",
+     "2",
+     "4",
+     "",
+     "",
+     ""
+    ],
+    [
+     "J4",
+     "6",
+     "1",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question: a circular queue with n = 6 cells, head = tail = 0"
+   ],
+   "rows": [
+    [
+     "enqueue A, B, C, D;  dequeue twice;  enqueue E, F, G;  then enqueue H"
+    ],
+    [
+     "a) head and tail after each group      b) is the queue full before H?"
+    ],
+    [
+     "c) how many elements, and in what order from the front?      d) what happens to H?"
+    ]
+   ]
+  },
+  {
+   "id": "qx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "after",
+    "head",
+    "tail",
+    "elements"
+   ],
+   "rows": [
+    [
+     "enqueue A, B, C, D",
+     "0",
+     "4",
+     "A B C D"
+    ],
+    [
+     "dequeue twice",
+     "2",
+     "4",
+     "C D"
+    ],
+    [
+     "enqueue E, F, G",
+     "2",
+     "(4 + 3) mod 6 = 1",
+     "C D E F G"
+    ],
+    [
+     "full?",
+     "head == (1 + 1) mod 6 = 2: yes",
+     "",
+     "(1 − 2 + 6) mod 6 = 5"
+    ],
+    [
+     "enqueue H",
+     "",
+     "",
+     "overflow: H is refused"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A queue is the fair structure: whoever arrives first is served first. Printers, processors, network routers and call centres all run on queues. This video builds one, finds its flaw, and fixes it."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Queues"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What a queue is, a queue in an array and its flaw, the circular queue, and how to tell full from empty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then linked queues and deques, priority queues, the printer queue from the lab, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fifo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: enqueue adds an item at the rear of the queue."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: first in, first out"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "ops"
+      },
+      {
+       "action": "highlight",
+       "target": "ops[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dequeue removes the item at the front. Front just looks at it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ops[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "All of them cost Theta of 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ops[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Items leave in the order they arrived: first in, first out, FIFO. The opposite of a stack."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ops[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "FIFO: in at the rear, out at the front"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lin",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: a queue in an array of 5 cells, with indices front and rear. Enqueue 10, 20, 30, 40 and 50: rear moves right each time."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: a queue in an array"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ops"
+      },
+      {
+       "action": "show",
+       "target": "qa1"
+      },
+      {
+       "action": "show",
+       "target": "fp"
+      },
+      {
+       "action": "show",
+       "target": "rp"
+      },
+      {
+       "action": "set",
+       "target": "qa1[0]",
+       "value": 10
+      },
+      {
+       "action": "point",
+       "target": "rp",
+       "to": "qa1[0]",
+       "delay": 0.05
+      },
+      {
+       "action": "set",
+       "target": "qa1[1]",
+       "value": 20,
+       "delay": 0.15
+      },
+      {
+       "action": "point",
+       "target": "rp",
+       "to": "qa1[1]",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "qa1[2]",
+       "value": 30,
+       "delay": 0.3
+      },
+      {
+       "action": "point",
+       "target": "rp",
+       "to": "qa1[2]",
+       "delay": 0.35
+      },
+      {
+       "action": "set",
+       "target": "qa1[3]",
+       "value": 40,
+       "delay": 0.45
+      },
+      {
+       "action": "point",
+       "target": "rp",
+       "to": "qa1[3]",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "qa1[4]",
+       "value": 50,
+       "delay": 0.6
+      },
+      {
+       "action": "point",
+       "target": "rp",
+       "to": "qa1[4]",
+       "delay": 0.65
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dequeue twice: 10 and 20 leave, and front moves right to index 2."
+     },
+     "do": [
+      {
+       "action": "dim",
+       "target": "qa1[0]"
+      },
+      {
+       "action": "point",
+       "target": "fp",
+       "to": "qa1[1]",
+       "delay": 0.2
+      },
+      {
+       "action": "dim",
+       "target": "qa1[1]",
+       "delay": 0.4
+      },
+      {
+       "action": "point",
+       "target": "fp",
+       "to": "qa1[2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now enqueue 60. rear is already at the last cell, so the queue reports overflow, even though two cells at the front are empty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa1[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa1[0..=1]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Shifting everything left on each dequeue would fix it, but that costs Theta of n. There is a better way."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "linear array queue: wasted space at the front"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "circ",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: the circular queue. Treat the array as a ring: after the last cell comes cell 0. Here, as in Cormen, head is the front, and tail is the next free cell."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: the circular queue"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa1"
+      },
+      {
+       "action": "hide",
+       "target": "fp"
+      },
+      {
+       "action": "hide",
+       "target": "rp"
+      },
+      {
+       "action": "show",
+       "target": "cq"
+      },
+      {
+       "action": "show",
+       "target": "hp"
+      },
+      {
+       "action": "show",
+       "target": "tp"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Enqueue 10, 20, 30 and 40. tail moves to 4."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "cq[0]",
+       "value": 10
+      },
+      {
+       "action": "point",
+       "target": "tp",
+       "to": "cq[1]",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "cq[1]",
+       "value": 20,
+       "delay": 0.2
+      },
+      {
+       "action": "point",
+       "target": "tp",
+       "to": "cq[2]",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "cq[2]",
+       "value": 30,
+       "delay": 0.4
+      },
+      {
+       "action": "point",
+       "target": "tp",
+       "to": "cq[3]",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "cq[3]",
+       "value": 40,
+       "delay": 0.6
+      },
+      {
+       "action": "point",
+       "target": "tp",
+       "to": "cq[4]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dequeue twice: 10 and 20 leave, and head moves to 2."
+     },
+     "do": [
+      {
+       "action": "dim",
+       "target": "cq[0]"
+      },
+      {
+       "action": "point",
+       "target": "hp",
+       "to": "cq[1]",
+       "delay": 0.2
+      },
+      {
+       "action": "dim",
+       "target": "cq[1]",
+       "delay": 0.4
+      },
+      {
+       "action": "point",
+       "target": "hp",
+       "to": "cq[2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Enqueue 50 into cell 4. tail plus 1 is 5, and 5 mod 5 is 0: tail wraps around to the start."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "cq[4]",
+       "value": 50
+      },
+      {
+       "action": "point",
+       "target": "tp",
+       "to": "cq[0]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Enqueue 60 into cell 0, reusing the space. tail is now 1. The queue holds 30, 40, 50, 60, in that order, around the ring."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "cq[0]",
+       "value": 60
+      },
+      {
+       "action": "reset",
+       "target": "cq[0]",
+       "delay": 0.1
+      },
+      {
+       "action": "point",
+       "target": "tp",
+       "to": "cq[1]",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "cq[2..=4]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every index moves by i plus 1 mod n, so every operation is still Theta of 1, and no cell is wasted for good."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "advance with (i + 1) mod n"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fe",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: when is a circular queue full, and when empty? Indices move by plus 1 mod n."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: full or empty?"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cq"
+      },
+      {
+       "action": "hide",
+       "target": "hp"
+      },
+      {
+       "action": "hide",
+       "target": "tp"
+      },
+      {
+       "action": "show",
+       "target": "fe"
+      },
+      {
+       "action": "highlight",
+       "target": "fe[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Empty: head equals tail. Nothing lies between them."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fe[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Full: one more enqueue would make tail equal head. So full means head equals tail plus 1, mod n. One cell always stays unused: our 5-cell queue holds at most 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fe[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The number of elements is tail minus head, plus n, mod n. Adding n keeps the result positive after a wrap."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fe[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why waste a cell? If the queue could fill every cell, then head equal to tail would mean both full and empty. The alternative is to keep a separate count."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fe[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "empty: head = tail · full: head = tail + 1 (mod n)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ld",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: a queue can also be a linked list with two pointers: dequeue at the front node, enqueue after the rear node. No size limit, still Theta of 1."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: linked queues and deques"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "fe"
+      },
+      {
+       "action": "show",
+       "target": "ld"
+      },
+      {
+       "action": "highlight",
+       "target": "ld[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A deque, a double-ended queue, allows inserting and deleting at both ends. It can act as a stack or as a queue."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ld[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two restricted forms: an input-restricted deque inserts at one end only but deletes at both; an output-restricted deque deletes at one end only but inserts at both."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ld[2..=3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "deque: both ends open"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pq",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a priority queue serves the most important item first, not the earliest. An emergency room, or an operating system choosing the next process."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: priority queues"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ld"
+      },
+      {
+       "action": "show",
+       "target": "pq"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On an unsorted array, insert just appends: Theta of 1. But removing the highest priority means searching: Theta of n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pq[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On a sorted array, it is the other way round: insert shifts, Theta of n; removal takes the end, Theta of 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pq[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A binary heap does both in Theta of log n. That is the right structure, and Module 2 builds it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pq[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "priority queue: heap gives log n both ways"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "print",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: the lab's printer queue. Four jobs arrive at a shared printer. Each is enqueued when it arrives, and the printer always takes the front job."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: the printer queue"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pq"
+      },
+      {
+       "action": "show",
+       "target": "pr"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "J1 arrives at minute 0 to an idle printer: it starts at once and finishes at 3. It waits 0."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "pr[0][3]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "pr[0][4]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "pr[0][5]",
+       "value": "0",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "pr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "J2 arrived at 1, but waits in the queue until J1 finishes. It starts at 3, finishes at 5: waited 2."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "pr[1][3]",
+       "value": "3"
+      },
+      {
+       "action": "set",
+       "target": "pr[1][4]",
+       "value": "5",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "pr[1][5]",
+       "value": "2",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "pr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "J3 arrived at 2, starts at 5, finishes at 9: waited 3."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "pr[2][3]",
+       "value": "5"
+      },
+      {
+       "action": "set",
+       "target": "pr[2][4]",
+       "value": "9",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "pr[2][5]",
+       "value": "3",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "pr[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "J4 arrives at 6 while J3 prints. It starts at 9 and finishes at 10: waited 3. Average wait: 8 over 4, 2 minutes."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "pr[3][3]",
+       "value": "9"
+      },
+      {
+       "action": "set",
+       "target": "pr[3][4]",
+       "value": "10",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "pr[3][5]",
+       "value": "3",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "pr[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "start = max(arrival, previous finish)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: a circular queue of 6 cells."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pr"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Track head and tail through these operations, decide whether it is full, count and list the elements, and say what happens to H. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Four enqueues: tail goes from 0 to 4. Two dequeues remove A and B: head goes to 2."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qx"
+      },
+      {
+       "action": "highlight",
+       "target": "qx[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "E goes into cell 4, F into cell 5, and G into cell 0. tail is 4 plus 3, mod 6: 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Is it full? tail plus 1 is 2, which equals head: yes. The count: 1 minus 2 plus 6, mod 6: 5 elements, C, D, E, F, G from the front."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So enqueue H is refused: overflow, with one cell, cell 1, deliberately left empty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qx[4]"
+      },
+      {
+       "action": "mark",
+       "target": "qx[4][3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: writing tail minus head for the count, which gives minus 1 here. Always add n before the mod."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "count = (tail − head + n) mod n"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qx"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A queue is first in, first out. A plain array queue wastes the cells it has dequeued; a circular queue wraps indices with mod n, and leaves one cell empty to tell full from empty."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Linked queues have no size limit, deques open both ends, priority queues serve by importance, and the printer queue serves jobs in arrival order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: the structure that frees us from contiguous memory. Linked lists."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: linked lists"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1429 @@
+{
+ "version": 1,
+ "title": "Min-max heaps",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "A double-ended priority queue"
+    ],
+    [
+     2,
+     "Min levels and max levels"
+    ],
+    [
+     3,
+     "Finding the minimum and the maximum"
+    ],
+    [
+     4,
+     "Inserting: up through grandparents"
+    ],
+    [
+     5,
+     "Deleting the minimum"
+    ],
+    [
+     6,
+     "Deleting the maximum, and costs"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "de",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "need",
+    "one heap",
+    "two heaps",
+    "min-max heap"
+   ],
+   "rows": [
+    [
+     "min and max, both fast",
+     "only one end is fast",
+     "works, but 2 copies kept in step",
+     "one array, both ends"
+    ],
+    [
+     "example uses",
+     "",
+     "",
+     "a sliding window's extremes; a bounded buffer that drops either end"
+    ],
+    [
+     "operations",
+     "",
+     "",
+     "find-min, find-max, insert, delete-min, delete-max"
+    ]
+   ]
+  },
+  {
+   "id": "lv",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "min-max heap (Atkinson et al., 1986)",
+    ""
+   ],
+   "rows": [
+    [
+     "shape",
+     "a complete binary tree in an array, as before"
+    ],
+    [
+     "levels 0, 2, 4, …",
+     "min levels: a node is ≤ everything below it"
+    ],
+    [
+     "levels 1, 3, 5, …",
+     "max levels: a node is ≥ everything below it"
+    ],
+    [
+     "so a node is compared",
+     "with its grandparent, not just its parent"
+    ]
+   ]
+  },
+  {
+   "id": "t0",
+   "type": "diagram",
+   "region": "center",
+   "layout": "tree",
+   "shape": "circle",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "h1",
+     "label": "7"
+    },
+    {
+     "id": "h2",
+     "label": "70"
+    },
+    {
+     "id": "h3",
+     "label": "40"
+    },
+    {
+     "id": "h4",
+     "label": "30"
+    },
+    {
+     "id": "h5",
+     "label": "9"
+    },
+    {
+     "id": "h6",
+     "label": "10"
+    },
+    {
+     "id": "h7",
+     "label": "15"
+    },
+    {
+     "id": "h8",
+     "label": "45"
+    },
+    {
+     "id": "h9",
+     "label": "50"
+    },
+    {
+     "id": "h10",
+     "label": "30"
+    },
+    {
+     "id": "h11",
+     "label": "20"
+    },
+    {
+     "id": "h12",
+     "label": "12"
+    }
+   ],
+   "edges": [
+    {
+     "from": "h1",
+     "to": "h2"
+    },
+    {
+     "from": "h1",
+     "to": "h3"
+    },
+    {
+     "from": "h2",
+     "to": "h4"
+    },
+    {
+     "from": "h2",
+     "to": "h5"
+    },
+    {
+     "from": "h3",
+     "to": "h6"
+    },
+    {
+     "from": "h3",
+     "to": "h7"
+    },
+    {
+     "from": "h4",
+     "to": "h8"
+    },
+    {
+     "from": "h4",
+     "to": "h9"
+    },
+    {
+     "from": "h5",
+     "to": "h10"
+    },
+    {
+     "from": "h5",
+     "to": "h11"
+    },
+    {
+     "from": "h6",
+     "to": "h12"
+    }
+   ]
+  },
+  {
+   "id": "t5",
+   "type": "diagram",
+   "region": "center",
+   "layout": "tree",
+   "shape": "circle",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "h1",
+     "label": "7"
+    },
+    {
+     "id": "h2",
+     "label": "70"
+    },
+    {
+     "id": "h3",
+     "label": "40"
+    },
+    {
+     "id": "h4",
+     "label": "30"
+    },
+    {
+     "id": "h5",
+     "label": "9"
+    },
+    {
+     "id": "h6",
+     "label": "10"
+    },
+    {
+     "id": "h7",
+     "label": "15"
+    },
+    {
+     "id": "h8",
+     "label": "45"
+    },
+    {
+     "id": "h9",
+     "label": "50"
+    },
+    {
+     "id": "h10",
+     "label": "30"
+    },
+    {
+     "id": "h11",
+     "label": "20"
+    },
+    {
+     "id": "h12",
+     "label": "12"
+    },
+    {
+     "id": "h13",
+     "label": "5"
+    }
+   ],
+   "edges": [
+    {
+     "from": "h1",
+     "to": "h2"
+    },
+    {
+     "from": "h1",
+     "to": "h3"
+    },
+    {
+     "from": "h2",
+     "to": "h4"
+    },
+    {
+     "from": "h2",
+     "to": "h5"
+    },
+    {
+     "from": "h3",
+     "to": "h6"
+    },
+    {
+     "from": "h3",
+     "to": "h7"
+    },
+    {
+     "from": "h4",
+     "to": "h8"
+    },
+    {
+     "from": "h4",
+     "to": "h9"
+    },
+    {
+     "from": "h5",
+     "to": "h10"
+    },
+    {
+     "from": "h5",
+     "to": "h11"
+    },
+    {
+     "from": "h6",
+     "to": "h12"
+    },
+    {
+     "from": "h6",
+     "to": "h13"
+    }
+   ]
+  },
+  {
+   "id": "t80",
+   "type": "diagram",
+   "region": "center",
+   "layout": "tree",
+   "shape": "circle",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "h1",
+     "label": "7"
+    },
+    {
+     "id": "h2",
+     "label": "70"
+    },
+    {
+     "id": "h3",
+     "label": "40"
+    },
+    {
+     "id": "h4",
+     "label": "30"
+    },
+    {
+     "id": "h5",
+     "label": "9"
+    },
+    {
+     "id": "h6",
+     "label": "10"
+    },
+    {
+     "id": "h7",
+     "label": "15"
+    },
+    {
+     "id": "h8",
+     "label": "45"
+    },
+    {
+     "id": "h9",
+     "label": "50"
+    },
+    {
+     "id": "h10",
+     "label": "30"
+    },
+    {
+     "id": "h11",
+     "label": "20"
+    },
+    {
+     "id": "h12",
+     "label": "12"
+    },
+    {
+     "id": "h13",
+     "label": "80"
+    }
+   ],
+   "edges": [
+    {
+     "from": "h1",
+     "to": "h2"
+    },
+    {
+     "from": "h1",
+     "to": "h3"
+    },
+    {
+     "from": "h2",
+     "to": "h4"
+    },
+    {
+     "from": "h2",
+     "to": "h5"
+    },
+    {
+     "from": "h3",
+     "to": "h6"
+    },
+    {
+     "from": "h3",
+     "to": "h7"
+    },
+    {
+     "from": "h4",
+     "to": "h8"
+    },
+    {
+     "from": "h4",
+     "to": "h9"
+    },
+    {
+     "from": "h5",
+     "to": "h10"
+    },
+    {
+     "from": "h5",
+     "to": "h11"
+    },
+    {
+     "from": "h6",
+     "to": "h12"
+    },
+    {
+     "from": "h6",
+     "to": "h13"
+    }
+   ]
+  },
+  {
+   "id": "ir",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "INSERT x at the end, position i",
+    ""
+   ],
+   "rows": [
+    [
+     "i on a min level, x > parent",
+     "swap with the parent; continue up the max levels"
+    ],
+    [
+     "i on a min level, x ≤ parent",
+     "continue up the min levels"
+    ],
+    [
+     "i on a max level",
+     "the mirror image"
+    ],
+    [
+     "continue up",
+     "swap with the grandparent while out of order"
+    ],
+    [
+     "cost",
+     "O(log n): one path, every other level"
+    ]
+   ]
+  },
+  {
+   "id": "td",
+   "type": "diagram",
+   "region": "center",
+   "layout": "tree",
+   "shape": "circle",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "h1",
+     "label": "12"
+    },
+    {
+     "id": "h2",
+     "label": "70"
+    },
+    {
+     "id": "h3",
+     "label": "40"
+    },
+    {
+     "id": "h4",
+     "label": "30"
+    },
+    {
+     "id": "h5",
+     "label": "9"
+    },
+    {
+     "id": "h6",
+     "label": "10"
+    },
+    {
+     "id": "h7",
+     "label": "15"
+    },
+    {
+     "id": "h8",
+     "label": "45"
+    },
+    {
+     "id": "h9",
+     "label": "50"
+    },
+    {
+     "id": "h10",
+     "label": "30"
+    },
+    {
+     "id": "h11",
+     "label": "20"
+    }
+   ],
+   "edges": [
+    {
+     "from": "h1",
+     "to": "h2"
+    },
+    {
+     "from": "h1",
+     "to": "h3"
+    },
+    {
+     "from": "h2",
+     "to": "h4"
+    },
+    {
+     "from": "h2",
+     "to": "h5"
+    },
+    {
+     "from": "h3",
+     "to": "h6"
+    },
+    {
+     "from": "h3",
+     "to": "h7"
+    },
+    {
+     "from": "h4",
+     "to": "h8"
+    },
+    {
+     "from": "h4",
+     "to": "h9"
+    },
+    {
+     "from": "h5",
+     "to": "h10"
+    },
+    {
+     "from": "h5",
+     "to": "h11"
+    }
+   ]
+  },
+  {
+   "id": "co",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "operation",
+    "cost"
+   ],
+   "rows": [
+    [
+     "find-min, find-max",
+     "O(1): root, or the larger root child"
+    ],
+    [
+     "insert",
+     "O(log n)"
+    ],
+    [
+     "delete-min",
+     "O(log n): trickle down through children and grandchildren"
+    ],
+    [
+     "delete-max",
+     "O(log n): the same, starting at the larger child of the root"
+    ],
+    [
+     "building from n keys",
+     "O(n), bottom-up as for heaps"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "a) insert 10, 20, 30, 5, 25, 40, 15 into an empty min-max heap: the array after each insertion"
+    ],
+    [
+     "b) find the minimum and the maximum"
+    ],
+    [
+     "c) delete the minimum: the array afterwards"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "insert",
+    "what happens",
+    "array"
+   ],
+   "rows": [
+    [
+     "10, 20, 30",
+     "20, 30 sit on a max level",
+     "10 20 30"
+    ],
+    [
+     "5",
+     "min level, < parent 20; < grandparent 10: swap",
+     "5 20 30 10"
+    ],
+    [
+     "25",
+     "min level, > parent 20: swap; then max levels",
+     "5 25 30 10 20"
+    ],
+    [
+     "40",
+     "min level, > parent 30: swap",
+     "5 25 40 10 20 30"
+    ],
+    [
+     "15",
+     "min level, < parent 40, > grandparent 5",
+     "5 25 40 10 20 30 15"
+    ],
+    [
+     "b, c",
+     "min 5, max 40 · delete 5: 15 to the root, trickles to 10",
+     "10 25 40 15 20 30"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A max-heap gives the largest key fast, but finding the smallest means searching every leaf. Some problems need both ends. The min-max heap answers both, in one array, with the same logarithmic costs. This video builds one."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Min-max heaps"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why we want both ends, the alternating levels, and finding the minimum and maximum."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then inserting, deleting from both ends, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a double-ended priority queue removes either its smallest or its largest item. One ordinary heap makes only one end fast."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: both ends"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "de"
+      },
+      {
+       "action": "highlight",
+       "target": "de[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two heaps, one min and one max, work, but every key is stored twice and deletions must be mirrored in the other heap."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "de[0][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A min-max heap does it in one array. It is used for the extremes of a sliding window, or a bounded buffer that may drop its best or its worst entry."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "de[1..=2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "one structure, both extremes"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "levels",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the shape is a complete binary tree in an array, as before. The order is new: the levels alternate."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: min and max levels"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "de"
+      },
+      {
+       "action": "show",
+       "target": "lv"
+      },
+      {
+       "action": "highlight",
+       "target": "lv[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Even levels, starting with the root at level 0, are min levels: a node there is at most every key below it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lv[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Odd levels are max levels: a node there is at least every key below it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lv[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the order runs between a node and its grandchildren, two levels apart, and that is how the algorithms move."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lv[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "even levels min, odd levels max"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "find",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: this min-max heap, from Horowitz and Sahni: 7 at the root, 70 and 40 below, then 30, 9, 10, 15, then 45, 50, 30, 20, 12."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: min and max"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lv"
+      },
+      {
+       "action": "show",
+       "target": "t0"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The root, on a min level, is at most everything: the minimum is 7."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "t0.h1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The maximum lies on level 1: the larger of the root's two children. 70 against 40: the maximum is 70. Both found in constant time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t0.h2"
+      },
+      {
+       "action": "highlight",
+       "target": "t0.h3",
+       "delay": 0.3
+      },
+      {
+       "action": "mark",
+       "target": "t0.h2",
+       "delay": 0.6
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "min = A[1] · max = max(A[2], A[3])"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ins",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: insertion. Put the key at the next free position, then compare it with its parent to decide which kind of levels it must climb."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: inserting"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "t0"
+      },
+      {
+       "action": "show",
+       "target": "ir"
+      },
+      {
+       "action": "highlight",
+       "target": "ir[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then climb two levels at a time, swapping with the grandparent while out of order. One path, every other level: O of log n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ir[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert 5. It lands at position 13, below 10. Position 13 is on level 3, a max level, but 5 is smaller than its parent 10, which sits on a min level. So 5 belongs on the min levels."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "ir"
+      },
+      {
+       "action": "show",
+       "target": "t5"
+      },
+      {
+       "action": "highlight",
+       "target": "t5.h13"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Swap it with the parent: 5 moves to position 6. Then climb the min levels: its grandparent, the root, holds 7. 5 is smaller, swap. 5 is the new minimum."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t5.h13",
+       "value": "10"
+      },
+      {
+       "action": "set",
+       "target": "t5.h6",
+       "value": "5",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "t5.h6",
+       "value": "7",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "t5.h1",
+       "value": "5",
+       "delay": 0.6
+      },
+      {
+       "action": "mark",
+       "target": "t5.h1",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert 80 instead. It lands at position 13, below 10, on a max level. 80 is larger than its parent, so it stays on the max levels and climbs by grandparents: the grandparent, 40 at position 3, is smaller, so swap. Position 3 has no grandparent. 80 is the new maximum."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "t5"
+      },
+      {
+       "action": "show",
+       "target": "t80"
+      },
+      {
+       "action": "highlight",
+       "target": "t80.h13"
+      },
+      {
+       "action": "set",
+       "target": "t80.h13",
+       "value": "40",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "t80.h3",
+       "value": "80",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "t80.h3",
+       "delay": 0.8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "parent decides the side, grandparents do the climbing"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dmin",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: delete the minimum, 7. Move the last key, 12, to the root, and shrink the heap."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: deleting the minimum"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "t80"
+      },
+      {
+       "action": "show",
+       "target": "td"
+      },
+      {
+       "action": "highlight",
+       "target": "td.h1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now trickle down. Among the root's children and grandchildren, the smallest is 9, a grandchild."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "td.h5"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "9 is smaller than 12: swap. 12 is now at position 5, on a min level. Check its parent, 70, on a max level: 12 is smaller, so no swap is needed there."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "td.h1",
+       "value": "9"
+      },
+      {
+       "action": "set",
+       "target": "td.h5",
+       "value": "12",
+       "delay": 0.1
+      },
+      {
+       "action": "mark",
+       "target": "td.h1",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Position 5's children, 30 and 20, are both larger than 12: done. The heap is 9, 70, 40, 30, 12, 10, 15, 45, 50, 30, 20. Each round moves down two levels: O of log n."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "trickle down through grandchildren"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dmax",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: delete the maximum works the same way, starting at the larger child of the root, 70, and trickling down with the comparisons reversed."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: delete-max and costs"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "td"
+      },
+      {
+       "action": "show",
+       "target": "co"
+      },
+      {
+       "action": "highlight",
+       "target": "co[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So all the costs: find-min and find-max are constant."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert, delete-min and delete-max are O of log n each."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And building a min-max heap from n keys bottom-up is O of n, as for an ordinary heap."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "O(1) find, O(log n) change, at both ends"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "co"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert seven keys, find both extremes, and delete the minimum. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "10 is the root. 20 and 30 go on level 1, a max level; both are larger than 10, so they stay."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 lands at position 4, a min level, under 20. It is smaller than 20, so it climbs min levels: smaller than the grandparent 10, swap. 5 is the root."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "25 lands under 20 at position 5. It is larger than 20, so it swaps up onto the max level. 40 lands under 30, larger, and swaps up the same way."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "15 lands under 40: smaller, so it climbs min levels, but it is larger than the grandparent 5. It stays. 5, 25, 40, 10, 20, 30, 15."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: minimum 5, at the root; maximum 40, the larger of 25 and 40. c: delete 5, move 15 to the root, and the smallest child or grandchild, 10, swaps with it: 10, 25, 40, 15, 20, 30."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[5]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[5][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: comparing a new key only with its parent, as in an ordinary heap. In a min-max heap, after the first comparison, keys move by grandparents."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "climb by grandparents"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A min-max heap alternates min levels and max levels in one complete tree. The minimum is the root; the maximum is one of its children."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insertion picks a side with the parent, then climbs by grandparents. Deletion trickles down through children and grandchildren. All O of log n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: leaving trees for graphs. How to store a graph."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: graph representation"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

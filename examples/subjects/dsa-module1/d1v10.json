@@ -1,0 +1,1321 @@
+{
+ "version": 1,
+ "title": "Doubly and circular lists",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Doubly linked lists"
+    ],
+    [
+     2,
+     "Inserting and deleting both ways"
+    ],
+    [
+     3,
+     "Circular lists"
+    ],
+    [
+     4,
+     "Header nodes and sentinels"
+    ],
+    [
+     5,
+     "Polynomials as lists"
+    ],
+    [
+     6,
+     "Adding two polynomials"
+    ],
+    [
+     7,
+     "The playlist lab"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "dl",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "hd",
+     "label": "head",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "a",
+     "label": "A",
+     "at": [
+      2,
+      1
+     ]
+    },
+    {
+     "id": "b",
+     "label": "B",
+     "at": [
+      4,
+      1
+     ]
+    },
+    {
+     "id": "c",
+     "label": "C",
+     "at": [
+      6,
+      1
+     ]
+    },
+    {
+     "id": "d",
+     "label": "D",
+     "at": [
+      8,
+      1
+     ]
+    }
+   ],
+   "edges": [
+    {
+     "from": "hd",
+     "to": "a"
+    },
+    {
+     "from": "a",
+     "to": "b"
+    },
+    {
+     "from": "b",
+     "to": "a"
+    },
+    {
+     "from": "b",
+     "to": "c"
+    },
+    {
+     "from": "c",
+     "to": "b"
+    },
+    {
+     "from": "c",
+     "to": "d"
+    },
+    {
+     "from": "d",
+     "to": "c"
+    }
+   ]
+  },
+  {
+   "id": "dt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "a doubly linked node",
+    ""
+   ],
+   "rows": [
+    [
+     "prev · data · next",
+     "a pointer each way"
+    ],
+    [
+     "walk backwards",
+     "as easily as forwards"
+    ],
+    [
+     "delete a node you hold",
+     "Θ(1): no need to find its predecessor"
+    ],
+    [
+     "the price",
+     "two pointers per node, four to update on insert"
+    ]
+   ]
+  },
+  {
+   "id": "dc",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "INSERT-AFTER(b, x)            // put x between b and c = b.next",
+    "    x.prev = b;   x.next = b.next",
+    "    b.next.prev = x",
+    "    b.next = x",
+    "",
+    "DELETE(x)",
+    "    x.prev.next = x.next",
+    "    x.next.prev = x.prev"
+   ]
+  },
+  {
+   "id": "cl",
+   "type": "diagram",
+   "region": "center",
+   "layout": "ring",
+   "nodes": [
+    {
+     "id": "p1",
+     "label": "P1"
+    },
+    {
+     "id": "p2",
+     "label": "P2"
+    },
+    {
+     "id": "p3",
+     "label": "P3"
+    },
+    {
+     "id": "p4",
+     "label": "P4"
+    },
+    {
+     "id": "last",
+     "label": "last",
+     "shape": "pill"
+    }
+   ],
+   "edges": [
+    {
+     "from": "p1",
+     "to": "p2"
+    },
+    {
+     "from": "p2",
+     "to": "p3"
+    },
+    {
+     "from": "p3",
+     "to": "p4"
+    },
+    {
+     "from": "p4",
+     "to": "p1"
+    },
+    {
+     "from": "last",
+     "to": "p4"
+    }
+   ]
+  },
+  {
+   "id": "ct",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "circular singly linked list",
+    ""
+   ],
+   "rows": [
+    [
+     "the last node points back to the first",
+     "no null anywhere"
+    ],
+    [
+     "keep a pointer to the last node",
+     "then last.next is the first"
+    ],
+    [
+     "insert at the front or the end",
+     "Θ(1) both"
+    ],
+    [
+     "used for",
+     "round-robin scheduling, repeating playlists, turn-taking"
+    ]
+   ]
+  },
+  {
+   "id": "sn",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "header node (sentinel)",
+    ""
+   ],
+   "rows": [
+    [
+     "a dummy node that is always there",
+     "holds no data"
+    ],
+    [
+     "circular doubly linked with a sentinel",
+     "Cormen's L.nil: nil.next is the first, nil.prev the last"
+    ],
+    [
+     "an empty list",
+     "nil.next = nil.prev = nil"
+    ],
+    [
+     "why",
+     "inserting or deleting at either end is no longer a special case"
+    ]
+   ]
+  },
+  {
+   "id": "pr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "a polynomial as a list",
+    ""
+   ],
+   "rows": [
+    [
+     "one node per non-zero term",
+     "coefficient · exponent · next"
+    ],
+    [
+     "kept in decreasing exponent order",
+     "3x¹⁴ + 2x⁸ + 1 → (3,14) → (2,8) → (1,0)"
+    ],
+    [
+     "why not an array of coefficients?",
+     "x¹⁰⁰⁰ + 1 would need 1001 cells for 2 terms"
+    ]
+   ]
+  },
+  {
+   "id": "pa",
+   "type": "array",
+   "region": "center",
+   "values": [
+    "3x¹⁴",
+    "2x⁸",
+    "1"
+   ]
+  },
+  {
+   "id": "qa2",
+   "type": "array",
+   "region": "center",
+   "values": [
+    "8x¹⁴",
+    "−3x¹⁰",
+    "10x⁶"
+   ]
+  },
+  {
+   "id": "ra",
+   "type": "array",
+   "region": "center",
+   "values": []
+  },
+  {
+   "id": "lab",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "playlist requirement",
+    "list operation"
+   ],
+   "rows": [
+    [
+     "the newest song plays first",
+     "insert at the head: Θ(1)"
+    ],
+    [
+     "delete a song",
+     "find it, then unlink it"
+    ],
+    [
+     "next and previous buttons",
+     "doubly linked: follow next or prev"
+    ],
+    [
+     "repeat all",
+     "circular: the last song links back to the first"
+    ],
+    [
+     "add S1, S2, S3, then delete S2",
+     "S3 → S1"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "a) in the doubly linked list A ⇄ B ⇄ C ⇄ D, which pointers change to delete C?"
+    ],
+    [
+     "b) add 5x⁴ + 3x² − 7 and 2x⁵ − 3x² + 4x + 7 using lists"
+    ],
+    [
+     "c) a circular list keeps only a pointer to its last node: how do you insert at the front?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a",
+     "C.prev.next = C.next;  C.next.prev = C.prev",
+     "B.next = D, D.prev = B"
+    ],
+    [
+     "b",
+     "x⁵: only in Q · x⁴: only in P · x²: 3 − 3 = 0, dropped",
+     ""
+    ],
+    [
+     "b",
+     "x: only in Q · constant: −7 + 7 = 0, dropped",
+     "2x⁵ + 5x⁴ + 4x"
+    ],
+    [
+     "c",
+     "x.next = last.next;  last.next = x",
+     "last stays put; x is the new first"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A singly linked list only goes forward, and deleting a node needs the one before it. Adding a second pointer, or joining the ends into a ring, fixes that. This video covers those variants, and two applications: polynomials and a music playlist."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Doubly and circular lists"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Doubly linked lists, inserting and deleting in them, circular lists, and sentinel nodes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then polynomials as lists, adding two of them, the playlist lab, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dll",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: each node of a doubly linked list has two pointers: prev to the node before, next to the node after."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: doubly linked lists"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "dl"
+      },
+      {
+       "action": "highlight",
+       "target": "dl.b"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the list can be walked backwards as easily as forwards."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "dl"
+      },
+      {
+       "action": "show",
+       "target": "dt"
+      },
+      {
+       "action": "highlight",
+       "target": "dt[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And a node you already hold can be deleted in Theta of 1, because it knows its own predecessor."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The price: two pointers per node, and four pointer updates on every insert."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dt[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "prev + next: both directions, Θ(1) delete"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ops",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: insert x after B, between B and C. First set x's own pointers: prev to B, next to C."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: inserting and deleting"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "dt"
+      },
+      {
+       "action": "show",
+       "target": "dc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "dc",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then make C point back to x, and B point forward to x. Four assignments, in an order that never loses C."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "dc",
+       "from": 3,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Deleting x needs just two: x's predecessor skips forward over it, and x's successor skips back over it."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "dc",
+       "from": 6,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To insert before a node instead, use its prev as b. No walk is needed in either direction."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "dc",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In a singly linked list, deleting needs a walk to find the predecessor. Here it comes for free."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "insert: 4 pointer changes · delete: 2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "circ",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: in a circular list, the last node points back to the first. There is no null."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: circular lists"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "dc"
+      },
+      {
+       "action": "show",
+       "target": "cl"
+      },
+      {
+       "action": "highlight",
+       "target": "cl.p4->p1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Keep one pointer, to the last node. Then the first node is just last dot next."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cl.last"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So inserting at either end is Theta of 1: link the new node after last, and to insert at the end, also move last to it."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "cl"
+      },
+      {
+       "action": "show",
+       "target": "ct"
+      },
+      {
+       "action": "highlight",
+       "target": "ct[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One trap: walking a circular list never meets null. Start at the first node and stop when you come back to it, which is why the loop is usually written as do, then while."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ct[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Circular lists suit anything that takes turns: round-robin CPU scheduling, players in a game, or a playlist on repeat."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ct[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "circular: last.next = first"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sent",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: a header node, or sentinel, is a dummy node that is always present and holds no data."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: sentinels"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ct"
+      },
+      {
+       "action": "show",
+       "target": "sn"
+      },
+      {
+       "action": "highlight",
+       "target": "sn[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cormen's lists are circular, doubly linked, with a sentinel called nil. nil dot next is the first node, nil dot prev the last."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sn[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An empty list is just the sentinel pointing to itself."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sn[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The pay-off: every real node always has a node on both sides, so inserting or deleting at either end is no longer a special case. The code has no if statements for empty lists or heads."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sn[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "sentinel: no special cases"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "poly",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: a polynomial as a linked list. One node per non-zero term, holding the coefficient and the exponent."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: polynomials as lists"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sn"
+      },
+      {
+       "action": "show",
+       "target": "pr"
+      },
+      {
+       "action": "highlight",
+       "target": "pr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Terms are kept in decreasing order of exponent. 3x to the 14, plus 2x to the 8, plus 1, is three nodes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An array indexed by exponent would need 1001 cells for x to the 1000 plus 1. The list needs 2 nodes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "store only non-zero terms, highest exponent first"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "add",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: add P, 3x to the 14 plus 2x to the 8 plus 1, and Q, 8x to the 14 minus 3x to the 10 plus 10x to the 6. Walk both lists together, like merging."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: adding polynomials"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pr"
+      },
+      {
+       "action": "show",
+       "target": "pa"
+      },
+      {
+       "action": "show",
+       "target": "qa2"
+      },
+      {
+       "action": "show",
+       "target": "ra"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Top row: P. Middle row: Q. Bottom row: the sum, built from the front. At each step compare the exponents at the front of what is left."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pa[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa2[0]",
+       "delay": 0.2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Both fronts have exponent 14: add the coefficients, 3 plus 8 is 11. Output 11x to the 14, and advance both."
+     },
+     "do": [
+      {
+       "action": "compare",
+       "a": "pa[0]",
+       "b": "qa2[0]"
+      },
+      {
+       "action": "insert",
+       "target": "ra",
+       "index": 0,
+       "value": "11x¹⁴",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "8 against 10: Q's exponent is larger, so copy minus 3x to the 10 and advance q."
+     },
+     "do": [
+      {
+       "action": "compare",
+       "a": "pa[1]",
+       "b": "qa2[1]"
+      },
+      {
+       "action": "insert",
+       "target": "ra",
+       "index": 1,
+       "value": "−3x¹⁰",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "8 against 6: copy 2x to the 8 from P and advance p."
+     },
+     "do": [
+      {
+       "action": "compare",
+       "a": "pa[1]",
+       "b": "qa2[2]"
+      },
+      {
+       "action": "insert",
+       "target": "ra",
+       "index": 2,
+       "value": "2x⁸",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "0 against 6: copy 10x to the 6. Q is used up, so copy the rest of P: plus 1."
+     },
+     "do": [
+      {
+       "action": "compare",
+       "a": "pa[2]",
+       "b": "qa2[2]"
+      },
+      {
+       "action": "insert",
+       "target": "ra",
+       "index": 3,
+       "value": "10x⁶",
+       "delay": 0.3
+      },
+      {
+       "action": "insert",
+       "target": "ra",
+       "index": 4,
+       "value": "1",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "11x to the 14, minus 3x to the 10, plus 2x to the 8, plus 10x to the 6, plus 1. Each term is looked at once: Theta of m plus n. If coefficients cancel to 0, that term is simply not output."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "ra[0..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "merge by exponent: Θ(m + n)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lab",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: the lab's playlist, where the most recently added song must always come first. That is insertion at the head: Theta of 1, like a stack."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: the playlist lab"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pa"
+      },
+      {
+       "action": "hide",
+       "target": "qa2"
+      },
+      {
+       "action": "hide",
+       "target": "ra"
+      },
+      {
+       "action": "show",
+       "target": "lab"
+      },
+      {
+       "action": "highlight",
+       "target": "lab[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Deleting a song: find it by walking, then unlink it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lab[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next and previous buttons want both directions: a doubly linked list."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lab[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Repeat-all wants the last song to lead back to the first: make it circular."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lab[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add S1, S2 and S3: each goes to the front, so the list is S3, S2, S1. Delete S2: S3, then S1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lab[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "newest first = insert at head"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lab"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Delete a node from a doubly linked list, add two polynomials as lists, and insert at the front of a circular list. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: C's predecessor B must skip to D, and D must point back to B. B dot next becomes D, D dot prev becomes B."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: x to the 5 is only in the second: copy 2x to the 5. x to the 4 is only in the first: 5x to the 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "x squared: 3 minus 3 is 0, so no node. x: 4x. Constants: minus 7 plus 7, 0 again. The sum: 2x to the 5, plus 5x to the 4, plus 4x."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[2][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: point the new node at last dot next, the current first node, then set last dot next to the new node. last itself does not move."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip in polynomial addition: keeping a term whose coefficients cancel to zero."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "drop zero-coefficient terms"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Doubly linked lists go both ways and delete a held node in Theta of 1. Circular lists loop back, so a pointer to the last node reaches both ends. Sentinels remove special cases."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Polynomials are lists of non-zero terms, added by merging in Theta of m plus n, and the playlist inserts at the head."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That completes Module 1. Module 2 leaves straight lines behind: trees, heaps and graphs."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "End of Module 1"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1414 @@
+{
+ "version": 1,
+ "title": "Graph representation",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Graphs and their words"
+    ],
+    [
+     2,
+     "The lab's network"
+    ],
+    [
+     3,
+     "The adjacency matrix"
+    ],
+    [
+     4,
+     "Adjacency lists"
+    ],
+    [
+     5,
+     "Which to choose"
+    ],
+    [
+     6,
+     "Directed and weighted graphs"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "wd",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "G = (V, E)",
+    ""
+   ],
+   "rows": [
+    [
+     "vertices V, edges E",
+     "n = |V|, m = |E|"
+    ],
+    [
+     "undirected · directed",
+     "a road both ways · a one-way street"
+    ],
+    [
+     "weighted",
+     "each edge carries a number: a distance, a cost"
+    ],
+    [
+     "degree",
+     "edges at a vertex; directed: in-degree and out-degree"
+    ],
+    [
+     "path · cycle",
+     "a sequence of edges · a path back to its start"
+    ],
+    [
+     "connected",
+     "every vertex reachable from every other"
+    ]
+   ]
+  },
+  {
+   "id": "g",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "A",
+     "at": [
+      2,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "B",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "C",
+     "at": [
+      3,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "D",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "E",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "F",
+     "at": [
+      4,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "G",
+     "at": [
+      0,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "H",
+     "at": [
+      2,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "I",
+     "at": [
+      4,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "J",
+     "at": [
+      2,
+      4
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "A",
+     "to": "B"
+    },
+    {
+     "from": "A",
+     "to": "C"
+    },
+    {
+     "from": "B",
+     "to": "D"
+    },
+    {
+     "from": "B",
+     "to": "E"
+    },
+    {
+     "from": "C",
+     "to": "E"
+    },
+    {
+     "from": "C",
+     "to": "F"
+    },
+    {
+     "from": "D",
+     "to": "G"
+    },
+    {
+     "from": "E",
+     "to": "H"
+    },
+    {
+     "from": "F",
+     "to": "I"
+    },
+    {
+     "from": "G",
+     "to": "J"
+    },
+    {
+     "from": "H",
+     "to": "J"
+    },
+    {
+     "from": "I",
+     "to": "J"
+    }
+   ]
+  },
+  {
+   "id": "gd",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "the lab's network",
+    ""
+   ],
+   "rows": [
+    [
+     "devices",
+     "10: A to J"
+    ],
+    [
+     "links",
+     "12, undirected, unweighted"
+    ],
+    [
+     "degrees",
+     "A 2 · B 3 · C 3 · E 3 · J 3 · …"
+    ],
+    [
+     "sum of degrees",
+     "24 = 2 × 12: every edge has two ends"
+    ]
+   ]
+  },
+  {
+   "id": "mx",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J"
+   ],
+   "rows": [
+    [
+     "A",
+     "0",
+     "1",
+     "1",
+     "0",
+     "0",
+     "0",
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "B",
+     "1",
+     "0",
+     "0",
+     "1",
+     "1",
+     "0",
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "C",
+     "1",
+     "0",
+     "0",
+     "0",
+     "1",
+     "1",
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "D",
+     "0",
+     "1",
+     "0",
+     "0",
+     "0",
+     "0",
+     "1",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "E",
+     "0",
+     "1",
+     "1",
+     "0",
+     "0",
+     "0",
+     "0",
+     "1",
+     "0",
+     "0"
+    ],
+    [
+     "F",
+     "0",
+     "0",
+     "1",
+     "0",
+     "0",
+     "0",
+     "0",
+     "0",
+     "1",
+     "0"
+    ],
+    [
+     "G",
+     "0",
+     "0",
+     "0",
+     "1",
+     "0",
+     "0",
+     "0",
+     "0",
+     "0",
+     "1"
+    ],
+    [
+     "H",
+     "0",
+     "0",
+     "0",
+     "0",
+     "1",
+     "0",
+     "0",
+     "0",
+     "0",
+     "1"
+    ],
+    [
+     "I",
+     "0",
+     "0",
+     "0",
+     "0",
+     "0",
+     "1",
+     "0",
+     "0",
+     "0",
+     "1"
+    ],
+    [
+     "J",
+     "0",
+     "0",
+     "0",
+     "0",
+     "0",
+     "0",
+     "1",
+     "1",
+     "1",
+     "0"
+    ]
+   ]
+  },
+  {
+   "id": "al",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "vertex",
+    "neighbours"
+   ],
+   "rows": [
+    [
+     "A",
+     "B → C"
+    ],
+    [
+     "B",
+     "A → D → E"
+    ],
+    [
+     "C",
+     "A → E → F"
+    ],
+    [
+     "D",
+     "B → G"
+    ],
+    [
+     "E",
+     "B → C → H"
+    ],
+    [
+     "F",
+     "C → I"
+    ],
+    [
+     "G",
+     "D → J"
+    ],
+    [
+     "H",
+     "E → J"
+    ],
+    [
+     "I",
+     "F → J"
+    ],
+    [
+     "J",
+     "G → H → I"
+    ]
+   ]
+  },
+  {
+   "id": "ch",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "adjacency matrix",
+    "adjacency lists"
+   ],
+   "rows": [
+    [
+     "space",
+     "Θ(n²)",
+     "Θ(n + m)"
+    ],
+    [
+     "is (u, v) an edge?",
+     "Θ(1)",
+     "Θ(degree of u)"
+    ],
+    [
+     "list u's neighbours",
+     "Θ(n)",
+     "Θ(degree of u)"
+    ],
+    [
+     "visit every edge (BFS, DFS)",
+     "Θ(n²)",
+     "Θ(n + m)"
+    ],
+    [
+     "best for",
+     "dense graphs, m close to n²",
+     "sparse graphs: most real ones"
+    ]
+   ]
+  },
+  {
+   "id": "dg",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "directed": true,
+   "nodes": [
+    {
+     "id": "v1",
+     "label": "1",
+     "at": [
+      0,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "v2",
+     "label": "2",
+     "at": [
+      2,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "v3",
+     "label": "3",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "v4",
+     "label": "4",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "v1",
+     "to": "v2"
+    },
+    {
+     "from": "v1",
+     "to": "v3"
+    },
+    {
+     "from": "v2",
+     "to": "v3"
+    },
+    {
+     "from": "v3",
+     "to": "v1"
+    },
+    {
+     "from": "v3",
+     "to": "v4"
+    },
+    {
+     "from": "v4",
+     "to": "v2"
+    }
+   ]
+  },
+  {
+   "id": "dw",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "directed and weighted",
+    ""
+   ],
+   "rows": [
+    [
+     "directed matrix",
+     "M[u][v] = 1 for an edge u → v: not symmetric"
+    ],
+    [
+     "directed lists",
+     "each edge appears once, in its tail's list"
+    ],
+    [
+     "weighted matrix",
+     "M[u][v] = the weight; ∞ (or 0) for no edge"
+    ],
+    [
+     "weighted lists",
+     "store (v, weight) pairs"
+    ],
+    [
+     "incidence matrix",
+     "n × m: rows vertices, columns edges"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question: directed graph on 1, 2, 3, 4"
+   ],
+   "rows": [
+    [
+     "edges: 1→2, 1→3, 2→3, 3→1, 3→4, 4→2"
+    ],
+    [
+     "a) the adjacency matrix   b) the adjacency lists   c) every in-degree and out-degree"
+    ],
+    [
+     "d) a graph has 1000 vertices and 5000 undirected edges: cells in a matrix, entries in lists?"
+    ]
+   ]
+  },
+  {
+   "id": "qm",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "",
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "rows": [
+    [
+     "1",
+     "0",
+     "1",
+     "1",
+     "0"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1",
+     "0"
+    ],
+    [
+     "3",
+     "1",
+     "0",
+     "0",
+     "1"
+    ],
+    [
+     "4",
+     "0",
+     "1",
+     "0",
+     "0"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "part",
+    "answer"
+   ],
+   "rows": [
+    [
+     "b) lists",
+     "1: 2, 3 · 2: 3 · 3: 1, 4 · 4: 2"
+    ],
+    [
+     "c) out-degree",
+     "1: 2 · 2: 1 · 3: 2 · 4: 1"
+    ],
+    [
+     "c) in-degree",
+     "1: 1 · 2: 2 · 3: 2 · 4: 1"
+    ],
+    [
+     "d) matrix",
+     "1000 × 1000 = 1,000,000 cells"
+    ],
+    [
+     "d) lists",
+     "1000 heads + 2 × 5000 = 11,000 entries"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Trees have one path between any two nodes. Graphs allow any connections at all: road networks, social networks, the internet, the dependencies between tasks. Before any graph algorithm can run, the graph has to be stored. This video compares the two standard ways."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Graphs and how to store them"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The vocabulary, the lab's network, the adjacency matrix and adjacency lists."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then how to choose between them, directed and weighted graphs, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "words",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a graph G is a set of vertices V and a set of edges E. We write n for the number of vertices and m for the number of edges."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the words"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "wd"
+      },
+      {
+       "action": "highlight",
+       "target": "wd[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Undirected edges work both ways, like a two-way road. Directed edges have a direction, like a one-way street."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wd[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In a weighted graph each edge carries a number: a distance, a time, a cost."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wd[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The degree of a vertex counts its edges. In a directed graph, in-degree counts edges coming in, out-degree edges going out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wd[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A path is a sequence of edges; a cycle is a path that returns to its start; and a graph is connected if every vertex can reach every other."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wd[4..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "G = (V, E): n vertices, m edges"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lab",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the lab's communication network. Ten devices, A to J, and twelve direct links."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: the lab's network"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "wd"
+      },
+      {
+       "action": "show",
+       "target": "g"
+      },
+      {
+       "action": "show",
+       "target": "gd"
+      },
+      {
+       "action": "highlight",
+       "target": "gd[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Count the degrees. A links to B and C: degree 2. E links to B, C and H: degree 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.A"
+      },
+      {
+       "action": "highlight",
+       "target": "g.E",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "gd[2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add all ten degrees and you get 24, exactly twice the 12 edges, because every edge is counted once at each of its two ends. This is the handshake lemma: the degrees always add up to 2m."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gd[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "sum of degrees = 2m"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mat",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: the adjacency matrix is an n by n table with a 1 in row u, column v when u and v are joined."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: the adjacency matrix"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "gd"
+      },
+      {
+       "action": "show",
+       "target": "mx"
+      },
+      {
+       "action": "highlight",
+       "target": "mx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row A has 1s in columns B and C. Row J has 1s in G, H and I."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mx[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "mx[9]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For an undirected graph it is symmetric: A to B and B to A are the same edge. The 1s add up to 2m, 24."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Asking whether two vertices are joined is one lookup, Theta of 1. But the table always needs n squared cells, 100 here, however few edges there are, and listing a vertex's neighbours means scanning a whole row."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "matrix: Θ(n²) space, Θ(1) edge test"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "list",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: adjacency lists keep, for each vertex, a list of its neighbours."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: adjacency lists"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "mx"
+      },
+      {
+       "action": "show",
+       "target": "al"
+      },
+      {
+       "action": "highlight",
+       "target": "al[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A's list holds B and C. E's holds B, C and H."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "al[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "al[4]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each undirected edge appears twice, once in each endpoint's list: 24 entries, plus 10 list heads."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "al"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Space is Theta of n plus m. Listing a vertex's neighbours costs exactly its degree. Checking a single edge means scanning one list."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "lists: Θ(n + m) space, neighbours in Θ(degree)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "choose",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: which to choose? Space: n squared against n plus m."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: which to choose"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "g"
+      },
+      {
+       "action": "hide",
+       "target": "al"
+      },
+      {
+       "action": "show",
+       "target": "ch"
+      },
+      {
+       "action": "highlight",
+       "target": "ch[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edge tests favour the matrix; listing neighbours favours the lists."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ch[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Breadth-first and depth-first search look at every vertex's neighbours once. With lists that is Theta of n plus m; with a matrix, Theta of n squared."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ch[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Most real graphs are sparse: a road junction meets a handful of roads, not millions. So adjacency lists are the default, and the matrix suits small or dense graphs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ch[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "sparse: lists · dense: matrix"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dir",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a directed graph. Edge 1 to 2 is not edge 2 to 1: they would be two different edges."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: directed and weighted"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ch"
+      },
+      {
+       "action": "show",
+       "target": "dg"
+      },
+      {
+       "action": "show",
+       "target": "dw"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In its matrix, row u marks the edges leaving u, so the matrix is no longer symmetric. In its lists, each edge appears once, in the list of its tail."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dw[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For weights, the matrix stores the weight itself, with infinity, or sometimes 0, meaning no edge. The lists store pairs: neighbour and weight."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dw[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A third form, the incidence matrix, has a row per vertex and a column per edge. It is used less in algorithms, more in network theory."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dw[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "directed: not symmetric · weighted: store the weight"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question on a small directed graph."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "dg"
+      },
+      {
+       "action": "hide",
+       "target": "dw"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Write its matrix and lists, find every in-degree and out-degree, and compare space for a large sparse graph. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: row 1 has 1s in columns 2 and 3; row 2 in column 3; row 3 in columns 1 and 4; row 4 in column 2."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qm"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: the lists: 1 to 2 and 3; 2 to 3; 3 to 1 and 4; 4 to 2."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: out-degrees are the row sums: 2, 1, 2, 1. In-degrees are the column sums: 1, 2, 2, 1. Both total 6, the number of edges."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: a matrix needs a million cells. Lists need 1000 heads and 10,000 entries, each edge twice: about 11,000. Ninety times smaller."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3..=4]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[4][1]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: counting each undirected edge once in the lists. It appears in both endpoints' lists."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "undirected edge: in two lists"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qm"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A graph is vertices and edges, directed or not, weighted or not; the degrees always sum to twice the edges. The matrix gives Theta of 1 edge tests in n squared space."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Lists use n plus m space and give each vertex's neighbours directly, which is what traversals need; directed and weighted graphs need only small changes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: exploring a graph level by level. Breadth-first search, on this same network."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: breadth-first search"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

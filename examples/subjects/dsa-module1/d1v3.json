@@ -1,0 +1,1291 @@
+{
+ "version": 1,
+ "title": "Big-O, Omega and Theta",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Why drop the details"
+    ],
+    [
+     2,
+     "Big-O: an upper bound"
+    ],
+    [
+     3,
+     "Proving a Big-O bound"
+    ],
+    [
+     4,
+     "The picture: c and n₀"
+    ],
+    [
+     5,
+     "Omega: a lower bound"
+    ],
+    [
+     6,
+     "Theta: a tight bound"
+    ],
+    [
+     7,
+     "Disproving a bound"
+    ],
+    [
+     8,
+     "Rules that save work"
+    ],
+    [
+     9,
+     "Saying it correctly"
+    ],
+    [
+     10,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "why",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "n",
+    "3n² + 2n + 5",
+    "3n² alone",
+    "share of 3n²"
+   ],
+   "rows": [
+    [
+     "10",
+     "325",
+     "300",
+     "92%"
+    ],
+    [
+     "100",
+     "30,205",
+     "30,000",
+     "99.3%"
+    ],
+    [
+     "1000",
+     "3,002,005",
+     "3,000,000",
+     "99.93%"
+    ],
+    [
+     "so",
+     "lower terms vanish",
+     "constants depend on the machine",
+     "keep only n²"
+    ]
+   ]
+  },
+  {
+   "id": "bo",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "f(n) = O(g(n)) quad \"if there are constants\" c > 0 \"and\" n_0",
+    "\"such that\" quad 0 <= f(n) <= c dot g(n) quad \"for all\" n >= n_0",
+    "\"f grows no faster than g: an upper bound\""
+   ]
+  },
+  {
+   "id": "pf",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"claim:\" quad 3n^2 + 2n + 5 = O(n^2)",
+    "\"for\" n >= 1: quad 2n <= 2n^2 quad \"and\" quad 5 <= 5n^2",
+    "3n^2 + 2n + 5 <= 3n^2 + 2n^2 + 5n^2 = 10 n^2",
+    "c = 10, quad n_0 = 1 quad checkmark",
+    "\"or\" c = 4: quad 3n^2 + 2n + 5 <= 4n^2 <=> n^2 - 2n - 5 >= 0 <=> n >= 1 + sqrt(6) approx 3.45: quad n_0 = 4"
+   ]
+  },
+  {
+   "id": "pl",
+   "type": "plot",
+   "region": "center",
+   "x": {
+    "label": "n",
+    "min": 0,
+    "max": 6
+   },
+   "y": {
+    "label": "steps",
+    "min": 0,
+    "max": 140
+   },
+   "curves": [
+    {
+     "id": "f",
+     "fn": "3x^2 + 2x + 5",
+     "label": "f(n)",
+     "visible": false
+    },
+    {
+     "id": "c4",
+     "fn": "4x^2",
+     "label": "4n²",
+     "visible": false
+    },
+    {
+     "id": "c3",
+     "fn": "3x^2",
+     "label": "3n²",
+     "visible": false
+    }
+   ],
+   "points": [
+    {
+     "id": "n0",
+     "at": [
+      3.45,
+      47.6
+     ],
+     "label": "n₀ ≈ 3.45"
+    }
+   ]
+  },
+  {
+   "id": "om",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "f(n) = Omega(g(n)) quad \"if\" quad 0 <= c dot g(n) <= f(n) quad \"for all\" n >= n_0",
+    "3n^2 + 2n + 5 >= 3n^2 quad \"for\" n >= 1: quad c = 3, n_0 = 1",
+    "\"f grows at least as fast as g: a lower bound\""
+   ]
+  },
+  {
+   "id": "th",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "f(n) = Theta(g(n)) quad \"if\" quad c_1 g(n) <= f(n) <= c_2 g(n) quad \"for all\" n >= n_0",
+    "3n^2 <= 3n^2 + 2n + 5 <= 10n^2 quad \"for\" n >= 1",
+    "c_1 = 3, c_2 = 10, n_0 = 1: quad 3n^2 + 2n + 5 = Theta(n^2)",
+    "Theta <=> O \"and\" Omega \"together\""
+   ]
+  },
+  {
+   "id": "dp",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"is\" n^2 = O(n)? quad \"suppose\" n^2 <= c n \"for all\" n >= n_0",
+    "\"divide by\" n: quad n <= c \"for all\" n >= n_0 quad \"— false for\" n > c",
+    "\"no constant works: \" n^2 != O(n)",
+    "2^(n+1) = 2 dot 2^n = O(2^n) quad \"but\" quad 2^(2n) = 4^n: quad 4^n / 2^n = 2^n -> infinity"
+   ]
+  },
+  {
+   "id": "ru",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "rule",
+    "example"
+   ],
+   "rows": [
+    [
+     "a polynomial of degree d is Θ(nᵈ)",
+     "7n⁴ − n² + 9 = Θ(n⁴)"
+    ],
+    [
+     "sum: O(f) + O(g) = O(max(f, g))",
+     "a loop of n, then a nested loop: O(n + n²) = O(n²)"
+    ],
+    [
+     "product: O(f) · O(g) = O(f · g)",
+     "a loop of n, each calling an O(log n) search: O(n log n)"
+    ],
+    [
+     "log base does not matter",
+     "log₂ n = log₁₀ n / log₁₀ 2: a constant factor"
+    ],
+    [
+     "transitive",
+     "f = O(g) and g = O(h) ⇒ f = O(h)"
+    ]
+   ]
+  },
+  {
+   "id": "say",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "statement about insertion sort",
+    "true?"
+   ],
+   "rows": [
+    [
+     "its running time is O(n²)",
+     "yes: on every input"
+    ],
+    [
+     "its running time is Ω(n)",
+     "yes: on every input"
+    ],
+    [
+     "its running time is Θ(n²)",
+     "no: sorted input takes Θ(n)"
+    ],
+    [
+     "its worst-case running time is Θ(n²)",
+     "yes"
+    ],
+    [
+     "its best-case running time is Θ(n)",
+     "yes"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "a) prove 5n³ − 2n² + 7 = Θ(n³): give c₁, c₂ and n₀"
+    ],
+    [
+     "b) is 2ⁿ⁺¹ = O(2ⁿ)?  is 2²ⁿ = O(2ⁿ)?"
+    ],
+    [
+     "c) is n log n = O(n²)?  is it Ω(n²)?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"upper, n\" >= 1: quad 5n^3 - 2n^2 + 7 <= 5n^3 + 7n^3 = 12 n^3",
+    "\"lower, n\" >= 1: quad 5n^3 - 2n^2 + 7 - 3n^3 = 2n^3 - 2n^2 + 7 > 0",
+    "c_1 = 3, quad c_2 = 12, quad n_0 = 1",
+    "\"b)\" 2^(n+1) <= 2 dot 2^n: \"yes\" quad 2^(2n) / 2^n = 2^n \"is unbounded: no\"",
+    "\"c)\" n log n <= n^2 \"for\" n >= 1: \"yes\" quad (n log n) / n^2 = (log n) / n -> 0: \"not\" Omega(n^2)"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Last video, insertion sort took 1.5 n squared plus 3.5 n minus 4 steps. Nobody quotes a number like that. We say it is order n squared. This video makes order precise: Big O, Omega and Theta."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Asymptotic notation"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the ten stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why we drop details, Big O, a proof, and a picture of the constants."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then Omega, Theta, how to disprove a bound, rules that save work, how to state bounds correctly, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=9]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: take 3 n squared plus 2n plus 5. At n equal to 10, the 3 n squared term is already 92 percent of the total."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 10: why drop the details"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      },
+      {
+       "action": "highlight",
+       "target": "why[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At 100, 99.3 percent. At 1000, 99.93 percent. For large inputs, the lower terms vanish."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the constant 3 depends on what we called a step and on the machine. What does not depend on anything is that the cost grows like n squared."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "keep the fastest-growing term, drop its constant"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bigo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: Big O. f of n is O of g of n if there are positive constants c and n zero,"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 10: Big-O"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "bo"
+      },
+      {
+       "action": "highlight",
+       "target": "bo[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "such that f of n is at most c times g of n, for every n from n zero onward."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bo[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "bo[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In words: beyond some point, f never grows faster than a constant multiple of g. Big O is an upper bound."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bo[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "bo[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "O: f ≤ c·g from n₀ on"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "proof",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: prove 3 n squared plus 2n plus 5 is O of n squared. We must find c and n zero."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 10: proving a bound"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bo"
+      },
+      {
+       "action": "show",
+       "target": "pf"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The trick: for n at least 1, every lower term is at most the same coefficient times n squared. 2n is at most 2 n squared, and 5 is at most 5 n squared."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pf[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the whole thing is at most 3 plus 2 plus 5, 10 n squared."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pf[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c equal to 10 and n zero equal to 1 work. Proof done."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pf[3]"
+      },
+      {
+       "action": "mark",
+       "target": "pf[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The constants are not unique. A smaller c needs a larger n zero. With c equal to 4, the inequality becomes n squared minus 2n minus 5 at least 0, which holds from 1 plus root 6, about 3.45. So n zero is 4."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pf[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "any one pair (c, n₀) is a proof"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pic",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the picture. Here is f of n, 3 n squared plus 2n plus 5."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 10: c and n₀"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pf"
+      },
+      {
+       "action": "show",
+       "target": "pl"
+      },
+      {
+       "action": "trace",
+       "target": "pl.f"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And 4 n squared. Near zero, f is above it, because of the plus 5."
+     },
+     "do": [
+      {
+       "action": "trace",
+       "target": "pl.c4"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "They cross at about 3.45. From there on, f stays below 4 n squared for ever. That crossing is n zero."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pl.n0"
+      },
+      {
+       "action": "highlight",
+       "target": "pl.c4",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And 3 n squared stays below f everywhere: that will be a lower bound. f is squeezed between two multiples of n squared."
+     },
+     "do": [
+      {
+       "action": "trace",
+       "target": "pl.c3"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "beyond n₀, f stays under c·g"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "omega",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: Omega is the mirror image. f of n is Omega of g of n if c times g of n is at most f of n, for every n from n zero on."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 10: Omega"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pl"
+      },
+      {
+       "action": "show",
+       "target": "om"
+      },
+      {
+       "action": "highlight",
+       "target": "om[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Our f is at least 3 n squared for every n at least 1, since 2n plus 5 is positive. c equal to 3, n zero equal to 1."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "om[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "om[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Omega says f grows at least as fast as g: a lower bound."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "om[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "om[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Ω: f ≥ c·g from n₀ on"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "theta",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: Theta means both at once. f is sandwiched: c 1 times g below, c 2 times g above, from n zero on."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 10: Theta"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "om"
+      },
+      {
+       "action": "show",
+       "target": "th"
+      },
+      {
+       "action": "highlight",
+       "target": "th[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "We already have both halves: 3 n squared below, 10 n squared above, for n at least 1."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "th[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "th[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So c 1 is 3, c 2 is 10, n zero is 1, and f is Theta of n squared."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "th[2]"
+      },
+      {
+       "action": "mark",
+       "target": "th[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Theta holds exactly when both Big O and Omega hold. It is the tight answer: f grows like g, no faster and no slower."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "th[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "th[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Θ = O and Ω: a tight bound"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "disprove",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: how to show a bound is false. Is n squared O of n? Suppose it were: n squared at most c n for all large n."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 10: disproving a bound"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "th"
+      },
+      {
+       "action": "show",
+       "target": "dp"
+      },
+      {
+       "action": "highlight",
+       "target": "dp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Divide by n: n at most c, for every large n. But n keeps growing and c is fixed. Any n bigger than c breaks it."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "dp[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "dp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "No constant can work, so n squared is not O of n. To disprove, show that f over g grows without bound."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "dp[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "dp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A classic trap: 2 to the n plus 1 is just 2 times 2 to the n, so it is O of 2 to the n. But 2 to the 2n is 4 to the n, and 4 to the n over 2 to the n is 2 to the n, unbounded. Constants in an exponent matter."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "dp[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "dp[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "disprove: f / g → ∞"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rules",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 8: a few rules save writing a proof every time. A polynomial of degree d is Theta of n to the d: the leading term wins."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 8 of 10: rules that save work"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "dp"
+      },
+      {
+       "action": "show",
+       "target": "ru"
+      },
+      {
+       "action": "highlight",
+       "target": "ru[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sum rule: code that runs one part after another costs the larger of the two. A single loop followed by a nested loop is O of n squared."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ru[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Product rule: code nested inside a loop multiplies. n iterations, each doing a binary search, is O of n log n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ru[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The base of a logarithm does not matter: changing base multiplies by a constant, which Big O ignores. So we just write log n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ru[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the bounds chain: if f is O of g and g is O of h, then f is O of h."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ru[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "sequence adds, nesting multiplies"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "say",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 9: saying it correctly. Insertion sort's running time is O of n squared: true, on every input, since even the worst case is quadratic."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 9 of 10: saying it correctly"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ru"
+      },
+      {
+       "action": "show",
+       "target": "say"
+      },
+      {
+       "action": "highlight",
+       "target": "say[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It is also Omega of n: every input takes at least linear time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "say[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But its running time is Theta of n squared is false: on sorted input it is linear."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "say[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Name the case, and Theta is fine: its worst-case running time is Theta of n squared, and its best case is Theta of n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "say[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Θ of a running time needs a named case"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "say"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Prove 5 n cubed minus 2 n squared plus 7 is Theta of n cubed, and decide three more bounds. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Upper: drop the minus 2 n squared, which only helps, and bound 7 by 7 n cubed. At most 12 n cubed for n at least 1."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Lower: subtract 3 n cubed. 2 n cubed minus 2 n squared plus 7 is positive, because n cubed is at least n squared when n is at least 1."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So c 1 equal to 3, c 2 equal to 12, n zero equal to 1."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: 2 to the n plus 1 is 2 times 2 to the n: yes, with c equal to 2. 2 to the 2n over 2 to the n is 2 to the n, unbounded: no."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: n log n is at most n squared, since log n is at most n: yes. But n log n over n squared is log n over n, which goes to 0: it is not Omega of n squared."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: dropping the negative term in the lower bound. For the lower bound you must handle it, not ignore it."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "negative terms: free for upper, careful for lower"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "We keep the fastest-growing term. Big O means at most c times g from some n zero on, and a proof is any one pair of constants."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Omega is the lower bound, Theta is both. To disprove, show the ratio is unbounded. Sequence adds, nesting multiplies. And a Theta for running time needs a named case."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=8]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: comparing growth rates, from log n to n factorial, and what they mean in seconds."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=9]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: growth rates"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

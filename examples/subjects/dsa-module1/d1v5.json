@@ -1,0 +1,1475 @@
+{
+ "version": 1,
+ "title": "Recursion and recurrences",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Recursion: a base and a step"
+    ],
+    [
+     2,
+     "The call stack"
+    ],
+    [
+     3,
+     "Fibonacci: when recursion explodes"
+    ],
+    [
+     4,
+     "Towers of Hanoi"
+    ],
+    [
+     5,
+     "Solving by unrolling"
+    ],
+    [
+     6,
+     "The recursion-tree method"
+    ],
+    [
+     7,
+     "The master method"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "fc",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "FACT(n)",
+    "    if n <= 1            // base case",
+    "        return 1",
+    "    return n * FACT(n - 1)   // recursive case"
+   ]
+  },
+  {
+   "id": "rl",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "every recursion needs"
+   ],
+   "rows": [
+    [
+     "a base case that needs no recursion"
+    ],
+    [
+     "a recursive case on a smaller input"
+    ],
+    [
+     "progress: every call gets closer to the base"
+    ]
+   ]
+  },
+  {
+   "id": "stk",
+   "type": "array",
+   "region": "center",
+   "values": [
+    "FACT(4)"
+   ]
+  },
+  {
+   "id": "fib",
+   "type": "diagram",
+   "region": "center",
+   "layout": "tree",
+   "shape": "circle",
+   "directed": true,
+   "nodes": [
+    {
+     "id": "a",
+     "label": "5"
+    },
+    {
+     "id": "b",
+     "label": "4"
+    },
+    {
+     "id": "c",
+     "label": "3"
+    },
+    {
+     "id": "d",
+     "label": "3"
+    },
+    {
+     "id": "e",
+     "label": "2"
+    },
+    {
+     "id": "f",
+     "label": "2"
+    },
+    {
+     "id": "g",
+     "label": "1"
+    },
+    {
+     "id": "h",
+     "label": "2"
+    },
+    {
+     "id": "i",
+     "label": "1"
+    },
+    {
+     "id": "j",
+     "label": "1"
+    },
+    {
+     "id": "k",
+     "label": "0"
+    },
+    {
+     "id": "l",
+     "label": "1"
+    },
+    {
+     "id": "m",
+     "label": "0"
+    },
+    {
+     "id": "n",
+     "label": "1"
+    },
+    {
+     "id": "o",
+     "label": "0"
+    }
+   ],
+   "edges": [
+    {
+     "from": "a",
+     "to": "b"
+    },
+    {
+     "from": "a",
+     "to": "c"
+    },
+    {
+     "from": "b",
+     "to": "d"
+    },
+    {
+     "from": "b",
+     "to": "e"
+    },
+    {
+     "from": "c",
+     "to": "f"
+    },
+    {
+     "from": "c",
+     "to": "g"
+    },
+    {
+     "from": "d",
+     "to": "h"
+    },
+    {
+     "from": "d",
+     "to": "i"
+    },
+    {
+     "from": "e",
+     "to": "j"
+    },
+    {
+     "from": "e",
+     "to": "k"
+    },
+    {
+     "from": "f",
+     "to": "l"
+    },
+    {
+     "from": "f",
+     "to": "m"
+    },
+    {
+     "from": "h",
+     "to": "n"
+    },
+    {
+     "from": "h",
+     "to": "o"
+    }
+   ]
+  },
+  {
+   "id": "fibm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"FIB(n) = FIB(n − 1) + FIB(n − 2): calls(5) = 15\"",
+    "\"calls\"(n) = 2 F(n + 1) - 1 quad \"FIB(30): 2,692,537 calls\"",
+    "\"grows like\" 1.618^n: quad \"exponential, because the same values are recomputed\"",
+    "\"remember each answer (memoisation): n + 1 calls, Θ(n)\""
+   ]
+  },
+  {
+   "id": "hn",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"move n disks: move n−1 aside, move the largest, move n−1 back on top\"",
+    "T(n) = 2 T(n - 1) + 1, quad T(0) = 0",
+    "T(1) = 1, quad T(2) = 3, quad T(3) = 7, quad T(n) = 2^n - 1",
+    "n = 64: quad 2^64 - 1 approx 1.8 times 10^19 \"moves: about 585 billion years at one per second\""
+   ]
+  },
+  {
+   "id": "un",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "T(n) = T(n - 1) + n, quad T(1) = 1",
+    "= T(n - 2) + (n - 1) + n",
+    "= T(n - 3) + (n - 2) + (n - 1) + n = dots.c",
+    "= 1 + 2 + dots.c + n = (n(n+1))/2 = Theta(n^2)",
+    "\"binary search:\" T(n) = T(n/2) + 1 = log_2 n + 1 = Theta(log n)"
+   ]
+  },
+  {
+   "id": "rtree",
+   "type": "diagram",
+   "region": "left",
+   "layout": "tree",
+   "nodes": [
+    {
+     "id": "r",
+     "label": "n"
+    },
+    {
+     "id": "a1",
+     "label": "n/2"
+    },
+    {
+     "id": "a2",
+     "label": "n/2"
+    },
+    {
+     "id": "b1",
+     "label": "n/4"
+    },
+    {
+     "id": "b2",
+     "label": "n/4"
+    },
+    {
+     "id": "b3",
+     "label": "n/4"
+    },
+    {
+     "id": "b4",
+     "label": "n/4"
+    }
+   ],
+   "edges": [
+    {
+     "from": "r",
+     "to": "a1"
+    },
+    {
+     "from": "r",
+     "to": "a2"
+    },
+    {
+     "from": "a1",
+     "to": "b1"
+    },
+    {
+     "from": "a1",
+     "to": "b2"
+    },
+    {
+     "from": "a2",
+     "to": "b3"
+    },
+    {
+     "from": "a2",
+     "to": "b4"
+    }
+   ]
+  },
+  {
+   "id": "rt",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "level",
+    "nodes",
+    "cost"
+   ],
+   "rows": [
+    [
+     "0",
+     "1",
+     "n"
+    ],
+    [
+     "1",
+     "2",
+     "2 · n/2 = n"
+    ],
+    [
+     "2",
+     "4",
+     "4 · n/4 = n"
+    ],
+    [
+     "…",
+     "…",
+     "n per level"
+    ],
+    [
+     "log₂ n levels",
+     "",
+     "n log₂ n + n"
+    ]
+   ]
+  },
+  {
+   "id": "ms",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "T(n) = a T(n/b) + f(n): compare f(n) with n^(log_b a)",
+    "result"
+   ],
+   "rows": [
+    [
+     "1: f is polynomially smaller",
+     "Θ(n^(log_b a)): the leaves win"
+    ],
+    [
+     "2: f is Θ(n^(log_b a))",
+     "Θ(n^(log_b a) · log n): every level equal"
+    ],
+    [
+     "3: f is polynomially larger (and a f(n/b) ≤ c f(n), c < 1)",
+     "Θ(f(n)): the root wins"
+    ],
+    [
+     "2T(n/2) + n:  n^(log₂ 2) = n",
+     "case 2: Θ(n log n)"
+    ],
+    [
+     "9T(n/3) + n:  n^(log₃ 9) = n²",
+     "case 1: Θ(n²)"
+    ],
+    [
+     "T(2n/3) + 1:  n^0 = 1",
+     "case 2: Θ(log n)"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "a) T(n) = 4T(n/2) + n      b) T(n) = 4T(n/2) + n²      c) T(n) = 4T(n/2) + n³"
+    ],
+    [
+     "d) how many moves does Towers of Hanoi need for 10 disks?"
+    ],
+    [
+     "e) how many calls does the naive FIB(6) make?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a",
+     "n^(log₂ 4) = n²; f = n is smaller",
+     "case 1: Θ(n²)"
+    ],
+    [
+     "b",
+     "f = n² equals n²",
+     "case 2: Θ(n² log n)"
+    ],
+    [
+     "c",
+     "f = n³ is larger; 4(n/2)³ = n³/2 ≤ ½ n³",
+     "case 3: Θ(n³)"
+    ],
+    [
+     "d",
+     "2¹⁰ − 1",
+     "1023 moves"
+    ],
+    [
+     "e",
+     "2 F(7) − 1 = 2 · 13 − 1",
+     "25 calls"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A recursive algorithm solves a problem by solving smaller copies of itself. It gives short, elegant code, and costs that are written as equations. This video covers both: how recursion runs, and how to solve its equations."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recursion and recurrences"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Recursion, the call stack, Fibonacci where recursion explodes, and the Towers of Hanoi."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then three ways to solve recurrences: unrolling, the recursion tree, and the master method, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "base",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: factorial. n factorial is n times n minus 1 factorial, and 1 factorial is 1."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: a base and a step"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "fc"
+      },
+      {
+       "action": "show",
+       "target": "rl"
+      },
+      {
+       "action": "mark_lines",
+       "target": "fc",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every recursion needs a base case, solved directly. Here, n at most 1."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "fc",
+       "from": 2,
+       "to": 3
+      },
+      {
+       "action": "highlight",
+       "target": "rl[0]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A recursive case that calls itself on a smaller input. Here, n minus 1."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "fc",
+       "from": 4,
+       "to": 4
+      },
+      {
+       "action": "highlight",
+       "target": "rl[1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And progress: every call must move closer to the base. Call FACT of minus 1 with a test of n equal to 1 instead, and it never stops."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rl[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "base case + smaller recursive case"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stack",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: what happens when FACT of 4 runs? It cannot finish until FACT of 3 returns, so the machine keeps its frame on a stack."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: the call stack"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "fc"
+      },
+      {
+       "action": "hide",
+       "target": "rl"
+      },
+      {
+       "action": "show",
+       "target": "stk"
+      },
+      {
+       "action": "highlight",
+       "target": "stk[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FACT of 4 calls FACT of 3, and waits."
+     },
+     "do": [
+      {
+       "action": "insert",
+       "target": "stk",
+       "index": 1,
+       "value": "FACT(3)"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FACT of 3 calls FACT of 2, and waits."
+     },
+     "do": [
+      {
+       "action": "insert",
+       "target": "stk",
+       "index": 2,
+       "value": "FACT(2)"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FACT of 2 calls FACT of 1. Four frames are now on the stack, each waiting for the one above it."
+     },
+     "do": [
+      {
+       "action": "insert",
+       "target": "stk",
+       "index": 3,
+       "value": "FACT(1)"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FACT of 1 is the base case: it returns 1, and its frame is popped."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "stk[3]",
+       "value": "→ 1"
+      },
+      {
+       "action": "remove",
+       "target": "stk[3]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FACT of 2 returns 2 times 1, 2, and is popped."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "stk[2]",
+       "value": "→ 2"
+      },
+      {
+       "action": "remove",
+       "target": "stk[2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FACT of 3 returns 3 times 2, 6, and is popped."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "stk[1]",
+       "value": "→ 6"
+      },
+      {
+       "action": "remove",
+       "target": "stk[1]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And FACT of 4 returns 4 times 6, 24. The stack held n frames at its deepest: the space cost from video 2."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "stk[0]",
+       "value": "→ 24"
+      },
+      {
+       "action": "mark",
+       "target": "stk[0]",
+       "delay": 0.5
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "deepest stack = space used"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fib",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: Fibonacci. FIB of n is FIB of n minus 1 plus FIB of n minus 2. Written directly, FIB of 5 makes this tree of calls."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: when recursion explodes"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "stk"
+      },
+      {
+       "action": "show",
+       "target": "fib"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Look at the repeats. FIB of 3 is computed twice. FIB of 2, three times."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "fib.c"
+      },
+      {
+       "action": "mark",
+       "target": "fib.d",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "fib.e",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "fib.f",
+       "delay": 0.6
+      },
+      {
+       "action": "mark",
+       "target": "fib.h",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "15 calls to compute 5. In general the calls are 2 times F of n plus 1, minus 1."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "fib"
+      },
+      {
+       "action": "show",
+       "target": "fibm"
+      },
+      {
+       "action": "highlight",
+       "target": "fibm[0]"
+      },
+      {
+       "action": "reveal",
+       "target": "fibm[1]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIB of 30 makes 2.7 million calls. The count grows like 1.618 to the n: exponential, only because the same values are recomputed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fibm[1]"
+      },
+      {
+       "action": "reveal",
+       "target": "fibm[2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The fix is to remember each answer the first time: memoisation. Then each FIB of k is computed once: n plus 1 calls, linear. That idea is dynamic programming, Module 4."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "fibm[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "fibm[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "overlapping calls: remember answers"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hanoi",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the Towers of Hanoi. Move n disks from one peg to another, one at a time, never a larger disk on a smaller one."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: Towers of Hanoi"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "fibm"
+      },
+      {
+       "action": "show",
+       "target": "hn"
+      },
+      {
+       "action": "highlight",
+       "target": "hn[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Recursively: move the top n minus 1 aside, move the largest disk, then move the n minus 1 back on top. So T of n is 2 T of n minus 1, plus 1."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hn[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "hn[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "T of 1 is 1, T of 2 is 3, T of 3 is 7. The pattern: 2 to the n, minus 1."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hn[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "hn[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For the legendary 64 disks: 1.8 times 10 to the 19 moves. At one per second, about 585 billion years. Exponential, and this time no trick helps: every one of those moves is needed."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hn[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "hn[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Hanoi: 2ⁿ − 1 moves"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "unroll",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: solving a recurrence by unrolling. T of n is T of n minus 1 plus n."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: unrolling"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hn"
+      },
+      {
+       "action": "show",
+       "target": "un"
+      },
+      {
+       "action": "highlight",
+       "target": "un[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Replace T of n minus 1 by its own definition: T of n minus 2, plus n minus 1, plus n."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "un[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "un[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Keep going until you reach the base case, and look for the pattern."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "un[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "un[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It is 1 plus 2 up to n: n times n plus 1 over 2. Theta of n squared. This is insertion sort's worst case, written as a recurrence."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "un[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "un[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Binary search halves the range and does one comparison: T of n is T of n over 2 plus 1. Unrolled, the halving happens log 2 n times: Theta of log n."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "un[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "un[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "unroll, spot the pattern, sum it"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tree",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: the recursion-tree method, for T of n equal to 2 T of n over 2 plus n, the shape of merge sort. The root costs n, and has two children of size n over 2."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: the recursion tree"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "un"
+      },
+      {
+       "action": "show",
+       "target": "rtree"
+      },
+      {
+       "action": "show",
+       "target": "rt"
+      },
+      {
+       "action": "highlight",
+       "target": "rtree.r"
+      },
+      {
+       "action": "highlight",
+       "target": "rt[0]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Level 1: two nodes, each costing n over 2. Together, n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rtree.a1"
+      },
+      {
+       "action": "highlight",
+       "target": "rtree.a2",
+       "delay": 0.1
+      },
+      {
+       "action": "highlight",
+       "target": "rt[1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Level 2: four nodes of n over 4. Again n. Every level costs n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rtree.b1"
+      },
+      {
+       "action": "highlight",
+       "target": "rtree.b2",
+       "delay": 0.1
+      },
+      {
+       "action": "highlight",
+       "target": "rtree.b3",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "rtree.b4",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "rt[2..=3]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sizes halve until they reach 1, so there are log 2 n levels, plus n leaves. Total: n log n plus n, Theta of n log n. For n equal to 8: 8 times 3 plus 8, 32."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rt[4]"
+      },
+      {
+       "action": "mark",
+       "target": "rt[4][2]",
+       "delay": 0.5
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "cost per level × number of levels"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "master",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: the master method solves T of n equal to a T of n over b plus f of n in one step. Compare f of n with n to the log base b of a, the number of leaves."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: the master method"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rtree"
+      },
+      {
+       "action": "hide",
+       "target": "rt"
+      },
+      {
+       "action": "show",
+       "target": "ms"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Case 1: f is polynomially smaller. The leaves dominate: Theta of n to the log b a."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ms[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Case 2: f matches it. Every level costs the same: multiply by log n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ms[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Case 3: f is polynomially larger, and shrinks geometrically down the tree. The root dominates: Theta of f."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ms[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Examples: 2 T of n over 2 plus n has n to the log 2 of 2, which is n, equal to f: case 2, n log n, as the tree showed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ms[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "9 T of n over 3 plus n: log 3 of 9 is 2, and n is smaller than n squared: case 1, Theta of n squared. T of 2n over 3 plus 1: n to the 0 is 1, equal to f: case 2, Theta of log n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ms[4..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "compare f(n) with n^(log_b a)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ms"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Solve three recurrences with the master method, count Hanoi moves for 10 disks, and count the calls of FIB of 6. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: a is 4, b is 2, so n to the log 2 of 4 is n squared. f is n, smaller: case 1, Theta of n squared."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: f is n squared, equal: case 2, Theta of n squared log n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: f is n cubed, larger. Check the condition: 4 times n over 2 cubed is n cubed over 2, at most a half times f. Case 3: Theta of n cubed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: 2 to the 10 minus 1: 1023 moves. e: 2 times F of 7 minus 1. F of 7 is 13, so 25 calls."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3..=4]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[4][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: comparing f with n to the a, or n to the b, instead of n to the log base b of a."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "the critical exponent is log_b a"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A recursion needs a base case and a smaller recursive case. Each active call holds a stack frame. Recomputing the same calls makes Fibonacci exponential; Hanoi is exponential by nature."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Recurrences are solved by unrolling, by summing a recursion tree level by level, or by the master method, comparing f with n to the log b a."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: the simplest data structure of all, the array, and how it sits in memory."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: arrays"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

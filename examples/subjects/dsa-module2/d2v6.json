@@ -1,0 +1,1450 @@
+{
+ "version": 1,
+ "title": "Red-black trees 2",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Delete as in a BST"
+    ],
+    [
+     2,
+     "When nothing needs fixing"
+    ],
+    [
+     3,
+     "The double-black node"
+    ],
+    [
+     4,
+     "Four cases, by the sibling"
+    ],
+    [
+     5,
+     "A deletion that needs cases 1, 3 and 4"
+    ],
+    [
+     6,
+     "Costs and summary"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "st",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "deleting key z",
+    ""
+   ],
+   "rows": [
+    [
+     "0 or 1 child",
+     "z itself is removed; its child (or nil) x takes its place"
+    ],
+    [
+     "2 children",
+     "z's successor y takes z's place and z's colour; y is what leaves its old spot"
+    ],
+    [
+     "the node that really left",
+     "decides everything: call its colour the removed colour"
+    ],
+    [
+     "removed colour red",
+     "no black count changed, no red-red created: done"
+    ],
+    [
+     "removed colour black",
+     "every path through x lost one black: fix it"
+    ]
+   ]
+  },
+  {
+   "id": "db",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the node x that took its place",
+    ""
+   ],
+   "rows": [
+    [
+     "x is red",
+     "colour it black: the lost black is restored, done"
+    ],
+    [
+     "x is the root",
+     "the whole tree lost one black evenly: done"
+    ],
+    [
+     "otherwise",
+     "x is 'double black': it must count as two blacks"
+    ],
+    [
+     "the fix",
+     "push the extra black up, or rotate it away, using x's sibling w"
+    ]
+   ]
+  },
+  {
+   "id": "cs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "case",
+    "sibling w",
+    "fix"
+   ],
+   "rows": [
+    [
+     "1",
+     "red",
+     "rotate at the parent, swap colours: w becomes black → case 2, 3 or 4"
+    ],
+    [
+     "2",
+     "black, both children black",
+     "colour w red; the extra black moves up to the parent"
+    ],
+    [
+     "3",
+     "black, near child red, far child black",
+     "rotate at w, swap colours → case 4"
+    ],
+    [
+     "4",
+     "black, far child red",
+     "rotate at the parent, recolour: the extra black disappears. Done"
+    ]
+   ]
+  },
+  {
+   "id": "a0",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n15",
+     "label": "15 B",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n20",
+     "label": "20 B",
+     "at": [
+      1,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n75",
+     "label": "75 R",
+     "at": [
+      2,
+      3
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n80",
+     "label": "80 B",
+     "at": [
+      3,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n85",
+     "label": "85 R",
+     "at": [
+      4,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n95",
+     "label": "95 B",
+     "at": [
+      5,
+      2
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n20",
+     "to": "n15"
+    },
+    {
+     "from": "n85",
+     "to": "n80"
+    },
+    {
+     "from": "n80",
+     "to": "n75"
+    },
+    {
+     "from": "n20",
+     "to": "n85"
+    },
+    {
+     "from": "n85",
+     "to": "n95"
+    }
+   ]
+  },
+  {
+   "id": "a1",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n20",
+     "label": "20 B",
+     "at": [
+      0,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n75",
+     "label": "75 R",
+     "at": [
+      1,
+      3
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n80",
+     "label": "80 B",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n85",
+     "label": "85 R",
+     "at": [
+      3,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n95",
+     "label": "95 B",
+     "at": [
+      4,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "dbl",
+     "label": "x: double black",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "pill"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n85",
+     "to": "n80"
+    },
+    {
+     "from": "n80",
+     "to": "n75"
+    },
+    {
+     "from": "n20",
+     "to": "n85"
+    },
+    {
+     "from": "n85",
+     "to": "n95"
+    },
+    {
+     "from": "n20",
+     "to": "dbl"
+    }
+   ]
+  },
+  {
+   "id": "f1",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n20",
+     "label": "20 R",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n75",
+     "label": "75 R",
+     "at": [
+      1,
+      3
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n80",
+     "label": "80 B",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n85",
+     "label": "85 B",
+     "at": [
+      3,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n95",
+     "label": "95 B",
+     "at": [
+      4,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "dbl",
+     "label": "x",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "pill"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n85",
+     "to": "n20"
+    },
+    {
+     "from": "n80",
+     "to": "n75"
+    },
+    {
+     "from": "n20",
+     "to": "n80"
+    },
+    {
+     "from": "n85",
+     "to": "n95"
+    },
+    {
+     "from": "n20",
+     "to": "dbl"
+    }
+   ]
+  },
+  {
+   "id": "f3",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n20",
+     "label": "20 R",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n75",
+     "label": "75 B",
+     "at": [
+      1,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n80",
+     "label": "80 R",
+     "at": [
+      2,
+      3
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n85",
+     "label": "85 B",
+     "at": [
+      3,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n95",
+     "label": "95 B",
+     "at": [
+      4,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "dbl",
+     "label": "x",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "pill"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n85",
+     "to": "n20"
+    },
+    {
+     "from": "n20",
+     "to": "n75"
+    },
+    {
+     "from": "n75",
+     "to": "n80"
+    },
+    {
+     "from": "n85",
+     "to": "n95"
+    },
+    {
+     "from": "n20",
+     "to": "dbl"
+    }
+   ]
+  },
+  {
+   "id": "f4",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n20",
+     "label": "20 B",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n75",
+     "label": "75 R",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n80",
+     "label": "80 B",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n85",
+     "label": "85 B",
+     "at": [
+      3,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n95",
+     "label": "95 B",
+     "at": [
+      4,
+      1
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n85",
+     "to": "n75"
+    },
+    {
+     "from": "n75",
+     "to": "n20"
+    },
+    {
+     "from": "n75",
+     "to": "n80"
+    },
+    {
+     "from": "n85",
+     "to": "n95"
+    }
+   ]
+  },
+  {
+   "id": "co",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "red-black operation",
+    "cost"
+   ],
+   "rows": [
+    [
+     "search",
+     "O(log n), height ≤ 2 log₂(n + 1)"
+    ],
+    [
+     "insert",
+     "O(log n): recolourings climb, at most 2 rotations"
+    ],
+    [
+     "delete",
+     "O(log n): case 2 climbs, at most 3 rotations"
+    ],
+    [
+     "case 1 → case 2 ends",
+     "the parent was red, so the climb stops at once"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question: the tree from part 1 (insert 41, 38, 31, 12, 19, 8)"
+   ],
+   "rows": [
+    [
+     "delete 8, then 12, then 19"
+    ],
+    [
+     "a) which case or rule handles each deletion?"
+    ],
+    [
+     "b) draw the final tree with colours"
+    ]
+   ]
+  },
+  {
+   "id": "e0",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n8",
+     "label": "8 R",
+     "at": [
+      0,
+      3
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n12",
+     "label": "12 B",
+     "at": [
+      1,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n19",
+     "label": "19 R",
+     "at": [
+      2,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n31",
+     "label": "31 B",
+     "at": [
+      3,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n38",
+     "label": "38 B",
+     "at": [
+      4,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n41",
+     "label": "41 B",
+     "at": [
+      5,
+      1
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n38",
+     "to": "n19"
+    },
+    {
+     "from": "n19",
+     "to": "n12"
+    },
+    {
+     "from": "n12",
+     "to": "n8"
+    },
+    {
+     "from": "n19",
+     "to": "n31"
+    },
+    {
+     "from": "n38",
+     "to": "n41"
+    }
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "delete",
+    "what happens"
+   ],
+   "rows": [
+    [
+     "8",
+     "red leaf: remove"
+    ],
+    [
+     "12",
+     "case 2: 31 → R, x = 19"
+    ],
+    [
+     "",
+     "19 is red → B"
+    ],
+    [
+     "19",
+     "red child 31 moves up → B"
+    ],
+    [
+     "final",
+     "38 B · 31 B · 41 B"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Inserting into a red-black tree can only create two reds in a row. Deleting is harder: removing a black node shortens some paths, breaking the equal-black rule. This video shows the idea of a double-black node, and the four cases that remove it."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Red-black trees, part 2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Deleting as in a BST, the easy outcomes, the double-black node, and four cases decided by the sibling."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then one deletion that needs three of the cases in turn, the costs, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bst",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: start as in an ordinary BST. If z has at most one child, z itself is removed, and its child, or nil, takes its place. Call that node x."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: delete as in a BST"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "st"
+      },
+      {
+       "action": "highlight",
+       "target": "st[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If z has two children, its successor y moves into z's position and takes z's colour. Then it is y that has really left its old spot, and y's child becomes x."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So what matters is the colour of the node that really disappeared from its position."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "track the colour that left, and the node x that replaced it"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "easy",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: if that colour was red, nothing breaks. Black counts are unchanged, and a red node removed cannot create two reds in a row. Done."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: when nothing needs fixing"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "highlight",
+       "target": "st[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If it was black, every path through x lost one black node. That breaks rule 5, and needs fixing."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two quick cases: if x is red, colour it black. The missing black is back."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "st"
+      },
+      {
+       "action": "show",
+       "target": "db"
+      },
+      {
+       "action": "highlight",
+       "target": "db[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If x is the root, every path lost one black equally, so the rule still holds. Done."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "db[1]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "removed red: done · x red: paint it black"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dbl",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: otherwise x is black and not the root. Cormen pretends x carries an extra black: it is double black, counting as two. That restores the counts, but breaks the rule that a node is red or black."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: the double-black node"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "highlight",
+       "target": "db[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The fix moves that extra black up the tree, or rotates it away, by looking at x's sibling, w, and w's children."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "db[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "double black: an extra black to get rid of"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cases",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: case 1, the sibling w is red. Rotate at the parent and swap the colours of w and the parent. Now x has a black sibling, so one of the other cases applies."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: four cases"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "db"
+      },
+      {
+       "action": "show",
+       "target": "cs"
+      },
+      {
+       "action": "highlight",
+       "target": "cs[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Case 2, w is black and both its children are black. Take one black off both x and w: w turns red, and the extra black moves up to the parent, which becomes the new x."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cs[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Case 3, w is black, its near child is red and its far child black. Rotate at w and swap colours, so the red child becomes the far one: that is case 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cs[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Case 4, w is black and its far child is red. Rotate at the parent, give w the parent's colour, and colour the parent and the far child black. The extra black is absorbed, and the fix ends."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cs[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Case 2 may climb towards the root. The others end within three rotations at most."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "sibling red: 1 · black, black kids: 2 · near red: 3 · far red: 4"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ex",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: this tree: 20 black at the root; 15 black on the left; 85 red on the right, with black children 80 and 95; and 75 red under 80. Delete 15."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: cases 1, 3 and 4"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cs"
+      },
+      {
+       "action": "show",
+       "target": "a0"
+      },
+      {
+       "action": "highlight",
+       "target": "a0.n15"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "15 is a black leaf. Its place is taken by nil, which is now double black. Its sibling, 85, is red: case 1."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "a0"
+      },
+      {
+       "action": "show",
+       "target": "a1"
+      },
+      {
+       "action": "highlight",
+       "target": "a1.dbl"
+      },
+      {
+       "action": "highlight",
+       "target": "a1.n85",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Left-rotate at 20 and swap the colours of 20 and 85. 85 is now the black root, 20 is red, and x's new sibling is 80, black."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "a1"
+      },
+      {
+       "action": "show",
+       "target": "f1"
+      },
+      {
+       "action": "highlight",
+       "target": "f1.n80"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "80's near child, 75, is red, and its far child is nil, black: case 3. Right-rotate at 80, and swap colours: 75 turns black, 80 red."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "f1"
+      },
+      {
+       "action": "show",
+       "target": "f3"
+      },
+      {
+       "action": "highlight",
+       "target": "f3.n75"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now x's sibling 75 is black with a red far child, 80: case 4. Left-rotate at 20. 75 takes the parent's colour, red; 20 and 80 turn black."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "f3"
+      },
+      {
+       "action": "show",
+       "target": "f4"
+      },
+      {
+       "action": "highlight",
+       "target": "f4.n75"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Done. 85 black at the root; 75 red with black children 20 and 80; 95 black. Every path from the root to a nil passes 3 black nodes, counting the nil."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "f4.n85"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "1 → 3 → 4: three rotations, then stop"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cost",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: costs. Search, insert and delete are all O of log n, because the height is at most 2 log of n plus 1."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: costs"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "f4"
+      },
+      {
+       "action": "show",
+       "target": "co"
+      },
+      {
+       "action": "highlight",
+       "target": "co[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insertion recolours up the tree, with at most 2 rotations. Deletion's case 2 climbs, with at most 3 rotations in all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And when case 1 leads to case 2, the parent is red, so the climb ends at once. That bounded number of rotations is why libraries prefer red-black trees for data that changes often."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "delete: O(log n), at most 3 rotations"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question, on the tree built in part 1."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "co"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Delete 8, then 12, then 19, naming the case each time, and draw the final tree. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The tree: 38 black; 19 red with black children 12 and 31; 8 red under 12; 41 black."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "e0"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Delete 8: a red leaf. Removing red breaks nothing."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "e0.n8"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Delete 12: a black leaf, so x is a double-black nil. Its sibling 31 is black with no red children: case 2. 31 turns red, and the extra black moves up to 19."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "e0.n12"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "19 is red, so colour it black, and the fix ends."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Delete 19: it is black, with one child, 31, which is red. 31 takes its place and is coloured black. The final tree is 38, with black children 31 and 41."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3..=4]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[4][1]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: running the four cases when the node removed was red. Check the removed colour first."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "removed red → nothing to do"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "e0"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Delete as in a BST, and track the colour that left. Red: done. Black: x is painted black if red, or carries an extra black."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The sibling decides: red, rotate; black with black children, push the black up; near child red, rotate at the sibling; far child red, rotate and finish. All O of log n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: a tree with many keys per node, built for disks. The B-tree."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: B-trees"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

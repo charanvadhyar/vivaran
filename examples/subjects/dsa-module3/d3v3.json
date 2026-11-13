@@ -1,0 +1,1240 @@
+{
+ "version": 1,
+ "title": "Karatsuba multiplication",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "School multiplication: n² digit products"
+    ],
+    [
+     2,
+     "Divide and conquer, first try"
+    ],
+    [
+     3,
+     "Karatsuba's trick: three products, not four"
+    ],
+    [
+     4,
+     "1234 × 5678, worked"
+    ],
+    [
+     5,
+     "The algorithm"
+    ],
+    [
+     6,
+     "The running time: n^1.585"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "sch",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "school method",
+    ""
+   ],
+   "rows": [
+    [
+     "1234 × 5678",
+     "every digit of one times every digit of the other"
+    ],
+    [
+     "two n-digit numbers",
+     "n × n = n² digit products, then additions"
+    ],
+    [
+     "n = 4",
+     "16 products"
+    ],
+    [
+     "n = 1024 digits (cryptography)",
+     "1,048,576 products"
+    ],
+    [
+     "question (Kolmogorov, 1960)",
+     "is Θ(n²) the best possible? Karatsuba, aged 23: no"
+    ]
+   ]
+  },
+  {
+   "id": "sp",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "x = a dot 10^m + b, quad y = c dot 10^m + d quad (m = n slash 2)",
+    "1234 = 12 dot 10^2 + 34, quad 5678 = 56 dot 10^2 + 78",
+    "x y = a c dot 10^(2m) + (a d + b c) dot 10^m + b d",
+    "\"four half-size products: \" T(n) = 4 T(n slash 2) + Theta(n) = Theta(n^2) quad \"no gain\""
+   ]
+  },
+  {
+   "id": "kt",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "(a + b)(c + d) = a c + a d + b c + b d",
+    "a d + b c = (a + b)(c + d) - a c - b d",
+    "\"products needed: \" a c, quad b d, quad (a + b)(c + d) quad \"three, not four\"",
+    "\"the price: a few extra additions and subtractions, \" Theta(n)"
+   ]
+  },
+  {
+   "id": "ex",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "1234 × 5678",
+    "working",
+    "value"
+   ],
+   "rows": [
+    [
+     "split",
+     "a = 12, b = 34;   c = 56, d = 78",
+     ""
+    ],
+    [
+     "ac",
+     "12 × 56",
+     ""
+    ],
+    [
+     "bd",
+     "34 × 78",
+     ""
+    ],
+    [
+     "(a + b)(c + d)",
+     "46 × 134",
+     ""
+    ],
+    [
+     "ad + bc",
+     "6164 − 672 − 2652",
+     ""
+    ],
+    [
+     "result",
+     "672·10⁴ + 2840·10² + 2652",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "kc",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "KARATSUBA(x, y)",
+    "    if x < 10 or y < 10:  return x · y                   // one digit: multiply directly",
+    "    m = ⌊max(digits(x), digits(y)) / 2⌋",
+    "    a, b = x div 10^m, x mod 10^m;    c, d = y div 10^m, y mod 10^m",
+    "    p1 = KARATSUBA(a, c)",
+    "    p2 = KARATSUBA(b, d)",
+    "    p3 = KARATSUBA(a + b, c + d)",
+    "    return p1 · 10^(2m) + (p3 − p1 − p2) · 10^m + p2     // shifts and adds: Θ(n)"
+   ]
+  },
+  {
+   "id": "inr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "12 × 56, one level down",
+    "working",
+    "value"
+   ],
+   "rows": [
+    [
+     "split",
+     "a = 1, b = 2;   c = 5, d = 6",
+     ""
+    ],
+    [
+     "ac, bd",
+     "1 × 5,   2 × 6",
+     "5,  12"
+    ],
+    [
+     "(a + b)(c + d)",
+     "3 × 11: 3 has one digit, so multiply directly",
+     "33"
+    ],
+    [
+     "middle",
+     "33 − 5 − 12",
+     "16"
+    ],
+    [
+     "result",
+     "5·100 + 16·10 + 12",
+     "672 ✓"
+    ]
+   ]
+  },
+  {
+   "id": "lvl",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "level",
+    "number size",
+    "school-style: 4 per call",
+    "Karatsuba: 3 per call"
+   ],
+   "rows": [
+    [
+     "0",
+     "n",
+     "1",
+     "1"
+    ],
+    [
+     "1",
+     "n/2",
+     "4",
+     "3"
+    ],
+    [
+     "2",
+     "n/4",
+     "16",
+     "9"
+    ],
+    [
+     "k",
+     "n/2ᵏ",
+     "4ᵏ",
+     "3ᵏ"
+    ],
+    [
+     "log₂ n",
+     "1 digit",
+     "n²",
+     "3^log₂n = n^log₂3"
+    ]
+   ]
+  },
+  {
+   "id": "rt",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "T(n) = 3 T(n slash 2) + Theta(n)",
+    "\"master method: \" a = 3, b = 2, quad n^(log_2 3) approx n^1.585 \" grows faster than \" f(n) = n",
+    "\"case 1: \" T(n) = Theta(n^(log_2 3)) = Theta(n^1.585)",
+    "n = 1024 \" digits: \" 3^10 = 59049 \" products against \" 1024^2 = 1048576",
+    "\"later: Toom-Cook, FFT methods, and Harvey and van der Hoeven (2019): \" O(n log n)"
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "multiply 3141 × 5926 by Karatsuba's method (one level of splitting)"
+    ],
+    [
+     "a) give a, b, c, d and the three products"
+    ],
+    [
+     "b) find ad + bc and the result"
+    ],
+    [
+     "c) n = 64 digits, split down to single digits: single-digit products, Karatsuba against school?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a)",
+     "a = 31, b = 41, c = 59, d = 26",
+     "ac = 1829, bd = 1066"
+    ],
+    [
+     "a)",
+     "(a + b)(c + d) = 72 × 85",
+     "6120"
+    ],
+    [
+     "b)",
+     "6120 − 1829 − 1066",
+     "ad + bc = 3225"
+    ],
+    [
+     "b)",
+     "1829·10⁴ + 3225·10² + 1066 = 18290000 + 322500 + 1066",
+     "18,613,566"
+    ],
+    [
+     "c)",
+     "64 = 2⁶: six levels of splitting",
+     "3⁶ = 729 against 4⁶ = 4096"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Multiplying two numbers seems too basic to improve. For two thousand years everyone used the school method. In 1960, a 23-year-old student, Anatoly Karatsuba, found a faster way, using divide and conquer and one clever line of algebra."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Karatsuba multiplication"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The school method, a first divide-and-conquer attempt, Karatsuba's trick, and a worked example."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the algorithm, its running time, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sch",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: the school method multiplies every digit of one number by every digit of the other."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the school method"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "sch"
+      },
+      {
+       "action": "highlight",
+       "target": "sch[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two n-digit numbers need n times n, n squared, digit products, plus the additions."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sch[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For 4 digits that is 16 products. For 1024-digit numbers, the size used in cryptography, over a million."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sch[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The mathematician Kolmogorov conjectured that n squared could not be beaten. Within a week of hearing this at his seminar, Karatsuba proved him wrong."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sch[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "school method: Θ(n²) digit products"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "split",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: divide. Split each n-digit number into a high half and a low half, each with m equals n over 2 digits. x is a times 10 to the m, plus b."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: a first try"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sch"
+      },
+      {
+       "action": "show",
+       "target": "sp"
+      },
+      {
+       "action": "highlight",
+       "target": "sp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For example, 1234 is 12 times 100, plus 34; and 5678 is 56 times 100, plus 78."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "sp[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "sp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Multiply out: x y is a c times 10 to the 2 m, plus a d plus b c, times 10 to the m, plus b d. Multiplying by a power of 10 is just a shift."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "sp[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "sp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But that is four multiplications of half-size numbers. The recurrence 4 T of n over 2, plus n, solves to n squared again. Nothing gained."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "sp[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "sp[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "four half-size products: still Θ(n²)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trick",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: the trick. Multiply out a plus b, times c plus d: it gives all four products, a c plus a d plus b c plus b d."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: Karatsuba's trick"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sp"
+      },
+      {
+       "action": "show",
+       "target": "kt"
+      },
+      {
+       "action": "highlight",
+       "target": "kt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the middle term, a d plus b c, equals a plus b times c plus d, minus a c, minus b d."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "kt[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "kt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And we need a c and b d anyway, for the outer terms. So three multiplications give everything: a c, b d, and a plus b times c plus d."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "kt[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "kt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The price is a few extra additions and subtractions. Those cost Theta of n, much cheaper than a multiplication."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "kt[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "kt[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "ad + bc = (a+b)(c+d) − ac − bd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ex",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: multiply 1234 by 5678. Split: a is 12, b is 34; c is 56, d is 78."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: 1234 × 5678"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "kt"
+      },
+      {
+       "action": "show",
+       "target": "ex"
+      },
+      {
+       "action": "highlight",
+       "target": "ex[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "First product: a c, 12 times 56, is 672."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ex[1]"
+      },
+      {
+       "action": "set",
+       "target": "ex[1][2]",
+       "value": "672",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Second: b d, 34 times 78, is 2652."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ex[2]"
+      },
+      {
+       "action": "set",
+       "target": "ex[2][2]",
+       "value": "2652",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Third: a plus b is 46, c plus d is 134. 46 times 134 is 6164."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ex[3]"
+      },
+      {
+       "action": "set",
+       "target": "ex[3][2]",
+       "value": "6164",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The middle term: 6164 minus 672 minus 2652, which is 2840. Check: 12 times 78, plus 34 times 56, is 936 plus 1904, 2840."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ex[4]"
+      },
+      {
+       "action": "set",
+       "target": "ex[4][2]",
+       "value": "2840",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Assemble: 672 shifted 4 places, plus 2840 shifted 2 places, plus 2652: 7,006,652. Three multiplications of two-digit numbers instead of four."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ex[5]"
+      },
+      {
+       "action": "set",
+       "target": "ex[5][2]",
+       "value": "7,006,652",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "ex[5][2]",
+       "delay": 0.8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "1234 × 5678 = 7,006,652"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "algo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the algorithm applies the trick recursively. A one-digit number is multiplied directly."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: the algorithm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ex"
+      },
+      {
+       "action": "show",
+       "target": "kc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "kc",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Otherwise split both numbers at m, half the number of digits."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "kc",
+       "from": 3,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three recursive calls: a c, b d, and a plus b times c plus d. So 12 times 56 would itself be split into 1, 2 and 5, 6."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "kc",
+       "from": 5,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then combine with shifts, additions and subtractions, all linear in the number of digits."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "kc",
+       "from": 8,
+       "to": 8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "three recursive products + Θ(n) work"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Let us check one recursive call: 12 times 56. Split into 1, 2 and 5, 6."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "kc"
+      },
+      {
+       "action": "show",
+       "target": "inr"
+      },
+      {
+       "action": "highlight",
+       "target": "inr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a c is 1 times 5, 5. b d is 2 times 6, 12."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "inr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a plus b is 3, c plus d is 11. 3 has a single digit, so this one is multiplied directly: 33."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "inr[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Middle term: 33 minus 5 minus 12, 16. Result: 500 plus 160 plus 12, 672: the same a c we used above."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "inr[3..=4]"
+      },
+      {
+       "action": "mark",
+       "target": "inr[4][2]",
+       "delay": 0.5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "time",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: count the calls level by level. Each call makes 3 smaller calls instead of 4: level 1 has 3 calls, level 2 has 9."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: the running time"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "inr"
+      },
+      {
+       "action": "show",
+       "target": "lvl"
+      },
+      {
+       "action": "highlight",
+       "target": "lvl[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At level k there are 3 to the k calls, on numbers of n over 2 to the k digits. The school-style split would have 4 to the k."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lvl[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At the bottom, log n levels down, single digits: n squared products the slow way, but only 3 to the log n, which equals n to the log 2 of 3, with Karatsuba."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lvl[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The same answer from the recurrence: three half-size problems plus linear work, T of n equals 3 T of n over 2, plus n."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "lvl"
+      },
+      {
+       "action": "show",
+       "target": "rt"
+      },
+      {
+       "action": "highlight",
+       "target": "rt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Master method: a is 3, b is 2. n to the log base 2 of 3 is about n to the 1.585, which grows faster than the linear f of n."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rt[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "rt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So case 1: the leaves dominate, and T of n is Theta of n to the log 2 of 3, about n to the 1.585."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rt[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "rt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For 1024 digits: 10 levels of splitting, 3 to the 10, about 59 thousand digit products, against over a million for the school method."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rt[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "rt[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For small numbers the school method still wins, so real libraries switch over below a threshold. And faster methods followed: Toom-Cook, the FFT, and in 2019, n log n."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rt[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "rt[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Θ(n^log₂3) ≈ Θ(n^1.585)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rt"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find the split and the three products, the middle term and the result, then compare the counts for 64 digits. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: a is 31, b is 41; c is 59, d is 26. a c is 31 times 59, 1829. b d is 41 times 26, 1066."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a plus b is 72, c plus d is 85: their product is 6120."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: the middle term is 6120 minus 1829 minus 1066: 3225."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Assemble: 18,290,000 plus 322,500 plus 1066: 18,613,566."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 64 is 2 to the 6, so 6 levels of splitting. Karatsuba makes 3 to the 6, 729 single-digit products; the school method 4 to the 6, 4096."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[4][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: shifting the middle term by 2 m instead of m. a c moves 2 m places, the middle term m places, and b d stays put."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "ac · 10^2m  +  middle · 10^m  +  bd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Splitting numbers in half naively needs four half-size products: no better than school. Karatsuba gets the middle term from one extra product: three in all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Recursively, T of n equals 3 T of n over 2, plus n: Theta of n to the 1.585."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: the same trick for matrices. Strassen's algorithm multiplies two matrices with 7 products instead of 8."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: Strassen's matrix multiplication"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

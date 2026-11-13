@@ -1,0 +1,1239 @@
+{
+ "version": 1,
+ "title": "Performance analysis",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "What we measure, and how"
+    ],
+    [
+     2,
+     "Space complexity"
+    ],
+    [
+     3,
+     "The step-count method"
+    ],
+    [
+     4,
+     "Two nested loops"
+    ],
+    [
+     5,
+     "Insertion sort: best case"
+    ],
+    [
+     6,
+     "Insertion sort: worst case"
+    ],
+    [
+     7,
+     "Recursive step counts"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "wh",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "a priori: analysis",
+    "a posteriori: measurement"
+   ],
+   "rows": [
+    [
+     "when",
+     "before running",
+     "after running"
+    ],
+    [
+     "gives",
+     "a formula in n",
+     "seconds on one machine"
+    ],
+    [
+     "depends on",
+     "only the algorithm",
+     "machine, compiler, load"
+    ],
+    [
+     "we count",
+     "steps and memory words",
+     "time and bytes"
+    ]
+   ]
+  },
+  {
+   "id": "sp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "S(P) = c + S_P(instance)",
+    "Sum(a, n)",
+    "RSum(a, n), recursive"
+   ],
+   "rows": [
+    [
+     "fixed part c",
+     "code, s, i, n: 3 words",
+     "code"
+    ],
+    [
+     "variable part S_P",
+     "the array a: n words",
+     "one stack frame per call"
+    ],
+    [
+     "frames",
+     "",
+     "n + 1 calls, 3 words each"
+    ],
+    [
+     "total",
+     "n + 3",
+     "3(n + 1)"
+    ]
+   ]
+  },
+  {
+   "id": "sc",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "line",
+    "Sum(a, n)",
+    "steps per run",
+    "times run",
+    "total"
+   ],
+   "rows": [
+    [
+     "1",
+     "s = 0",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "for i = 1 to n",
+     "1",
+     "",
+     ""
+    ],
+    [
+     "3",
+     "    s = s + a[i]",
+     "1",
+     "",
+     ""
+    ],
+    [
+     "4",
+     "return s",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "",
+     "",
+     "",
+     "total",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "ma",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "line",
+    "Add(a, b, c, m, n)",
+    "times run"
+   ],
+   "rows": [
+    [
+     "1",
+     "for i = 1 to m",
+     "m + 1"
+    ],
+    [
+     "2",
+     "    for j = 1 to n",
+     "m (n + 1)"
+    ],
+    [
+     "3",
+     "        c[i][j] = a[i][j] + b[i][j]",
+     "m n"
+    ],
+    [
+     "",
+     "total",
+     "2mn + 2m + 1"
+    ],
+    [
+     "",
+     "m = 3, n = 4",
+     "31 steps"
+    ]
+   ]
+  },
+  {
+   "id": "isb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "line of INSERTION-SORT",
+    "times run",
+    "sorted input"
+   ],
+   "rows": [
+    [
+     "for j = 2 to n",
+     "n",
+     "n"
+    ],
+    [
+     "key = A[j];  i = j − 1",
+     "2 (n − 1)",
+     "2 (n − 1)"
+    ],
+    [
+     "while test",
+     "Σ tⱼ",
+     "n − 1   (tⱼ = 1)"
+    ],
+    [
+     "shift;  i = i − 1",
+     "2 Σ (tⱼ − 1)",
+     "0"
+    ],
+    [
+     "A[i + 1] = key",
+     "n − 1",
+     "n − 1"
+    ],
+    [
+     "total",
+     "",
+     "5n − 4"
+    ]
+   ]
+  },
+  {
+   "id": "isw",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"reverse-sorted:\" quad t_j = j quad \"(the while test runs j times)\"",
+    "sum_(j=2)^n j = (n(n+1))/2 - 1 quad quad sum_(j=2)^n (j - 1) = (n(n-1))/2",
+    "T(n) = n + 3(n - 1) + ((n(n+1))/2 - 1) + n(n - 1) = 1.5 n^2 + 3.5 n - 4",
+    "n = 6: quad \"best\" 26, \"worst\" 71 quad quad n = 1000: quad \"best\" 4996, \"worst\" 1503496"
+   ]
+  },
+  {
+   "id": "rc",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "RSUM(a, n)",
+    "    if n == 0               // 1 step",
+    "        return 0            // 1 step",
+    "    return RSUM(a, n-1) + a[n]   // 1 step + the call"
+   ]
+  },
+  {
+   "id": "rcm",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "T(0) = 2",
+    "T(n) = 2 + T(n - 1)",
+    "= 2 + 2 + T(n - 2) = dots.c",
+    "= 2n + T(0) = 2n + 2"
+   ]
+  },
+  {
+   "id": "q",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "1  for i = 1 to n",
+    "2      for j = i to n",
+    "3          x = x + 1",
+    "",
+    "a) how many times does each line run?   b) the total for n = 10",
+    "c) best and worst step counts of insertion sort for n = 10"
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"line 1:\" n + 1 quad \"line 3:\" sum_(i=1)^n (n - i + 1) = (n(n+1))/2",
+    "\"line 2:\" sum_(i=1)^n (n - i + 2) = (n(n+1))/2 + n",
+    "\"total\" = n^2 + 3n + 1 quad n = 10: quad 11 + 65 + 55 = 131",
+    "\"c)\" quad 5 times 10 - 4 = 46 quad 1.5 times 100 + 35 - 4 = 181"
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "How fast is an algorithm, and how much memory does it need? Not in seconds on one laptop, but as a formula in the size of the input. This video shows how to count, line by line."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Performance analysis"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What we measure, space complexity, the step-count method, and two nested loops."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then insertion sort's best and worst cases, counting steps in recursion, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "what",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: there are two ways to judge performance. A priori analysis happens before running, and gives a formula in n, the size of the input."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: what we measure"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "wh"
+      },
+      {
+       "action": "highlight",
+       "target": "wh[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A posteriori measurement runs the program and times it, which depends on the machine, the compiler, and whatever else is running."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wh[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What is a step? Any line whose cost does not depend on n: an assignment, a comparison, an addition. Whether it takes one machine cycle or five, it counts as one step, and that is why the answers hold on every machine."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wh[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Analysis counts steps and words of memory, so its answer holds on any machine. That is what this course does."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wh[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "count steps and words, as a function of n"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "space",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the space a program needs is a fixed part c, for code and simple variables, plus a variable part that depends on the instance."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: space complexity"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "wh"
+      },
+      {
+       "action": "show",
+       "target": "sp"
+      },
+      {
+       "action": "highlight",
+       "target": "sp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An iterative Sum of an array needs s, i and n: 3 words, fixed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sp[0][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Plus the array itself, n words. Total, n plus 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sp[1][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "sp[3][1]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A recursive sum has no loop variables, but every call pushes a stack frame: here a return address, a and n, 3 words."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sp[1][2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "RSum of n calls RSum of n minus 1, down to 0: n plus 1 frames at once. 3 times n plus 1 words of stack. Recursion trades loop variables for stack."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sp[2..=3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "recursion costs stack: one frame per active call"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "count",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: the step-count method. For each line, write the steps it costs each time, and how many times it runs. Multiply, and add up."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: step counts"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sp"
+      },
+      {
+       "action": "show",
+       "target": "sc"
+      },
+      {
+       "action": "highlight",
+       "target": "sc[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "s equals 0 runs once: 1 step."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sc[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The for line is tested once for each i from 1 to n, and once more when i reaches n plus 1 and the loop exits: n plus 1 times."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sc[1]"
+      },
+      {
+       "action": "set",
+       "target": "sc[1][3]",
+       "value": "n + 1",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sc[1][4]",
+       "value": "n + 1",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The body runs n times."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sc[2]"
+      },
+      {
+       "action": "set",
+       "target": "sc[2][3]",
+       "value": "n",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "sc[2][4]",
+       "value": "n",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Return runs once. Total: 1 plus n plus 1 plus n plus 1: 2n plus 3. For n equal to 10, 23 steps."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sc[3]"
+      },
+      {
+       "action": "set",
+       "target": "sc[4][4]",
+       "value": "2n + 3",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "sc[4][4]",
+       "delay": 0.6
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "loop header: one more test than the body"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "nest",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: adding two m by n matrices. The outer loop header runs m plus 1 times."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: nested loops"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sc"
+      },
+      {
+       "action": "show",
+       "target": "ma"
+      },
+      {
+       "action": "highlight",
+       "target": "ma[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The inner header runs n plus 1 times for each of the m outer passes: m times n plus 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ma[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The body runs m times n times."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ma[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Total: 2mn plus 2m plus 1. For a 3 by 4 matrix: 24 plus 6 plus 1, 31 steps."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ma[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For square n by n matrices this is 2 n squared plus 2n plus 1. The innermost body dominates: when loops nest, their counts multiply, and the deepest line decides how the total grows."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "nested loops multiply"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "best",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: insertion sort. Let t j be the number of times the while test runs for a given j. It depends on the data, not just on n."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: insertion sort, best case"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ma"
+      },
+      {
+       "action": "show",
+       "target": "isb"
+      },
+      {
+       "action": "highlight",
+       "target": "isb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The for test runs n times, since j goes from 2 to n plus 1. Setting key and i runs n minus 1 times each."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "isb[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The while test runs sum of t j times; the shift and the decrement each run one fewer per pass: sum of t j minus 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "isb[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And dropping key in runs n minus 1 times."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "isb[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If the input is already sorted, every while test fails at once: t j is 1, and nothing shifts. The total is 5n minus 4: linear in n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "isb[5]"
+      },
+      {
+       "action": "mark",
+       "target": "isb[5][2]",
+       "delay": 0.5
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "best case: already sorted, 5n − 4"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "worst",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: the worst case is reverse-sorted input. Key must travel all the way to the front, so the while test runs j times."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: insertion sort, worst case"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "isb"
+      },
+      {
+       "action": "show",
+       "target": "isw"
+      },
+      {
+       "action": "highlight",
+       "target": "isw[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the two sums. Adding j for j from 2 to n gives n times n plus 1 over 2, minus 1. Adding j minus 1 gives n times n minus 1 over 2."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "isw[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "isw[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Put them in: T of n is 1.5 n squared plus 3.5 n minus 4. Quadratic."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "isw[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "isw[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For 6 elements: 26 steps at best, 71 at worst. For 1000: under five thousand against one and a half million. The same algorithm, the same n: the input decides."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "isw[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "isw[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On average, key travels about halfway, so t j is about j over 2: still quadratic. We usually quote the worst case, because it is a guarantee."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "worst case: reverse-sorted, about 1.5 n²"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rec",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: counting steps in a recursive algorithm. RSum costs 2 steps when n is 0: the test and the return."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: recursive step counts"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "isw"
+      },
+      {
+       "action": "show",
+       "target": "rc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "rc",
+       "from": 2,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Otherwise, the test, plus the return with its addition, plus whatever the smaller call costs. T of n is 2 plus T of n minus 1."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rc",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "As equations: T of 0 is 2, and T of n is 2 plus T of n minus 1."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rc"
+      },
+      {
+       "action": "show",
+       "target": "rcm"
+      },
+      {
+       "action": "highlight",
+       "target": "rcm[0]"
+      },
+      {
+       "action": "reveal",
+       "target": "rcm[1]",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "rcm[1]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Unroll it: 2 plus 2 plus T of n minus 2, and so on, n times, down to T of 0."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rcm[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "rcm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2n plus 2. The same order as the loop, but with n plus 1 stack frames as well. This kind of equation is a recurrence; video 5 solves harder ones."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rcm[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "rcm[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "recursion: write T(n) in terms of T(smaller)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rcm"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Count how many times each line runs, the total for n equal to 10, and insertion sort's best and worst counts for n equal to 10. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "q",
+       "from": 5,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Line 1 runs n plus 1 times. Line 3 runs n minus i plus 1 times for each i: n, then n minus 1, down to 1. That is n times n plus 1 over 2."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Line 2 runs one more time than its body for each i: n times n plus 1 over 2, plus n."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Total: n squared plus 3n plus 1. For n equal to 10: 11 plus 65 plus 55, 131."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: best, 5 times 10 minus 4, 46. Worst, 150 plus 35 minus 4, 181."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "qa[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: forgetting the final failing test of each loop header, which adds n plus 1 extra steps here."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "headers run once more than bodies"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "We count steps and memory words as functions of n. Space is a fixed part plus a variable part, and recursion adds a stack frame per active call. Step counts multiply the cost of each line by how often it runs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insertion sort costs 5n minus 4 on sorted input and about 1.5 n squared on reverse-sorted input. Recursive algorithms give recurrences."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Exact counts are tedious, and the constants depend on what we call a step. Next video: keeping only what matters. Big O, Omega and Theta."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: asymptotic notation"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

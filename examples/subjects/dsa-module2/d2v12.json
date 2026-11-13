@@ -1,0 +1,1566 @@
+{
+ "version": 1,
+ "title": "Breadth-first search",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The idea: ripples outward"
+    ],
+    [
+     2,
+     "The algorithm"
+    ],
+    [
+     3,
+     "A trace from A"
+    ],
+    [
+     4,
+     "Minimum hops and the path"
+    ],
+    [
+     5,
+     "Devices within k hops"
+    ],
+    [
+     6,
+     "Bridge devices"
+    ],
+    [
+     7,
+     "The diameter"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "g",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "A",
+     "at": [
+      2,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "B",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "C",
+     "at": [
+      3,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "D",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "E",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "F",
+     "at": [
+      4,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "G",
+     "at": [
+      0,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "H",
+     "at": [
+      2,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "I",
+     "at": [
+      4,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "J",
+     "at": [
+      2,
+      4
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "A",
+     "to": "B"
+    },
+    {
+     "from": "A",
+     "to": "C"
+    },
+    {
+     "from": "B",
+     "to": "D"
+    },
+    {
+     "from": "B",
+     "to": "E"
+    },
+    {
+     "from": "C",
+     "to": "E"
+    },
+    {
+     "from": "C",
+     "to": "F"
+    },
+    {
+     "from": "D",
+     "to": "G"
+    },
+    {
+     "from": "E",
+     "to": "H"
+    },
+    {
+     "from": "F",
+     "to": "I"
+    },
+    {
+     "from": "G",
+     "to": "J"
+    },
+    {
+     "from": "H",
+     "to": "J"
+    },
+    {
+     "from": "I",
+     "to": "J"
+    }
+   ]
+  },
+  {
+   "id": "code",
+   "type": "code",
+   "region": "right",
+   "language": "text",
+   "lines": [
+    "BFS(G, s)",
+    "  for each vertex u: u.d = ∞;  u.π = nil",
+    "  s.d = 0;  Q = [s]",
+    "  while Q is not empty",
+    "      u = DEQUEUE(Q)",
+    "      for each v adjacent to u",
+    "          if v.d == ∞                // not yet discovered",
+    "              v.d = u.d + 1;  v.π = u",
+    "              ENQUEUE(Q, v)"
+   ]
+  },
+  {
+   "id": "qq",
+   "type": "array",
+   "region": "right",
+   "values": []
+  },
+  {
+   "id": "dt",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "vertex",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J"
+   ],
+   "rows": [
+    [
+     "d",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "π",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "kh",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "query",
+    "answer from one BFS of A"
+   ],
+   "rows": [
+    [
+     "hops A → J",
+     "J.d = 4"
+    ],
+    [
+     "the path",
+     "follow π back: J ← G ← D ← B ← A"
+    ],
+    [
+     "within 2 hops of A",
+     "every v with v.d ≤ 2: B, C, D, E, F"
+    ],
+    [
+     "unreachable",
+     "v.d stays ∞: report 'no path'"
+    ]
+   ]
+  },
+  {
+   "id": "br",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "pair",
+    "hops",
+    "after removing",
+    "bridges"
+   ],
+   "rows": [
+    [
+     "A → H",
+     "3",
+     "E: 5",
+     "E"
+    ],
+    [
+     "A → I",
+     "3",
+     "C or F: 5",
+     "C, F"
+    ],
+    [
+     "A → J",
+     "4",
+     "any one: still 4",
+     "none"
+    ]
+   ]
+  },
+  {
+   "id": "dm",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "start",
+    "farthest",
+    "eccentricity"
+   ],
+   "rows": [
+    [
+     "A",
+     "J",
+     "4"
+    ],
+    [
+     "E",
+     "G, I",
+     "3"
+    ],
+    [
+     "H",
+     "A, F, …",
+     "3"
+    ],
+    [
+     "…",
+     "",
+     ""
+    ],
+    [
+     "diameter",
+     "max over all starts",
+     "4"
+    ]
+   ]
+  },
+  {
+   "id": "co",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "BFS costs, adjacency lists",
+    ""
+   ],
+   "rows": [
+    [
+     "each vertex",
+     "enqueued and dequeued once: O(n)"
+    ],
+    [
+     "each list",
+     "scanned once when its vertex is dequeued: O(m) in all"
+    ],
+    [
+     "total",
+     "O(n + m)"
+    ],
+    [
+     "bridge devices by removal",
+     "one BFS per device: O(n (n + m))"
+    ],
+    [
+     "diameter",
+     "one BFS per vertex: O(n (n + m))"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question: the same network, now starting at E"
+   ],
+   "rows": [
+    [
+     "a) the BFS order and every distance, taking neighbours alphabetically"
+    ],
+    [
+     "b) minimum hops from E to G, and devices within 1 hop of E"
+    ],
+    [
+     "c) the bridge devices between D and I"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "part",
+    "answer"
+   ],
+   "rows": [
+    [
+     "order",
+     "E B C H A D F J G I"
+    ],
+    [
+     "d = 1",
+     "B, C, H"
+    ],
+    [
+     "d = 2",
+     "A, D, F, J"
+    ],
+    [
+     "d = 3",
+     "G, I"
+    ],
+    [
+     "b",
+     "E → G: 3 hops · within 1: B, C, H"
+    ],
+    [
+     "c) D → I",
+     "3 hops: D G J I only · bridges G, J"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Breadth-first search explores a graph the way ripples spread on water: first everything one step away, then everything two steps away, and so on. That order makes it the tool for shortest paths in unweighted networks. This video runs it on the lab's network and answers all four lab queries."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Breadth-first search"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The idea, the algorithm, a full trace, and minimum hops with the path itself."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then devices within k hops, bridge devices, the diameter, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "idea",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: start at device A. Its neighbours B and C are 1 hop away."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: ripples outward"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "g"
+      },
+      {
+       "action": "mark",
+       "target": "g.A"
+      },
+      {
+       "action": "highlight",
+       "target": "g.B",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Their unvisited neighbours, D, E and F, are 2 hops away; then G, H and I at 3; then J at 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.E"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "BFS finishes every vertex at distance k before touching any at distance k plus 1. A first-in, first-out queue enforces exactly that order."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "level by level, with a queue"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "algo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: Cormen's BFS. Every vertex starts undiscovered, with distance infinity and no parent."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: the algorithm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "reset",
+       "target": "g"
+      },
+      {
+       "action": "show",
+       "target": "code"
+      },
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The source gets distance 0 and goes into the queue."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 3,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Repeatedly take the front vertex u, and look at each neighbour v."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 4,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If v is still undiscovered, its distance is u's plus 1, its parent is u, and it joins the back of the queue."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "code",
+       "from": 7,
+       "to": 9
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "discover, set d and π, enqueue"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: BFS from A, taking neighbours in alphabetical order. A has distance 0 and waits in the queue."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: a trace from A"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "code"
+      },
+      {
+       "action": "show",
+       "target": "qq"
+      },
+      {
+       "action": "show",
+       "target": "dt"
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 0,
+       "value": "A"
+      },
+      {
+       "action": "set",
+       "target": "dt[0][1]",
+       "value": "0",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "dt[1][1]",
+       "value": "–",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dequeue A. Its neighbours B and C are new: distance 1, parent A. Enqueue them."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "qq[0]"
+      },
+      {
+       "action": "mark",
+       "target": "g.A",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "dt[0][2]",
+       "value": "1",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "dt[1][2]",
+       "value": "A",
+       "delay": 0.3
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 0,
+       "value": "B",
+       "delay": 0.35
+      },
+      {
+       "action": "set",
+       "target": "dt[0][3]",
+       "value": "1",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "dt[1][3]",
+       "value": "A",
+       "delay": 0.4
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 1,
+       "value": "C",
+       "delay": 0.45
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dequeue B: A is already seen; D and E are new, distance 2, parent B."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "qq[0]"
+      },
+      {
+       "action": "mark",
+       "target": "g.B",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "dt[0][4]",
+       "value": "2",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "dt[1][4]",
+       "value": "B",
+       "delay": 0.3
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 1,
+       "value": "D",
+       "delay": 0.35
+      },
+      {
+       "action": "set",
+       "target": "dt[0][5]",
+       "value": "2",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "dt[1][5]",
+       "value": "B",
+       "delay": 0.4
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 2,
+       "value": "E",
+       "delay": 0.45
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dequeue C: A and E are already seen; F is new, distance 2."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "qq[0]"
+      },
+      {
+       "action": "mark",
+       "target": "g.C",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "dt[0][6]",
+       "value": "2",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "dt[1][6]",
+       "value": "C",
+       "delay": 0.3
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 2,
+       "value": "F",
+       "delay": 0.35
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dequeue D: G is new, distance 3. Dequeue E: H is new, distance 3."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "qq[0]"
+      },
+      {
+       "action": "mark",
+       "target": "g.D",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "dt[0][7]",
+       "value": "3",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "dt[1][7]",
+       "value": "D",
+       "delay": 0.3
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 2,
+       "value": "G",
+       "delay": 0.35
+      },
+      {
+       "action": "remove",
+       "target": "qq[0]"
+      },
+      {
+       "action": "mark",
+       "target": "g.E",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "dt[0][8]",
+       "value": "3",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "dt[1][8]",
+       "value": "E",
+       "delay": 0.3
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 2,
+       "value": "H",
+       "delay": 0.35
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dequeue F: I, distance 3. Dequeue G: J, distance 4."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "qq[0]"
+      },
+      {
+       "action": "mark",
+       "target": "g.F",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "dt[0][9]",
+       "value": "3",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "dt[1][9]",
+       "value": "F",
+       "delay": 0.3
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 2,
+       "value": "I",
+       "delay": 0.35
+      },
+      {
+       "action": "remove",
+       "target": "qq[0]"
+      },
+      {
+       "action": "mark",
+       "target": "g.G",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "dt[0][10]",
+       "value": "4",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "dt[1][10]",
+       "value": "G",
+       "delay": 0.3
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 2,
+       "value": "J",
+       "delay": 0.35
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "H, I and J find nothing new. The queue empties. The order of visits was A to J alphabetically, here by coincidence of the drawing; the distances are 0, 1, 1, 2, 2, 2, 3, 3, 3, 4."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "qq[0]"
+      },
+      {
+       "action": "mark",
+       "target": "g.H",
+       "delay": 0.1
+      },
+      {
+       "action": "remove",
+       "target": "qq[0]"
+      },
+      {
+       "action": "mark",
+       "target": "g.I",
+       "delay": 0.1
+      },
+      {
+       "action": "remove",
+       "target": "qq[0]"
+      },
+      {
+       "action": "mark",
+       "target": "g.J",
+       "delay": 0.1
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "each vertex enters the queue once"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hops",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the lab's first query, the minimum hops between two devices, is just the distance: from A to J, 4."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: minimum hops"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qq"
+      },
+      {
+       "action": "hide",
+       "target": "dt"
+      },
+      {
+       "action": "show",
+       "target": "kh"
+      },
+      {
+       "action": "highlight",
+       "target": "kh[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The path itself comes from the parents: J's parent is G, G's is D, D's is B, B's is A. Reversed: A, B, D, G, J."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kh[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "g.J",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "g.G",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "g.D",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "g.B",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If a device was never discovered, its distance stays infinite: there is no path, and the program should say so."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "kh[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "d = hops · π = the route back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "khops",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the second query: every device within max hops of a start, the reach of a broadcast or a virus. Run BFS and keep every vertex with distance at most k."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: within k hops"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "highlight",
+       "target": "kh[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Within 2 hops of A: B and C at 1, and D, E and F at 2. You can also stop the search early, as soon as you dequeue a vertex at distance k."
+     },
+     "do": [
+      {
+       "action": "reset",
+       "target": "g"
+      },
+      {
+       "action": "mark",
+       "target": "g.B"
+      },
+      {
+       "action": "mark",
+       "target": "g.C",
+       "delay": 0.1
+      },
+      {
+       "action": "mark",
+       "target": "g.D",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "g.E",
+       "delay": 0.3
+      },
+      {
+       "action": "mark",
+       "target": "g.F",
+       "delay": 0.4
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "within k hops: d ≤ k"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bridge",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: the third query: bridge devices between a source and a target, devices whose removal makes the trip longer or impossible. The simplest method: remove each device in turn, and run BFS again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: bridge devices"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "reset",
+       "target": "g"
+      },
+      {
+       "action": "hide",
+       "target": "kh"
+      },
+      {
+       "action": "show",
+       "target": "br"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A to H is 3 hops, through E. Remove E, and the best route becomes A, B, D, G, J, H: 5 hops. So E is a bridge device."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "br[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "g.E",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A to I is 3 hops, but only along A, C, F, I. Remove C or F, and it grows to 5. Both are bridge devices."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "br[1]"
+      },
+      {
+       "action": "mark",
+       "target": "g.C",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.F",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A to J has four different 4-hop routes. No single device lies on all of them, so there are none. A faster method counts shortest paths: a device is a bridge exactly when every shortest path passes through it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "br[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "bridge = on every shortest path"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "diam",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: the fourth query: the diameter of a device's connected component, the longest shortest path. Run BFS from every vertex and record its largest distance, its eccentricity."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: the diameter"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "reset",
+       "target": "g"
+      },
+      {
+       "action": "hide",
+       "target": "br"
+      },
+      {
+       "action": "show",
+       "target": "dm"
+      },
+      {
+       "action": "highlight",
+       "target": "dm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "From A, the farthest is J, 4 hops away. From E, the farthest are G and I, 3 hops away."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The diameter is the largest eccentricity: 4. BFS only reaches the start's own component, so this gives exactly the component's diameter."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dm[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "diameter = max over starts of max distance"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cost",
+   "steps": [
+    {
+     "say": {
+      "en": "Costs, with adjacency lists: each vertex is enqueued and dequeued once, and each list is scanned once."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dm"
+      },
+      {
+       "action": "hide",
+       "target": "g"
+      },
+      {
+       "action": "hide",
+       "target": "dm"
+      },
+      {
+       "action": "show",
+       "target": "co"
+      },
+      {
+       "action": "highlight",
+       "target": "co[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So one BFS is O of n plus m. The bridge and diameter queries run n searches: O of n times n plus m, still fast for networks of thousands of devices."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[2..=4]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question, starting from E."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "co"
+      },
+      {
+       "action": "show",
+       "target": "g"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Give the BFS order and distances, the hops from E to G, the devices within 1 hop, and the bridge devices between D and I. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "E's neighbours alphabetically: B, C, H, distance 1. B adds A and D; C adds F; H adds J: distance 2. Then D adds G, F adds I: distance 3."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: G has distance 3, so 3 hops. Within 1 hop: B, C and H."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: D to I is 3 hops, and the only 3-hop route is D, G, J, I. Remove G or J and it grows, so both are bridge devices."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[5]"
+      },
+      {
+       "action": "mark",
+       "target": "g.G",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.J",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: marking a vertex as seen when it is dequeued instead of when it is enqueued. Then it can enter the queue twice."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "mark when discovered, not when dequeued"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "g"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "BFS uses a queue to finish each distance before the next, setting each vertex's distance and parent when it is discovered. One run costs O of n plus m."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Distances answer minimum hops and k-hop reach; parents give the route; repeated runs find bridge devices and the diameter."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: going deep instead of wide. Depth-first search."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: depth-first search"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

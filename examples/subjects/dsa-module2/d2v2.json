@@ -1,0 +1,1703 @@
+{
+ "version": 1,
+ "title": "Tree traversals",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Three recursive orders"
+    ],
+    [
+     2,
+     "Preorder"
+    ],
+    [
+     3,
+     "Inorder"
+    ],
+    [
+     4,
+     "Postorder"
+    ],
+    [
+     5,
+     "Level order, with a queue"
+    ],
+    [
+     6,
+     "Expression trees"
+    ],
+    [
+     7,
+     "Rebuilding a tree from two orders"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "rec",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "PREORDER(x)                 INORDER(x)                  POSTORDER(x)",
+    "  if x != null                if x != null                if x != null",
+    "    visit(x)                    INORDER(x.left)             POSTORDER(x.left)",
+    "    PREORDER(x.left)            visit(x)                    POSTORDER(x.right)",
+    "    PREORDER(x.right)           INORDER(x.right)            visit(x)",
+    "",
+    "node-left-right             left-node-right             left-right-node",
+    "every node visited once: Θ(n) time; the recursion stack is Θ(height)"
+   ]
+  },
+  {
+   "id": "tr",
+   "type": "diagram",
+   "region": "left",
+   "layout": "tree",
+   "shape": "circle",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "A"
+    },
+    {
+     "id": "B"
+    },
+    {
+     "id": "C"
+    },
+    {
+     "id": "D"
+    },
+    {
+     "id": "E"
+    },
+    {
+     "id": "F"
+    },
+    {
+     "id": "G"
+    },
+    {
+     "id": "H"
+    },
+    {
+     "id": "I"
+    }
+   ],
+   "edges": [
+    {
+     "from": "A",
+     "to": "B"
+    },
+    {
+     "from": "A",
+     "to": "C"
+    },
+    {
+     "from": "B",
+     "to": "D"
+    },
+    {
+     "from": "B",
+     "to": "E"
+    },
+    {
+     "from": "C",
+     "to": "F"
+    },
+    {
+     "from": "C",
+     "to": "G"
+    },
+    {
+     "from": "E",
+     "to": "H"
+    },
+    {
+     "from": "E",
+     "to": "I"
+    }
+   ]
+  },
+  {
+   "id": "out1",
+   "type": "array",
+   "region": "right",
+   "values": []
+  },
+  {
+   "id": "out2",
+   "type": "array",
+   "region": "right",
+   "values": []
+  },
+  {
+   "id": "out3",
+   "type": "array",
+   "region": "right",
+   "values": []
+  },
+  {
+   "id": "out4",
+   "type": "array",
+   "region": "right",
+   "values": []
+  },
+  {
+   "id": "qq",
+   "type": "array",
+   "region": "right",
+   "values": []
+  },
+  {
+   "id": "ex",
+   "type": "diagram",
+   "region": "center",
+   "layout": "tree",
+   "shape": "circle",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "mul",
+     "label": "*"
+    },
+    {
+     "id": "add",
+     "label": "+"
+    },
+    {
+     "id": "sub",
+     "label": "−"
+    },
+    {
+     "id": "a"
+    },
+    {
+     "id": "b"
+    },
+    {
+     "id": "c"
+    },
+    {
+     "id": "d"
+    }
+   ],
+   "edges": [
+    {
+     "from": "mul",
+     "to": "add"
+    },
+    {
+     "from": "mul",
+     "to": "sub"
+    },
+    {
+     "from": "add",
+     "to": "a"
+    },
+    {
+     "from": "add",
+     "to": "b"
+    },
+    {
+     "from": "sub",
+     "to": "c"
+    },
+    {
+     "from": "sub",
+     "to": "d"
+    }
+   ]
+  },
+  {
+   "id": "ext",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "traversal of the expression tree",
+    "gives"
+   ],
+   "rows": [
+    [
+     "preorder",
+     "* + a b − c d: prefix (Polish) notation"
+    ],
+    [
+     "inorder",
+     "a + b * c − d: infix, but the brackets are lost"
+    ],
+    [
+     "inorder with brackets",
+     "((a + b) * (c − d))"
+    ],
+    [
+     "postorder",
+     "a b + c d − *: postfix, ready for a stack"
+    ]
+   ]
+  },
+  {
+   "id": "rb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "preorder A B D E C F · inorder D B E A F C",
+    ""
+   ],
+   "rows": [
+    [
+     "preorder's first is the root",
+     "A"
+    ],
+    [
+     "split the inorder at A",
+     "left: D B E · right: F C"
+    ],
+    [
+     "left subtree: preorder B D E, inorder D B E",
+     "root B, children D and E"
+    ],
+    [
+     "right subtree: preorder C F, inorder F C",
+     "root C, F on its left"
+    ],
+    [
+     "the tree's postorder",
+     "D E B F C A"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "preorder:  F B A D C E G I H"
+    ],
+    [
+     "inorder:   A B C D E F G H I"
+    ],
+    [
+     "a) rebuild the tree   b) its postorder   c) its level order   d) why do preorder and postorder alone not fix a tree?"
+    ]
+   ]
+  },
+  {
+   "id": "qt",
+   "type": "diagram",
+   "region": "left",
+   "layout": "tree",
+   "shape": "circle",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "A"
+    },
+    {
+     "id": "B"
+    },
+    {
+     "id": "C"
+    },
+    {
+     "id": "D"
+    },
+    {
+     "id": "E"
+    },
+    {
+     "id": "F"
+    },
+    {
+     "id": "G"
+    },
+    {
+     "id": "H"
+    },
+    {
+     "id": "I"
+    }
+   ],
+   "edges": [
+    {
+     "from": "D",
+     "to": "C"
+    },
+    {
+     "from": "D",
+     "to": "E"
+    },
+    {
+     "from": "B",
+     "to": "A"
+    },
+    {
+     "from": "B",
+     "to": "D"
+    },
+    {
+     "from": "I",
+     "to": "H"
+    },
+    {
+     "from": "G",
+     "to": "I"
+    },
+    {
+     "from": "F",
+     "to": "B"
+    },
+    {
+     "from": "F",
+     "to": "G"
+    }
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "part",
+    "answer"
+   ],
+   "rows": [
+    [
+     "root",
+     "F; left A B C D E, right G H I"
+    ],
+    [
+     "b) post",
+     "A C E D B H I G F"
+    ],
+    [
+     "c) level",
+     "F B G A D I C E H"
+    ],
+    [
+     "d)",
+     "a single child: left or right?"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A list has one obvious order: front to back. A tree has several, and each one answers a different question. This video walks the same tree four ways, and then runs the process backwards: rebuilding a tree from its traversals."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Tree traversals"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The three recursive orders, then preorder, inorder and postorder traced on one tree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then level order with a queue, expression trees, rebuilding a tree, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rec",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: the three classic traversals are the same recursion with the visit in a different place. Preorder visits the node before its subtrees."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: three recursive orders"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "rec"
+      },
+      {
+       "action": "mark_lines",
+       "target": "rec",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Inorder visits it between the left and the right subtree. Postorder, after both."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rec",
+       "from": 7,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Recursion is not required. An iterative inorder keeps its own stack: push nodes while going left, pop one, visit it, then go right. The stack holds the path back up, exactly what the recursion stored for us."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rec",
+       "from": 2,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each node is visited exactly once: Theta of n time. The recursion stack holds one frame per level: Theta of the height."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rec",
+       "from": 8,
+       "to": 8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "pre: N L R · in: L N R · post: L R N"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pre",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: preorder on this tree. Visit A, then all of A's left subtree, then all of its right subtree."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: preorder"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rec"
+      },
+      {
+       "action": "show",
+       "target": "tr"
+      },
+      {
+       "action": "show",
+       "target": "out1"
+      },
+      {
+       "action": "highlight",
+       "target": "tr.A"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A, then B, then B's left, D. B's right is E: visit E, then H and I. Then the right side: C, F, G."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "tr.A",
+       "delay": 0.05
+      },
+      {
+       "action": "insert",
+       "target": "out1",
+       "index": 0,
+       "value": "A",
+       "delay": 0.05
+      },
+      {
+       "action": "mark",
+       "target": "tr.B",
+       "delay": 0.15
+      },
+      {
+       "action": "insert",
+       "target": "out1",
+       "index": 1,
+       "value": "B",
+       "delay": 0.15
+      },
+      {
+       "action": "mark",
+       "target": "tr.D",
+       "delay": 0.25
+      },
+      {
+       "action": "insert",
+       "target": "out1",
+       "index": 2,
+       "value": "D",
+       "delay": 0.25
+      },
+      {
+       "action": "mark",
+       "target": "tr.E",
+       "delay": 0.35
+      },
+      {
+       "action": "insert",
+       "target": "out1",
+       "index": 3,
+       "value": "E",
+       "delay": 0.35
+      },
+      {
+       "action": "mark",
+       "target": "tr.H",
+       "delay": 0.45
+      },
+      {
+       "action": "insert",
+       "target": "out1",
+       "index": 4,
+       "value": "H",
+       "delay": 0.45
+      },
+      {
+       "action": "mark",
+       "target": "tr.I",
+       "delay": 0.55
+      },
+      {
+       "action": "insert",
+       "target": "out1",
+       "index": 5,
+       "value": "I",
+       "delay": 0.55
+      },
+      {
+       "action": "mark",
+       "target": "tr.C",
+       "delay": 0.65
+      },
+      {
+       "action": "insert",
+       "target": "out1",
+       "index": 6,
+       "value": "C",
+       "delay": 0.65
+      },
+      {
+       "action": "mark",
+       "target": "tr.F",
+       "delay": 0.75
+      },
+      {
+       "action": "insert",
+       "target": "out1",
+       "index": 7,
+       "value": "F",
+       "delay": 0.75
+      },
+      {
+       "action": "mark",
+       "target": "tr.G",
+       "delay": 0.85
+      },
+      {
+       "action": "insert",
+       "target": "out1",
+       "index": 8,
+       "value": "G",
+       "delay": 0.85
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Notice the rhythm: a node is visited the first time the walk reaches it, on the way down."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr.E"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A, B, D, E, H, I, C, F, G. Every node comes before its descendants, so preorder is the order to copy a tree, or print it as an indented outline."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "out1"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "preorder: A B D E H I C F G"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "in",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: inorder. Go as far left as possible before visiting anything: D first, then its parent B."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: inorder"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "reset",
+       "target": "tr"
+      },
+      {
+       "action": "hide",
+       "target": "out1"
+      },
+      {
+       "action": "show",
+       "target": "out2"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then B's right subtree, in inorder: H, E, I. Then A. Then A's right subtree: F, C, G."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "tr.D",
+       "delay": 0.05
+      },
+      {
+       "action": "insert",
+       "target": "out2",
+       "index": 0,
+       "value": "D",
+       "delay": 0.05
+      },
+      {
+       "action": "mark",
+       "target": "tr.B",
+       "delay": 0.15
+      },
+      {
+       "action": "insert",
+       "target": "out2",
+       "index": 1,
+       "value": "B",
+       "delay": 0.15
+      },
+      {
+       "action": "mark",
+       "target": "tr.H",
+       "delay": 0.25
+      },
+      {
+       "action": "insert",
+       "target": "out2",
+       "index": 2,
+       "value": "H",
+       "delay": 0.25
+      },
+      {
+       "action": "mark",
+       "target": "tr.E",
+       "delay": 0.35
+      },
+      {
+       "action": "insert",
+       "target": "out2",
+       "index": 3,
+       "value": "E",
+       "delay": 0.35
+      },
+      {
+       "action": "mark",
+       "target": "tr.I",
+       "delay": 0.45
+      },
+      {
+       "action": "insert",
+       "target": "out2",
+       "index": 4,
+       "value": "I",
+       "delay": 0.45
+      },
+      {
+       "action": "mark",
+       "target": "tr.A",
+       "delay": 0.55
+      },
+      {
+       "action": "insert",
+       "target": "out2",
+       "index": 5,
+       "value": "A",
+       "delay": 0.55
+      },
+      {
+       "action": "mark",
+       "target": "tr.F",
+       "delay": 0.65
+      },
+      {
+       "action": "insert",
+       "target": "out2",
+       "index": 6,
+       "value": "F",
+       "delay": 0.65
+      },
+      {
+       "action": "mark",
+       "target": "tr.C",
+       "delay": 0.75
+      },
+      {
+       "action": "insert",
+       "target": "out2",
+       "index": 7,
+       "value": "C",
+       "delay": 0.75
+      },
+      {
+       "action": "mark",
+       "target": "tr.G",
+       "delay": 0.85
+      },
+      {
+       "action": "insert",
+       "target": "out2",
+       "index": 8,
+       "value": "G",
+       "delay": 0.85
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "D, B, H, E, I, A, F, C, G: every node sits between its left and right subtrees. In a binary search tree, next video, inorder gives the keys in sorted order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "out2"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "inorder: D B H E I A F C G"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "post",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: postorder. A node is visited only after both its subtrees are finished."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: postorder"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "reset",
+       "target": "tr"
+      },
+      {
+       "action": "hide",
+       "target": "out2"
+      },
+      {
+       "action": "show",
+       "target": "out3"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "D; then H, I and their parent E; then B. Then F, G and C. A comes last."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "tr.D",
+       "delay": 0.05
+      },
+      {
+       "action": "insert",
+       "target": "out3",
+       "index": 0,
+       "value": "D",
+       "delay": 0.05
+      },
+      {
+       "action": "mark",
+       "target": "tr.H",
+       "delay": 0.15
+      },
+      {
+       "action": "insert",
+       "target": "out3",
+       "index": 1,
+       "value": "H",
+       "delay": 0.15
+      },
+      {
+       "action": "mark",
+       "target": "tr.I",
+       "delay": 0.25
+      },
+      {
+       "action": "insert",
+       "target": "out3",
+       "index": 2,
+       "value": "I",
+       "delay": 0.25
+      },
+      {
+       "action": "mark",
+       "target": "tr.E",
+       "delay": 0.35
+      },
+      {
+       "action": "insert",
+       "target": "out3",
+       "index": 3,
+       "value": "E",
+       "delay": 0.35
+      },
+      {
+       "action": "mark",
+       "target": "tr.B",
+       "delay": 0.45
+      },
+      {
+       "action": "insert",
+       "target": "out3",
+       "index": 4,
+       "value": "B",
+       "delay": 0.45
+      },
+      {
+       "action": "mark",
+       "target": "tr.F",
+       "delay": 0.55
+      },
+      {
+       "action": "insert",
+       "target": "out3",
+       "index": 5,
+       "value": "F",
+       "delay": 0.55
+      },
+      {
+       "action": "mark",
+       "target": "tr.G",
+       "delay": 0.65
+      },
+      {
+       "action": "insert",
+       "target": "out3",
+       "index": 6,
+       "value": "G",
+       "delay": 0.65
+      },
+      {
+       "action": "mark",
+       "target": "tr.C",
+       "delay": 0.75
+      },
+      {
+       "action": "insert",
+       "target": "out3",
+       "index": 7,
+       "value": "C",
+       "delay": 0.75
+      },
+      {
+       "action": "mark",
+       "target": "tr.A",
+       "delay": 0.85
+      },
+      {
+       "action": "insert",
+       "target": "out3",
+       "index": 8,
+       "value": "A",
+       "delay": 0.85
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "D, H, I, E, B, F, G, C, A. Children always come before parents, so postorder is the order to delete a tree, or to compute sizes and heights from the bottom up."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "out3"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "postorder: D H I E B F G C A"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lvl",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: level order visits level 0, then level 1, then level 2, left to right. Recursion cannot do this; a queue can. Start with the root in the queue."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: level order"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "reset",
+       "target": "tr"
+      },
+      {
+       "action": "hide",
+       "target": "out3"
+      },
+      {
+       "action": "show",
+       "target": "out4"
+      },
+      {
+       "action": "show",
+       "target": "qq"
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 0,
+       "value": "A",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dequeue A, visit it, and enqueue its children B and C."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "qq[0]"
+      },
+      {
+       "action": "mark",
+       "target": "tr.A",
+       "delay": 0.2
+      },
+      {
+       "action": "insert",
+       "target": "out4",
+       "index": 0,
+       "value": "A",
+       "delay": 0.2
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 0,
+       "value": "B",
+       "delay": 0.5
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 1,
+       "value": "C",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dequeue B, visit it, enqueue D and E. Dequeue C, visit it, enqueue F and G."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "qq[0]"
+      },
+      {
+       "action": "mark",
+       "target": "tr.B",
+       "delay": 0.1
+      },
+      {
+       "action": "insert",
+       "target": "out4",
+       "index": 1,
+       "value": "B",
+       "delay": 0.1
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 1,
+       "value": "D",
+       "delay": 0.2
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 2,
+       "value": "E",
+       "delay": 0.3
+      },
+      {
+       "action": "remove",
+       "target": "qq[0]",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "tr.C",
+       "delay": 0.55
+      },
+      {
+       "action": "insert",
+       "target": "out4",
+       "index": 2,
+       "value": "C",
+       "delay": 0.55
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 2,
+       "value": "F",
+       "delay": 0.65
+      },
+      {
+       "action": "insert",
+       "target": "qq",
+       "index": 3,
+       "value": "G",
+       "delay": 0.75
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "D, E, F, G come out in turn; E adds H and I behind them, and they come out last. A, B, C, D, E, F, G, H, I."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "tr.D"
+      },
+      {
+       "action": "insert",
+       "target": "out4",
+       "index": 3,
+       "value": "D"
+      },
+      {
+       "action": "mark",
+       "target": "tr.E",
+       "delay": 0.1
+      },
+      {
+       "action": "insert",
+       "target": "out4",
+       "index": 4,
+       "value": "E",
+       "delay": 0.1
+      },
+      {
+       "action": "mark",
+       "target": "tr.F",
+       "delay": 0.2
+      },
+      {
+       "action": "insert",
+       "target": "out4",
+       "index": 5,
+       "value": "F",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "tr.G",
+       "delay": 0.3
+      },
+      {
+       "action": "insert",
+       "target": "out4",
+       "index": 6,
+       "value": "G",
+       "delay": 0.3
+      },
+      {
+       "action": "mark",
+       "target": "tr.H",
+       "delay": 0.4
+      },
+      {
+       "action": "insert",
+       "target": "out4",
+       "index": 7,
+       "value": "H",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "tr.I",
+       "delay": 0.5
+      },
+      {
+       "action": "insert",
+       "target": "out4",
+       "index": 8,
+       "value": "I",
+       "delay": 0.5
+      },
+      {
+       "action": "hide",
+       "target": "qq"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The queue makes nodes leave in the order their levels were reached. This is breadth-first search, which we will run on graphs later in this module."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "out4"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "level order = a queue, not recursion"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "expr",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: an expression tree puts operators at internal nodes and operands at leaves. This one is a plus b, times, c minus d."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: expression trees"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tr"
+      },
+      {
+       "action": "hide",
+       "target": "out4"
+      },
+      {
+       "action": "show",
+       "target": "ex"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Preorder gives prefix, or Polish, notation: times, plus a b, minus c d."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "ex"
+      },
+      {
+       "action": "show",
+       "target": "ext"
+      },
+      {
+       "action": "highlight",
+       "target": "ext[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Inorder gives infix, but loses the brackets: a plus b times c minus d means something else. Printing a bracket around every subtree restores it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ext[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Postorder gives postfix: a b plus c d minus times. Exactly what the stack evaluator of Module 1 needs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ext[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "pre → prefix · in → infix · post → postfix"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rebuild",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: going backwards. Given preorder A B D E C F and inorder D B E A F C, rebuild the tree. Preorder's first element is the root: A."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: rebuilding a tree"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ext"
+      },
+      {
+       "action": "show",
+       "target": "rb"
+      },
+      {
+       "action": "highlight",
+       "target": "rb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find A in the inorder. Everything before it, D B E, is the left subtree; everything after, F C, is the right."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Repeat on the left: its preorder is B D E, so B is its root, and the inorder D B E puts D on its left and E on its right."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On the right: preorder C F makes C the root, and inorder F C puts F on its left."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rb[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The tree is A with children B and C; B has D and E; C has F on the left. Its postorder is D E B F C A."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rb[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "preorder picks the root, inorder splits the rest"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: the classic preorder and inorder pair."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rb"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Rebuild the tree, give its postorder and level order, and explain why preorder and postorder alone are not enough. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "F is the root. In the inorder, A B C D E lie on its left, and G H I on its right."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qt"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qt.F"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Left: preorder B A D C E makes B the root, with A on its left and D, C, E on its right; D's children are C and E. Right: preorder G I H makes G the root with right child I, and I has left child H."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qt.B"
+      },
+      {
+       "action": "highlight",
+       "target": "qt.D",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "qt.G",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "qt.I",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: postorder A, C, E, D, B, H, I, G, F. c: level order F, B, G, A, D, I, C, E, H."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: with preorder and postorder, a node with a single child cannot be placed: left and right give the same two lists. Inorder is what separates left from right."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: taking the root from the end of the preorder. The root is the first in preorder and the last in postorder."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "root: first in pre, last in post"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qt"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Preorder visits node, left, right; inorder left, node, right; postorder left, right, node. Each takes Theta of n time and Theta of height stack."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Level order uses a queue. On expression trees the three orders give prefix, infix and postfix. Preorder or postorder, together with inorder, fix a tree uniquely."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: a binary tree that keeps its keys in order, so that searching follows a single path. The binary search tree."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: binary search trees"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

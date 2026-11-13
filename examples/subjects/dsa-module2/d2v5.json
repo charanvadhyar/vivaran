@@ -1,0 +1,1813 @@
+{
+ "version": 1,
+ "title": "Red-black trees 1",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Five rules"
+    ],
+    [
+     2,
+     "Black-height, and why the tree stays short"
+    ],
+    [
+     3,
+     "Inserting: the new node is red"
+    ],
+    [
+     4,
+     "The three fix-up cases"
+    ],
+    [
+     5,
+     "Inserting 41, 38, 31"
+    ],
+    [
+     6,
+     "Inserting 12, 19, 8"
+    ],
+    [
+     7,
+     "Red-black against AVL"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "pr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "red-black properties (Cormen)",
+    ""
+   ],
+   "rows": [
+    [
+     "1",
+     "every node is red or black"
+    ],
+    [
+     "2",
+     "the root is black"
+    ],
+    [
+     "3",
+     "every leaf (nil) is black"
+    ],
+    [
+     "4",
+     "a red node's children are both black: no two reds in a row"
+    ],
+    [
+     "5",
+     "every path from a node down to a nil has the same number of black nodes"
+    ],
+    [
+     "in the pictures",
+     "a node is labelled R or B"
+    ]
+   ]
+  },
+  {
+   "id": "bh",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"bh\"(x) = \"black nodes on any path from\" x \"down to a nil, not counting\" x",
+    "\"a subtree rooted at\" x \"holds at least\" 2^(\"bh\"(x)) - 1 \"keys\"",
+    "\"no two reds in a row:\" quad \"bh\"(\"root\") >= h / 2",
+    "n >= 2^(h/2) - 1 quad => quad h <= 2 log_2(n + 1)",
+    "n = 10^6: quad h <= 40"
+   ]
+  },
+  {
+   "id": "ins",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "inserting key z",
+    ""
+   ],
+   "rows": [
+    [
+     "insert z as in a BST",
+     "it becomes a leaf"
+    ],
+    [
+     "colour it red",
+     "black-heights stay equal: rule 5 is safe"
+    ],
+    [
+     "only rules 2 or 4 can break",
+     "z is the root, or z's parent is red"
+    ],
+    [
+     "while z's parent is red",
+     "apply one of three cases, looking at z's uncle"
+    ],
+    [
+     "finally",
+     "colour the root black"
+    ]
+   ]
+  },
+  {
+   "id": "cs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "case",
+    "uncle",
+    "fix"
+   ],
+   "rows": [
+    [
+     "1",
+     "red",
+     "parent, uncle → black; grandparent → red; z = grandparent"
+    ],
+    [
+     "2",
+     "black, z makes a bend",
+     "rotate at the parent → case 3"
+    ],
+    [
+     "3",
+     "black, z makes a line",
+     "rotate at the grandparent; swap their colours"
+    ],
+    [
+     "cost",
+     "",
+     "case 1 may repeat; at most 2 rotations"
+    ]
+   ]
+  },
+  {
+   "id": "s1",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n38",
+     "label": "38 R",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n41",
+     "label": "41 B",
+     "at": [
+      1,
+      0
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n41",
+     "to": "n38"
+    }
+   ]
+  },
+  {
+   "id": "p31",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n31",
+     "label": "31 R",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n38",
+     "label": "38 R",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n41",
+     "label": "41 B",
+     "at": [
+      2,
+      0
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n41",
+     "to": "n38"
+    },
+    {
+     "from": "n38",
+     "to": "n31"
+    }
+   ]
+  },
+  {
+   "id": "s2",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n31",
+     "label": "31 R",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n38",
+     "label": "38 B",
+     "at": [
+      1,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n41",
+     "label": "41 R",
+     "at": [
+      2,
+      1
+     ],
+     "shape": "pill"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n38",
+     "to": "n31"
+    },
+    {
+     "from": "n38",
+     "to": "n41"
+    }
+   ]
+  },
+  {
+   "id": "p12",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n12",
+     "label": "12 R",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n31",
+     "label": "31 R",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n38",
+     "label": "38 B",
+     "at": [
+      2,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n41",
+     "label": "41 R",
+     "at": [
+      3,
+      1
+     ],
+     "shape": "pill"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n38",
+     "to": "n31"
+    },
+    {
+     "from": "n31",
+     "to": "n12"
+    },
+    {
+     "from": "n38",
+     "to": "n41"
+    }
+   ]
+  },
+  {
+   "id": "s3",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n12",
+     "label": "12 R",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n31",
+     "label": "31 B",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n38",
+     "label": "38 B",
+     "at": [
+      2,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n41",
+     "label": "41 B",
+     "at": [
+      3,
+      1
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n38",
+     "to": "n31"
+    },
+    {
+     "from": "n31",
+     "to": "n12"
+    },
+    {
+     "from": "n38",
+     "to": "n41"
+    }
+   ]
+  },
+  {
+   "id": "p19",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n12",
+     "label": "12 R",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n19",
+     "label": "19 R",
+     "at": [
+      1,
+      3
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n31",
+     "label": "31 B",
+     "at": [
+      2,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n38",
+     "label": "38 B",
+     "at": [
+      3,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n41",
+     "label": "41 B",
+     "at": [
+      4,
+      1
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n38",
+     "to": "n31"
+    },
+    {
+     "from": "n31",
+     "to": "n12"
+    },
+    {
+     "from": "n38",
+     "to": "n41"
+    },
+    {
+     "from": "n12",
+     "to": "n19"
+    }
+   ]
+  },
+  {
+   "id": "s4",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n12",
+     "label": "12 R",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n19",
+     "label": "19 B",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n31",
+     "label": "31 R",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n38",
+     "label": "38 B",
+     "at": [
+      3,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n41",
+     "label": "41 B",
+     "at": [
+      4,
+      1
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n38",
+     "to": "n19"
+    },
+    {
+     "from": "n19",
+     "to": "n12"
+    },
+    {
+     "from": "n38",
+     "to": "n41"
+    },
+    {
+     "from": "n19",
+     "to": "n31"
+    }
+   ]
+  },
+  {
+   "id": "p8",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n8",
+     "label": "8 R",
+     "at": [
+      0,
+      3
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n12",
+     "label": "12 R",
+     "at": [
+      1,
+      2
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n19",
+     "label": "19 B",
+     "at": [
+      2,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n31",
+     "label": "31 R",
+     "at": [
+      3,
+      2
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n38",
+     "label": "38 B",
+     "at": [
+      4,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n41",
+     "label": "41 B",
+     "at": [
+      5,
+      1
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n38",
+     "to": "n19"
+    },
+    {
+     "from": "n19",
+     "to": "n12"
+    },
+    {
+     "from": "n12",
+     "to": "n8"
+    },
+    {
+     "from": "n38",
+     "to": "n41"
+    },
+    {
+     "from": "n19",
+     "to": "n31"
+    }
+   ]
+  },
+  {
+   "id": "s5",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n8",
+     "label": "8 R",
+     "at": [
+      0,
+      3
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n12",
+     "label": "12 B",
+     "at": [
+      1,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n19",
+     "label": "19 R",
+     "at": [
+      2,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n31",
+     "label": "31 B",
+     "at": [
+      3,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n38",
+     "label": "38 B",
+     "at": [
+      4,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n41",
+     "label": "41 B",
+     "at": [
+      5,
+      1
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n38",
+     "to": "n19"
+    },
+    {
+     "from": "n19",
+     "to": "n12"
+    },
+    {
+     "from": "n12",
+     "to": "n8"
+    },
+    {
+     "from": "n38",
+     "to": "n41"
+    },
+    {
+     "from": "n19",
+     "to": "n31"
+    }
+   ]
+  },
+  {
+   "id": "vs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "AVL",
+    "red-black"
+   ],
+   "rows": [
+    [
+     "height bound",
+     "1.44 log₂ n",
+     "2 log₂ n"
+    ],
+    [
+     "searches",
+     "slightly faster",
+     "slightly slower"
+    ],
+    [
+     "rotations per insert",
+     "at most 2",
+     "at most 2"
+    ],
+    [
+     "rotations per delete",
+     "up to O(log n)",
+     "at most 3"
+    ],
+    [
+     "extra data per node",
+     "height or balance factor",
+     "one colour bit"
+    ],
+    [
+     "used in",
+     "lookup-heavy tables",
+     "C++ map, Java TreeMap, Linux scheduler"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "insert 5, 10, 15, 20, 25, 30 into an empty red-black tree"
+    ],
+    [
+     "a) which fix-up case does each insertion need?"
+    ],
+    [
+     "b) the final tree with colours, and the root's black-height"
+    ],
+    [
+     "c) how tall would a plain BST be with the same insertions?"
+    ]
+   ]
+  },
+  {
+   "id": "qt",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n5",
+     "label": "5 B",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n10",
+     "label": "10 B",
+     "at": [
+      1,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n15",
+     "label": "15 B",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n20",
+     "label": "20 R",
+     "at": [
+      3,
+      1
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "n25",
+     "label": "25 B",
+     "at": [
+      4,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n30",
+     "label": "30 R",
+     "at": [
+      5,
+      3
+     ],
+     "shape": "pill"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n10",
+     "to": "n5"
+    },
+    {
+     "from": "n20",
+     "to": "n15"
+    },
+    {
+     "from": "n10",
+     "to": "n20"
+    },
+    {
+     "from": "n20",
+     "to": "n25"
+    },
+    {
+     "from": "n25",
+     "to": "n30"
+    }
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "insert",
+    "case"
+   ],
+   "rows": [
+    [
+     "5, 10",
+     "none: root black, 10 red"
+    ],
+    [
+     "15",
+     "3: left-rotate 5, recolour"
+    ],
+    [
+     "20",
+     "1: recolour; root back to black"
+    ],
+    [
+     "25",
+     "3: left-rotate 15, recolour"
+    ],
+    [
+     "30",
+     "1: recolour"
+    ],
+    [
+     "bh(root)",
+     "2 · plain BST height 5"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "AVL trees balance by heights. Red-black trees balance more loosely, by colouring every node red or black and keeping a few rules about the colours. They rotate less, and they sit inside the C plus plus map, Java's TreeMap and the Linux scheduler. This video covers their rules and insertion."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Red-black trees, part 1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The five rules, black-height and the height bound, inserting a red node, and the three fix-up cases."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then a full worked insertion sequence, a comparison with AVL trees, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rules",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: Cormen's five properties. Every node is red or black."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: five rules"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "pr"
+      },
+      {
+       "action": "highlight",
+       "target": "pr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The root is black. Every leaf is black, where the leaves are the nil pointers below the real nodes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A red node has two black children: there are never two reds in a row on a path."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And every path from a node down to a nil passes the same number of black nodes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "These pictures have no colour, so each node is labelled R or B, and red nodes are drawn as rounded boxes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pr[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "root black · no red-red · equal black counts"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bh",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the black-height of a node is the number of black nodes on any path from it down to a nil, not counting itself. Rule 5 makes this well defined."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: black-height"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pr"
+      },
+      {
+       "action": "show",
+       "target": "bh"
+      },
+      {
+       "action": "highlight",
+       "target": "bh[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "By induction, a subtree whose root has black-height b holds at least 2 to the b, minus 1, keys."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bh[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "bh[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Reds never come two in a row, so at least half the nodes on any root-to-leaf path are black: the root's black-height is at least h over 2."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bh[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "bh[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Put them together: n is at least 2 to the h over 2, minus 1, so h is at most 2 log 2 of n plus 1."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bh[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "bh[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A million keys: height at most 40. Looser than AVL's 29, but still logarithmic."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "bh[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "bh[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "h ≤ 2 log₂(n + 1)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ins",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: to insert, first insert as in an ordinary BST: the new key becomes a leaf."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: the new node is red"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bh"
+      },
+      {
+       "action": "show",
+       "target": "ins"
+      },
+      {
+       "action": "highlight",
+       "target": "ins[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Colour it red. A red node adds no black to any path, so rule 5 cannot break."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ins[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Only two things can go wrong: the new node is the root, which must be black, or its parent is also red."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ins[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "While the parent is red, apply one of three cases. The deciding node is the uncle: the parent's sibling. At the end, colour the root black."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ins[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "insert red · fix red-red using the uncle"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cases",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: case 1, the uncle is red. Recolour: parent and uncle become black, the grandparent becomes red. No rotation. But the grandparent may now have a red parent, so move up and check again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: the three cases"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ins"
+      },
+      {
+       "action": "show",
+       "target": "cs"
+      },
+      {
+       "action": "highlight",
+       "target": "cs[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Case 2, the uncle is black and the new node is an inner child: a bend, like left then right. Rotate at the parent to straighten it, which turns it into case 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cs[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Case 3, the uncle is black and the new node is an outer child: a line. Rotate at the grandparent, and swap the colours of the parent and the grandparent. Done."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cs[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Case 1 may climb the tree, but costs only recolouring. Cases 2 and 3 finish the job, so an insertion needs at most two rotations."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cs[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "uncle red: recolour · uncle black: rotate"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ex1",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: Cormen's exercise: insert 41, 38, 31, 12, 19, 8. 41 is the root: black. 38 goes left of it, red. No rule is broken."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: inserting 41, 38, 31"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cs"
+      },
+      {
+       "action": "show",
+       "target": "s1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "31 goes left of 38: red under red. The uncle, 41's right child, is nil, which counts as black. 31, 38, 41 form a line: case 3."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "s1"
+      },
+      {
+       "action": "show",
+       "target": "p31"
+      },
+      {
+       "action": "highlight",
+       "target": "p31.n31"
+      },
+      {
+       "action": "highlight",
+       "target": "p31.n38",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Right-rotate at 41, and swap colours: 38 becomes the black root, with red 31 and red 41 below it."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "p31"
+      },
+      {
+       "action": "show",
+       "target": "s2"
+      },
+      {
+       "action": "mark",
+       "target": "s2.n38"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert 12, left of 31: red under red again. This time the uncle, 41, is red: case 1."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "s2"
+      },
+      {
+       "action": "show",
+       "target": "p12"
+      },
+      {
+       "action": "highlight",
+       "target": "p12.n12"
+      },
+      {
+       "action": "highlight",
+       "target": "p12.n41",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Recolour: 31 and 41 become black, 38 becomes red. 38 is the root, so it is coloured black again. Every path now has the same black count."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "p12"
+      },
+      {
+       "action": "show",
+       "target": "s3"
+      },
+      {
+       "action": "mark",
+       "target": "s3.n31"
+      },
+      {
+       "action": "mark",
+       "target": "s3.n41",
+       "delay": 0.2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ex2",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: insert 19: left of 38, left of 31, right of 12. Red under red, and the uncle, 31's right child, is nil: black."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: inserting 12, 19, 8"
+      },
+      {
+       "action": "hide",
+       "target": "s3"
+      },
+      {
+       "action": "show",
+       "target": "p19"
+      },
+      {
+       "action": "highlight",
+       "target": "p19.n19"
+      },
+      {
+       "action": "highlight",
+       "target": "p19.n12",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "19 is a right child of a left child: a bend, case 2. Left-rotate at 12, so 12 hangs below 19 in a straight line. Now case 3 applies with 12 as the new node."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "p19.n31"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Right-rotate at 31 and swap colours: 19 becomes black, with red 12 and red 31 as children."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "p19"
+      },
+      {
+       "action": "show",
+       "target": "s4"
+      },
+      {
+       "action": "mark",
+       "target": "s4.n19"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert 8, left of 12: red under red, and the uncle 31 is red: case 1. 12 and 31 turn black, 19 turns red. Its parent 38 is black, so we stop."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "s4"
+      },
+      {
+       "action": "show",
+       "target": "p8"
+      },
+      {
+       "action": "highlight",
+       "target": "p8.n8"
+      },
+      {
+       "action": "highlight",
+       "target": "p8.n31",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The final tree: 38 black at the root; 19 red with black children 12 and 31; 8 red under 12; 41 black. Every root-to-nil path passes 2 black nodes below the root."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "p8"
+      },
+      {
+       "action": "show",
+       "target": "s5"
+      },
+      {
+       "action": "mark",
+       "target": "s5.n38"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "case 2 straightens, case 3 rotates, case 1 recolours"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vs",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: red-black against AVL. AVL trees are more tightly balanced, 1.44 log n against 2 log n, so their searches are a little faster."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: red-black against AVL"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "s5"
+      },
+      {
+       "action": "show",
+       "target": "vs"
+      },
+      {
+       "action": "highlight",
+       "target": "vs[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Both need at most two rotations per insertion. But deletion can rotate at every level of an AVL tree, while a red-black tree needs at most three."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A red-black node stores a single colour bit instead of a height."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So libraries that insert and delete often choose red-black trees: the C plus plus map, Java's TreeMap, and the Linux process scheduler."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vs[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "RB: looser balance, cheaper updates"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: insert the sorted keys 5 to 30, in steps of 5."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "vs"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Name the case each insertion needs, draw the final coloured tree with its black-height, and compare with a plain BST. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 is the black root, and 10 hangs red on its right. 15 makes a red-red line with a nil uncle: case 3. Left-rotate 5; 10 becomes the black root with red children 5 and 15."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "20: right of 15, red under red, uncle 5 is red: case 1. 5 and 15 turn black, 10 turns red, then the root goes back to black."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "25: a line 15, 20, 25 with a nil uncle: case 3. Left-rotate 15; 20 becomes black with red 15 and 25. 30: under 25, uncle 15 is red: case 1. 15 and 25 turn black, 20 turns red."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The final tree: 10 black at the root; 5 black on its left; 20 red on its right, with black children 15 and 25; and 30 red under 25. Black-height of the root: 2. A plain BST would be a chain of height 5."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "qt"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[5]"
+      },
+      {
+       "action": "mark",
+       "target": "qt.n10",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: treating a missing uncle as red. A nil uncle is black, so it means a rotation, not a recolouring."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "nil counts as black"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qt"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Five colour rules give equal black-heights and no red-red pairs, which keep the height under 2 log of n plus 1. New nodes are red, so only a red-red pair can appear."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A red uncle means recolour and move up; a black uncle means one or two rotations and stop. Red-black trees rotate less than AVL trees, especially on deletion."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: deleting from a red-black tree, and the double-black node."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: red-black trees, part 2"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1583 @@
+{
+ "version": 1,
+ "title": "Binary heaps",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The heap property"
+    ],
+    [
+     2,
+     "Sifting down: MAX-HEAPIFY"
+    ],
+    [
+     3,
+     "Building a heap"
+    ],
+    [
+     4,
+     "Why building is linear"
+    ],
+    [
+     5,
+     "Insert and extract-max"
+    ],
+    [
+     6,
+     "Heapsort"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "hp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "binary max-heap",
+    ""
+   ],
+   "rows": [
+    [
+     "shape",
+     "a complete binary tree, stored in an array from index 1"
+    ],
+    [
+     "parent of i, children of i",
+     "⌊i/2⌋ · 2i and 2i + 1 (video 1)"
+    ],
+    [
+     "max-heap property",
+     "A[parent(i)] ≥ A[i] for every i > 1"
+    ],
+    [
+     "so",
+     "the largest key is at the root, A[1]"
+    ],
+    [
+     "but",
+     "siblings are in no particular order: a heap is not sorted"
+    ],
+    [
+     "height",
+     "⌊log₂ n⌋"
+    ]
+   ]
+  },
+  {
+   "id": "t1",
+   "type": "diagram",
+   "region": "left",
+   "layout": "tree",
+   "shape": "circle",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "h1",
+     "label": "16"
+    },
+    {
+     "id": "h2",
+     "label": "4"
+    },
+    {
+     "id": "h3",
+     "label": "10"
+    },
+    {
+     "id": "h4",
+     "label": "14"
+    },
+    {
+     "id": "h5",
+     "label": "7"
+    },
+    {
+     "id": "h6",
+     "label": "9"
+    },
+    {
+     "id": "h7",
+     "label": "3"
+    },
+    {
+     "id": "h8",
+     "label": "2"
+    },
+    {
+     "id": "h9",
+     "label": "8"
+    },
+    {
+     "id": "h10",
+     "label": "1"
+    }
+   ],
+   "edges": [
+    {
+     "from": "h1",
+     "to": "h2"
+    },
+    {
+     "from": "h1",
+     "to": "h3"
+    },
+    {
+     "from": "h2",
+     "to": "h4"
+    },
+    {
+     "from": "h2",
+     "to": "h5"
+    },
+    {
+     "from": "h3",
+     "to": "h6"
+    },
+    {
+     "from": "h3",
+     "to": "h7"
+    },
+    {
+     "from": "h4",
+     "to": "h8"
+    },
+    {
+     "from": "h4",
+     "to": "h9"
+    },
+    {
+     "from": "h5",
+     "to": "h10"
+    }
+   ]
+  },
+  {
+   "id": "a1",
+   "type": "array",
+   "region": "right",
+   "values": [
+    16,
+    4,
+    10,
+    14,
+    7,
+    9,
+    3,
+    2,
+    8,
+    1
+   ]
+  },
+  {
+   "id": "t2",
+   "type": "diagram",
+   "region": "left",
+   "layout": "tree",
+   "shape": "circle",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "h1",
+     "label": "4"
+    },
+    {
+     "id": "h2",
+     "label": "1"
+    },
+    {
+     "id": "h3",
+     "label": "3"
+    },
+    {
+     "id": "h4",
+     "label": "2"
+    },
+    {
+     "id": "h5",
+     "label": "16"
+    },
+    {
+     "id": "h6",
+     "label": "9"
+    },
+    {
+     "id": "h7",
+     "label": "10"
+    },
+    {
+     "id": "h8",
+     "label": "14"
+    },
+    {
+     "id": "h9",
+     "label": "8"
+    },
+    {
+     "id": "h10",
+     "label": "7"
+    }
+   ],
+   "edges": [
+    {
+     "from": "h1",
+     "to": "h2"
+    },
+    {
+     "from": "h1",
+     "to": "h3"
+    },
+    {
+     "from": "h2",
+     "to": "h4"
+    },
+    {
+     "from": "h2",
+     "to": "h5"
+    },
+    {
+     "from": "h3",
+     "to": "h6"
+    },
+    {
+     "from": "h3",
+     "to": "h7"
+    },
+    {
+     "from": "h4",
+     "to": "h8"
+    },
+    {
+     "from": "h4",
+     "to": "h9"
+    },
+    {
+     "from": "h5",
+     "to": "h10"
+    }
+   ]
+  },
+  {
+   "id": "a2",
+   "type": "array",
+   "region": "right",
+   "values": [
+    4,
+    1,
+    3,
+    2,
+    16,
+    9,
+    10,
+    14,
+    8,
+    7
+   ]
+  },
+  {
+   "id": "lin",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"BUILD calls HEAPIFY on nodes\" floor(n/2) \"down to\" 1",
+    "\"a node at height\" h \"costs\" O(h); quad \"at most\" ceil(n / 2^(h+1)) \"nodes have height\" h",
+    "sum_(h=0)^(log n) n / 2^(h+1) dot O(h) = O(n sum_h h / 2^h) = O(n dot 2) = O(n)",
+    "\"most nodes are near the bottom, where sifting is cheap\""
+   ]
+  },
+  {
+   "id": "t3",
+   "type": "diagram",
+   "region": "left",
+   "layout": "tree",
+   "shape": "circle",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "h1",
+     "label": "16"
+    },
+    {
+     "id": "h2",
+     "label": "14"
+    },
+    {
+     "id": "h3",
+     "label": "10"
+    },
+    {
+     "id": "h4",
+     "label": "8"
+    },
+    {
+     "id": "h5",
+     "label": "7"
+    },
+    {
+     "id": "h6",
+     "label": "9"
+    },
+    {
+     "id": "h7",
+     "label": "3"
+    },
+    {
+     "id": "h8",
+     "label": "2"
+    },
+    {
+     "id": "h9",
+     "label": "4"
+    },
+    {
+     "id": "h10",
+     "label": "1"
+    },
+    {
+     "id": "h11",
+     "label": "15"
+    }
+   ],
+   "edges": [
+    {
+     "from": "h1",
+     "to": "h2"
+    },
+    {
+     "from": "h1",
+     "to": "h3"
+    },
+    {
+     "from": "h2",
+     "to": "h4"
+    },
+    {
+     "from": "h2",
+     "to": "h5"
+    },
+    {
+     "from": "h3",
+     "to": "h6"
+    },
+    {
+     "from": "h3",
+     "to": "h7"
+    },
+    {
+     "from": "h4",
+     "to": "h8"
+    },
+    {
+     "from": "h4",
+     "to": "h9"
+    },
+    {
+     "from": "h5",
+     "to": "h10"
+    },
+    {
+     "from": "h5",
+     "to": "h11"
+    }
+   ]
+  },
+  {
+   "id": "a3",
+   "type": "array",
+   "region": "right",
+   "values": [
+    16,
+    14,
+    10,
+    8,
+    7,
+    9,
+    3,
+    2,
+    4,
+    1,
+    15
+   ]
+  },
+  {
+   "id": "hs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "HEAPSORT(A)",
+    ""
+   ],
+   "rows": [
+    [
+     "BUILD-MAX-HEAP(A)",
+     "O(n)"
+    ],
+    [
+     "for k = n down to 2",
+     "swap A[1] (the maximum) with A[k]"
+    ],
+    [
+     "",
+     "shrink the heap to k − 1, MAX-HEAPIFY(A, 1)"
+    ],
+    [
+     "total",
+     "O(n log n), always, and in place"
+    ],
+    [
+     "but",
+     "not stable, and its jumps around the array suit caches poorly"
+    ]
+   ]
+  },
+  {
+   "id": "pq",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "max-priority queue on a heap",
+    "cost"
+   ],
+   "rows": [
+    [
+     "MAXIMUM",
+     "Θ(1): A[1]"
+    ],
+    [
+     "EXTRACT-MAX",
+     "O(log n): move the last key to the root, sift down"
+    ],
+    [
+     "INSERT",
+     "O(log n): add at the end, sift up"
+    ],
+    [
+     "INCREASE-KEY",
+     "O(log n): sift up"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "a) build a max-heap from 5, 3, 17, 10, 84, 19, 6, 22, 9 (index 1 to 9)"
+    ],
+    [
+     "b) then extract the maximum: the array afterwards"
+    ],
+    [
+     "c) is 23, 17, 14, 6, 13, 10, 1, 5, 7, 12 a max-heap?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "step",
+    "array"
+   ],
+   "rows": [
+    [
+     "start",
+     "5 3 17 10 84 19 6 22 9"
+    ],
+    [
+     "i = 4: 10 ↔ 22",
+     "5 3 17 22 84 19 6 10 9"
+    ],
+    [
+     "i = 3: 17 ↔ 19",
+     "5 3 19 22 84 17 6 10 9"
+    ],
+    [
+     "i = 2: 3 ↔ 84",
+     "5 84 19 22 3 17 6 10 9"
+    ],
+    [
+     "i = 1: 5 ↔ 84, 5 ↔ 22, 5 ↔ 10",
+     "84 22 19 10 3 17 6 5 9"
+    ],
+    [
+     "b) extract 84: 9 to the root, sift down",
+     "22 10 19 9 3 17 6 5"
+    ],
+    [
+     "c) A[4] = 6 has child A[9] = 7",
+     "not a heap: 6 < 7"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A priority queue keeps handing out its most important item. The binary heap does that in logarithmic time, inside a plain array, with no pointers at all, and it also gives a guaranteed n log n sort. This video builds one."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Binary heaps"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The heap property, sifting down, building a heap, and why building takes only linear time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then insert and extract-max, heapsort, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "prop",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a binary heap is a complete binary tree, stored in an array from index 1, with the parent and child formulas from video 1."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the heap property"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "hp"
+      },
+      {
+       "action": "highlight",
+       "target": "hp[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In a max-heap, every parent is at least as large as its children."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the largest key is always at the root."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hp[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But a heap is not sorted: nothing orders two siblings, or two different subtrees. It is a much weaker, and much cheaper, arrangement than a search tree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hp[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A min-heap is the mirror image: every parent at most its children, and the minimum at the root. Everything in this video works for it with the comparisons reversed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Its height is the floor of log 2 of n, because it is complete."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hp[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "parent ≥ children · max at A[1]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "heapify",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: MAX-HEAPIFY fixes one node whose subtrees are already heaps. Here, the node at index 2 holds 4, smaller than its children 14 and 7."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: sifting down"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hp"
+      },
+      {
+       "action": "show",
+       "target": "t1"
+      },
+      {
+       "action": "show",
+       "target": "a1"
+      },
+      {
+       "action": "highlight",
+       "target": "t1.h2"
+      },
+      {
+       "action": "highlight",
+       "target": "a1[1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Swap it with the larger child, 14. Larger, so that the new parent beats both children."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t1.h2",
+       "value": "14"
+      },
+      {
+       "action": "set",
+       "target": "t1.h4",
+       "value": "4"
+      },
+      {
+       "action": "swap",
+       "a": "a1[1]",
+       "b": "a1[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "t1.h4",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now 4 sits at index 4, with children 2 and 8. Swap with 8."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t1.h4",
+       "value": "8"
+      },
+      {
+       "action": "set",
+       "target": "t1.h9",
+       "value": "4"
+      },
+      {
+       "action": "swap",
+       "a": "a1[3]",
+       "b": "a1[8]"
+      },
+      {
+       "action": "highlight",
+       "target": "t1.h9",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At index 9, 4 is a leaf: done. Each swap moves one level down, so MAX-HEAPIFY costs O of the height: O of log n."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "t1.h9"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "sift down: swap with the larger child"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "build",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: to build a heap from an unordered array, call MAX-HEAPIFY on every internal node, from the last one, at n over 2, back to the root. Leaves are already heaps."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: building a heap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "t1"
+      },
+      {
+       "action": "hide",
+       "target": "a1"
+      },
+      {
+       "action": "show",
+       "target": "t2"
+      },
+      {
+       "action": "show",
+       "target": "a2"
+      },
+      {
+       "action": "highlight",
+       "target": "t2.h5"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "i equal to 5: 16 is larger than its child 7. Nothing to do. i equal to 4: 2 is smaller than 14: swap."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "t2.h4"
+      },
+      {
+       "action": "set",
+       "target": "t2.h4",
+       "value": "14",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "t2.h8",
+       "value": "2",
+       "delay": 0.4
+      },
+      {
+       "action": "swap",
+       "a": "a2[3]",
+       "b": "a2[7]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "i equal to 3: 3 is smaller than 10: swap. i equal to 2: 1 sinks, first below 16, then below 7."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2.h3",
+       "value": "10"
+      },
+      {
+       "action": "set",
+       "target": "t2.h7",
+       "value": "3"
+      },
+      {
+       "action": "swap",
+       "a": "a2[2]",
+       "b": "a2[6]"
+      },
+      {
+       "action": "set",
+       "target": "t2.h2",
+       "value": "16",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "t2.h5",
+       "value": "1",
+       "delay": 0.4
+      },
+      {
+       "action": "swap",
+       "a": "a2[1]",
+       "b": "a2[4]",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "t2.h5",
+       "value": "7",
+       "delay": 0.7
+      },
+      {
+       "action": "set",
+       "target": "t2.h10",
+       "value": "1",
+       "delay": 0.7
+      },
+      {
+       "action": "swap",
+       "a": "a2[4]",
+       "b": "a2[9]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "i equal to 1: 4 sinks below 16, then below 14, then below 8."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2.h1",
+       "value": "16"
+      },
+      {
+       "action": "set",
+       "target": "t2.h2",
+       "value": "4"
+      },
+      {
+       "action": "swap",
+       "a": "a2[0]",
+       "b": "a2[1]"
+      },
+      {
+       "action": "set",
+       "target": "t2.h2",
+       "value": "14",
+       "delay": 0.35
+      },
+      {
+       "action": "set",
+       "target": "t2.h4",
+       "value": "4",
+       "delay": 0.35
+      },
+      {
+       "action": "swap",
+       "a": "a2[1]",
+       "b": "a2[3]",
+       "delay": 0.35
+      },
+      {
+       "action": "set",
+       "target": "t2.h4",
+       "value": "8",
+       "delay": 0.7
+      },
+      {
+       "action": "set",
+       "target": "t2.h9",
+       "value": "4",
+       "delay": 0.7
+      },
+      {
+       "action": "swap",
+       "a": "a2[3]",
+       "b": "a2[8]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The result: 16, 14, 10, 8, 7, 9, 3, 2, 4, 1. Every parent beats its children."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "t2.h1"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "heapify from n/2 back to 1"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "linear",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: n over 2 calls, each up to log n, suggests n log n. The true cost is lower. A call on a node of height h costs O of h."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: building is linear"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "t2"
+      },
+      {
+       "action": "hide",
+       "target": "a2"
+      },
+      {
+       "action": "show",
+       "target": "lin"
+      },
+      {
+       "action": "highlight",
+       "target": "lin[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And at most n over 2 to the h plus 1 nodes have height h: half the nodes are leaves, a quarter have height 1, and so on."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "lin[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "lin[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The sum of h over 2 to the h converges to 2, so the total is O of n."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "lin[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "lin[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Most nodes are near the bottom, where sifting down is short. Building a heap is linear."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "lin[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "lin[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "BUILD-MAX-HEAP: O(n), not O(n log n)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ops",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: insert 15 into our heap. It goes into the next free position, index 11, as a child of 7."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: insert and extract-max"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lin"
+      },
+      {
+       "action": "show",
+       "target": "t3"
+      },
+      {
+       "action": "show",
+       "target": "a3"
+      },
+      {
+       "action": "highlight",
+       "target": "t3.h11"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sift it up: 15 beats its parent 7, so swap. Then 15 beats 14, so swap again. 16 is larger: stop."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t3.h11",
+       "value": "7"
+      },
+      {
+       "action": "set",
+       "target": "t3.h5",
+       "value": "15"
+      },
+      {
+       "action": "swap",
+       "a": "a3[10]",
+       "b": "a3[4]"
+      },
+      {
+       "action": "set",
+       "target": "t3.h5",
+       "value": "14",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "t3.h2",
+       "value": "15",
+       "delay": 0.5
+      },
+      {
+       "action": "swap",
+       "a": "a3[4]",
+       "b": "a3[1]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Extract-max: take 16 from the root. Move the last key, 7, into the root, and shrink the heap."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t3.h1",
+       "value": "7"
+      },
+      {
+       "action": "set",
+       "target": "a3[0]",
+       "value": 7
+      },
+      {
+       "action": "remove",
+       "target": "t3.h11",
+       "delay": 0.4
+      },
+      {
+       "action": "remove",
+       "target": "a3[10]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then sift 7 down: below 15, then below 14. The new root is 15. Both operations follow one path: O of log n."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t3.h1",
+       "value": "15"
+      },
+      {
+       "action": "set",
+       "target": "t3.h2",
+       "value": "7"
+      },
+      {
+       "action": "swap",
+       "a": "a3[0]",
+       "b": "a3[1]"
+      },
+      {
+       "action": "set",
+       "target": "t3.h2",
+       "value": "14",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "t3.h5",
+       "value": "7",
+       "delay": 0.5
+      },
+      {
+       "action": "swap",
+       "a": "a3[1]",
+       "b": "a3[4]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "These are exactly the priority-queue operations: maximum is instant, and insert, extract-max and increase-key are all O of log n."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "t3"
+      },
+      {
+       "action": "hide",
+       "target": "a3"
+      },
+      {
+       "action": "show",
+       "target": "pq"
+      },
+      {
+       "action": "highlight",
+       "target": "pq"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "insert: sift up · extract: sift down"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sort",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: heapsort. Build a max-heap: O of n."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: heapsort"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pq"
+      },
+      {
+       "action": "show",
+       "target": "hs"
+      },
+      {
+       "action": "highlight",
+       "target": "hs[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then repeatedly swap the maximum at A of 1 with the last element of the heap, shrink the heap by one, and sift the new root down."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hs[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On our heap 16, 14, 10, 8, 7, 9, 3, 2, 4, 1: swap 16 with the last key, 1, and sift 1 down. The heap part becomes 14, 8, 10, 4, 7, 9, 3, 2, 1, with 16 parked at the end."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hs[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next, swap 14 with 1 and sift down: 10, 8, 9, 4, 7, 1, 3, 2, then 14, 16 at the end. The sorted part grows from the right, one maximum at a time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hs[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The largest keys collect at the end of the array, in order. n minus 1 sift-downs: O of n log n in every case, using no extra array."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hs[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Its weaknesses: it is not stable, and its long jumps across the array make poor use of caches, so quicksort is usually faster in practice."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hs[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "heapsort: O(n log n) worst case, in place"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hs"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Build a heap, extract the maximum, and check whether an array is a heap. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "n is 9, so start at 4: 10 against children 22 and 9. Swap with 22."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "i equal to 3: 17 against 19 and 6: swap with 19. i equal to 2: 3 against 22 and 84: swap with 84."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "i equal to 1: 5 sinks below 84, then below 22, then below 10. The heap: 84, 22, 19, 10, 3, 17, 6, 5, 9."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: remove 84, move the last key 9 to the root, and sift down: below 22, then below 10. 22, 10, 19, 9, 3, 17, 6, 5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: check each parent. A of 4 is 6, and its child A of 9 is 7. 6 is smaller: not a max-heap."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[6]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[6][1]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: swapping with the first child that is larger, instead of the larger of the two children."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "swap with the larger child"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A max-heap is a complete tree in an array, every parent at least its children. MAX-HEAPIFY sifts a key down in O of log n, and building a heap bottom-up costs only O of n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert sifts up, extract-max sifts down, both O of log n, and heapsort sorts in place in O of n log n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: a heap that serves both the minimum and the maximum. The min-max heap."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: min-max heaps"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

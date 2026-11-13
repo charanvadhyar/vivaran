@@ -1,0 +1,1550 @@
+{
+ "version": 1,
+ "title": "Stacks",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Last in, first out"
+    ],
+    [
+     2,
+     "A stack in an array"
+    ],
+    [
+     3,
+     "A stack as a linked list"
+    ],
+    [
+     4,
+     "Checking brackets"
+    ],
+    [
+     5,
+     "Infix to postfix: the rules"
+    ],
+    [
+     6,
+     "Infix to postfix: a trace"
+    ],
+    [
+     7,
+     "Evaluating postfix"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "ops",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "operation",
+    "does",
+    "cost"
+   ],
+   "rows": [
+    [
+     "push(x)",
+     "put x on top",
+     "Θ(1)"
+    ],
+    [
+     "pop()",
+     "remove and return the top",
+     "Θ(1)"
+    ],
+    [
+     "peek()",
+     "look at the top",
+     "Θ(1)"
+    ],
+    [
+     "isEmpty()",
+     "is there nothing on it?",
+     "Θ(1)"
+    ],
+    [
+     "only the top is reachable",
+     "last in, first out: LIFO",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "sa",
+   "type": "array",
+   "region": "right",
+   "values": [
+    "",
+    "",
+    "",
+    "",
+    ""
+   ]
+  },
+  {
+   "id": "top",
+   "type": "pointer",
+   "label": "top",
+   "target": "sa[0]"
+  },
+  {
+   "id": "sc",
+   "type": "code",
+   "region": "left",
+   "language": "text",
+   "lines": [
+    "PUSH(S, x)",
+    "    if S.top == n - 1: error \"overflow\"",
+    "    S.top = S.top + 1",
+    "    S[S.top] = x",
+    "POP(S)",
+    "    if S.top == -1: error \"underflow\"",
+    "    S.top = S.top - 1",
+    "    return S[S.top + 1]"
+   ]
+  },
+  {
+   "id": "ll",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "linked stack",
+    ""
+   ],
+   "rows": [
+    [
+     "push",
+     "new node at the head; head = new node"
+    ],
+    [
+     "pop",
+     "take the head's value; head = head.next"
+    ],
+    [
+     "empty",
+     "head is null"
+    ],
+    [
+     "overflow",
+     "only when memory runs out"
+    ],
+    [
+     "cost",
+     "Θ(1) each, plus one pointer per element"
+    ]
+   ]
+  },
+  {
+   "id": "br",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "input",
+    "what happens",
+    "result"
+   ],
+   "rows": [
+    [
+     "{ [ ( ) ] }",
+     "( matches ), [ matches ], { matches }",
+     "balanced"
+    ],
+    [
+     "( [ ) ]",
+     ") arrives while [ is on top",
+     "not balanced"
+    ],
+    [
+     "( ( )",
+     "input ends with ( still on the stack",
+     "not balanced"
+    ],
+    [
+     "rule",
+     "push openers; on a closer, pop and compare",
+     "empty at the end"
+    ]
+   ]
+  },
+  {
+   "id": "ru",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "symbol",
+    "action"
+   ],
+   "rows": [
+    [
+     "operand",
+     "write it to the output"
+    ],
+    [
+     "(",
+     "push it"
+    ],
+    [
+     ")",
+     "pop to the output until (, then discard both"
+    ],
+    [
+     "operator",
+     "pop while the top has higher precedence, or equal and left-associative; then push"
+    ],
+    [
+     "end",
+     "pop everything to the output"
+    ],
+    [
+     "precedence",
+     "^ highest (right-associative), then * /, then + −"
+    ]
+   ]
+  },
+  {
+   "id": "t1",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "symbol",
+    "stack",
+    "output"
+   ],
+   "rows": [
+    [
+     "A",
+     "",
+     ""
+    ],
+    [
+     "+",
+     "",
+     ""
+    ],
+    [
+     "B",
+     "",
+     ""
+    ],
+    [
+     "*",
+     "",
+     ""
+    ],
+    [
+     "(",
+     "",
+     ""
+    ],
+    [
+     "C",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "t2",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "symbol",
+    "stack",
+    "output"
+   ],
+   "rows": [
+    [
+     "-",
+     "",
+     ""
+    ],
+    [
+     "D",
+     "",
+     ""
+    ],
+    [
+     ")",
+     "",
+     ""
+    ],
+    [
+     "/",
+     "",
+     ""
+    ],
+    [
+     "E",
+     "",
+     ""
+    ],
+    [
+     "end",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "ev",
+   "type": "array",
+   "region": "center",
+   "values": []
+  },
+  {
+   "id": "evin",
+   "type": "array",
+   "region": "center",
+   "values": [
+    "2",
+    "3",
+    "4",
+    "*",
+    "+",
+    "5",
+    "−"
+   ]
+  },
+  {
+   "id": "evp",
+   "type": "pointer",
+   "label": "next",
+   "target": "evin[0]"
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "a) convert (A + B) * (C − D) / E ^ F to postfix"
+    ],
+    [
+     "b) evaluate the postfix 8 2 3 ^ / 2 3 * + 5 1 * −"
+    ],
+    [
+     "c) push 1, push 2, push 3, pop, push 4, pop, pop: what is popped, and what is left?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a",
+     "( A + B ) → A B +;  ( C − D ) → C D −;  * comes before /",
+     "A B + C D − * E F ^ /"
+    ],
+    [
+     "a",
+     "^ outranks /, so E F ^ is formed before /",
+     ""
+    ],
+    [
+     "b",
+     "8 / 2³ = 8 / 8 = 1;  1 + 2 × 3 = 7",
+     ""
+    ],
+    [
+     "b",
+     "7 − 5 × 1 = 2",
+     "2"
+    ],
+    [
+     "c",
+     "popped 3, then 4, then 2",
+     "left: 1"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A stack lets you touch only one end. That one restriction makes it the structure behind function calls, undo buttons, the back button of your browser, and every calculator. This video builds a stack and uses it to evaluate expressions."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stacks"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "What a stack is, a stack in an array, a stack as a linked list, and checking brackets."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then converting infix expressions to postfix, a full trace, evaluating postfix, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lifo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a stack is like a pile of plates. Push puts a plate on top."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: last in, first out"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "ops"
+      },
+      {
+       "action": "highlight",
+       "target": "ops[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pop removes the top plate and gives it back. Peek just looks at it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ops[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "isEmpty asks whether there is anything left. Every operation costs Theta of 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ops[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Only the top is reachable, so the last item pushed is the first popped: LIFO, last in, first out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ops[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "LIFO: push and pop at the top only"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "array",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: a stack in an array of size n. top holds the index of the top element, minus 1 when the stack is empty."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: a stack in an array"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ops"
+      },
+      {
+       "action": "show",
+       "target": "sc"
+      },
+      {
+       "action": "show",
+       "target": "sa"
+      },
+      {
+       "action": "mark_lines",
+       "target": "sc",
+       "from": 1,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Push 5: top goes from minus 1 to 0, and 5 is stored there."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "sa[0]",
+       "value": 5
+      },
+      {
+       "action": "show",
+       "target": "top"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Push 8, then push 3. top is now 2."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "sa[1]",
+       "value": 8
+      },
+      {
+       "action": "point",
+       "target": "top",
+       "to": "sa[1]",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "sa[2]",
+       "value": 3,
+       "delay": 0.5
+      },
+      {
+       "action": "point",
+       "target": "top",
+       "to": "sa[2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pop: it returns 3 and moves top back to 1. The 3 is still in the cell, but it is no longer part of the stack."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "sc",
+       "from": 5,
+       "to": 8
+      },
+      {
+       "action": "point",
+       "target": "top",
+       "to": "sa[1]"
+      },
+      {
+       "action": "dim",
+       "target": "sa[2]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Push 7 overwrites that cell. Pushing when top is n minus 1 is overflow; popping when top is minus 1 is underflow. Both must be checked."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "sa[2]",
+       "value": 7
+      },
+      {
+       "action": "reset",
+       "target": "sa[2]",
+       "delay": 0.2
+      },
+      {
+       "action": "point",
+       "target": "top",
+       "to": "sa[2]",
+       "delay": 0.3
+      },
+      {
+       "action": "mark_lines",
+       "target": "sc",
+       "from": 2,
+       "to": 2
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "top = −1 empty · top = n − 1 full"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ll",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: a stack can also be a linked list, with the top at the head. Push makes a new node and points it at the old head."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: a linked stack"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sc"
+      },
+      {
+       "action": "hide",
+       "target": "sa"
+      },
+      {
+       "action": "hide",
+       "target": "top"
+      },
+      {
+       "action": "show",
+       "target": "ll"
+      },
+      {
+       "action": "highlight",
+       "target": "ll[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pop takes the head's value and moves head to the next node."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ll[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Empty means head is null, and there is no fixed size: overflow happens only when memory runs out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ll[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Both operations stay Theta of 1. The cost is one extra pointer per element. Linked lists get their own video soon."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ll[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "array: fixed size · linked: grows, costs a pointer"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "br",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: a first use. Are the brackets in an expression balanced? Push every opening bracket; on a closing one, pop and check that they match."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: checking brackets"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ll"
+      },
+      {
+       "action": "show",
+       "target": "br"
+      },
+      {
+       "action": "highlight",
+       "target": "br[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Brace, bracket, parenthesis, then their closers in reverse order. Each closer matches the top: balanced."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "br[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Parenthesis, bracket, then a closing parenthesis. The top is the bracket: mismatch, not balanced, even though the counts are right."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "br[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two opening parentheses and one closing: the input ends with one still on the stack. Not balanced. A balanced input ends with an empty stack."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "br[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "push openers · match closers · end empty"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rules",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: we write A plus B, the operator in between: infix. Postfix puts the operator after its operands: A B plus. It needs no brackets and no precedence rules, so machines evaluate it easily."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: infix to postfix"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "br"
+      },
+      {
+       "action": "show",
+       "target": "ru"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Converting uses a stack of operators. An operand goes straight to the output. An opening bracket is pushed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ru[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A closing bracket pops operators to the output until the matching opening bracket, and both brackets are thrown away."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ru[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An operator first pops every operator on top with higher precedence, or equal precedence if it groups left to right. Then it is pushed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ru[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At the end, pop whatever is left. Power is highest and groups right to left; then times and divide; then plus and minus."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ru[4..=5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "operands out · operators wait on the stack"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: convert A plus B times, bracket, C minus D, close bracket, divide E. A goes out. Plus is pushed. B goes out."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: a trace"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ru"
+      },
+      {
+       "action": "show",
+       "target": "t1"
+      },
+      {
+       "action": "set",
+       "target": "t1[0][1]",
+       "value": "empty"
+      },
+      {
+       "action": "set",
+       "target": "t1[0][2]",
+       "value": "A",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "t1[1][1]",
+       "value": "+",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "t1[1][2]",
+       "value": "A",
+       "delay": 0.35
+      },
+      {
+       "action": "set",
+       "target": "t1[2][1]",
+       "value": "+",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "t1[2][2]",
+       "value": "A B",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Times has higher precedence than plus, so plus stays and times is pushed on top. The bracket is pushed."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t1[3][1]",
+       "value": "+*"
+      },
+      {
+       "action": "set",
+       "target": "t1[3][2]",
+       "value": "A B",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "t1[4][1]",
+       "value": "+*("
+      },
+      {
+       "action": "set",
+       "target": "t1[4][2]",
+       "value": "A B",
+       "delay": 0.1
+      },
+      {
+       "action": "highlight",
+       "target": "t1[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "C goes out."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t1[5][1]",
+       "value": "+*("
+      },
+      {
+       "action": "set",
+       "target": "t1[5][2]",
+       "value": "A B C",
+       "delay": 0.1
+      },
+      {
+       "action": "highlight",
+       "target": "t1[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Minus is pushed: inside a bracket, nothing below the bracket is popped. D goes out."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "t1"
+      },
+      {
+       "action": "show",
+       "target": "t2"
+      },
+      {
+       "action": "set",
+       "target": "t2[0][1]",
+       "value": "+*(-"
+      },
+      {
+       "action": "set",
+       "target": "t2[0][2]",
+       "value": "A B C",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "t2[1][1]",
+       "value": "+*(-",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "t2[1][2]",
+       "value": "A B C D",
+       "delay": 0.30000000000000004
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The closing bracket pops minus to the output, and the brackets vanish."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2[2][1]",
+       "value": "+*"
+      },
+      {
+       "action": "set",
+       "target": "t2[2][2]",
+       "value": "A B C D -",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "t2[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Divide has the same precedence as times, and they group left to right, so times is popped first. Plus has lower precedence, so it stays. Divide is pushed."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2[3][1]",
+       "value": "+/"
+      },
+      {
+       "action": "set",
+       "target": "t2[3][2]",
+       "value": "A B C D - *",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "t2[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "E goes out. At the end, pop divide, then plus. The answer: A B C D minus times E divide plus."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "t2[4][1]",
+       "value": "+/"
+      },
+      {
+       "action": "set",
+       "target": "t2[4][2]",
+       "value": "A B C D - * E",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "t2[5][1]",
+       "value": "empty",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "t2[5][2]",
+       "value": "A B C D - * E / +",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "t2[5][2]",
+       "delay": 0.7
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "A + B * (C − D) / E → A B C D − * E / +"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "eval",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: evaluating postfix needs a stack of numbers. Take 2 3 4 times plus 5 minus. Numbers are pushed."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: evaluating postfix"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "t2"
+      },
+      {
+       "action": "show",
+       "target": "evin"
+      },
+      {
+       "action": "show",
+       "target": "ev"
+      },
+      {
+       "action": "show",
+       "target": "evp"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2, 3, 4: pushed."
+     },
+     "do": [
+      {
+       "action": "insert",
+       "target": "ev",
+       "index": 0,
+       "value": 2
+      },
+      {
+       "action": "point",
+       "target": "evp",
+       "to": "evin[1]",
+       "delay": 0.2
+      },
+      {
+       "action": "insert",
+       "target": "ev",
+       "index": 1,
+       "value": 3,
+       "delay": 0.3
+      },
+      {
+       "action": "point",
+       "target": "evp",
+       "to": "evin[2]",
+       "delay": 0.5
+      },
+      {
+       "action": "insert",
+       "target": "ev",
+       "index": 2,
+       "value": 4,
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Times: pop 4, pop 3, push 3 times 4, 12."
+     },
+     "do": [
+      {
+       "action": "point",
+       "target": "evp",
+       "to": "evin[3]"
+      },
+      {
+       "action": "remove",
+       "target": "ev[2]",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ev[1]",
+       "value": 12,
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Plus: pop 12 and 2, push 14."
+     },
+     "do": [
+      {
+       "action": "point",
+       "target": "evp",
+       "to": "evin[4]"
+      },
+      {
+       "action": "remove",
+       "target": "ev[1]",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "ev[0]",
+       "value": 14,
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "5 is pushed. Minus: pop 5, then 14. The first popped is the right operand: 14 minus 5, 9."
+     },
+     "do": [
+      {
+       "action": "point",
+       "target": "evp",
+       "to": "evin[5]"
+      },
+      {
+       "action": "insert",
+       "target": "ev",
+       "index": 1,
+       "value": 5,
+       "delay": 0.1
+      },
+      {
+       "action": "point",
+       "target": "evp",
+       "to": "evin[6]",
+       "delay": 0.4
+      },
+      {
+       "action": "remove",
+       "target": "ev[1]",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "ev[0]",
+       "value": 9,
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One number left: the answer, 9. Check it in infix: 2 plus 3 times 4, minus 5, is 9. Each symbol costs Theta of 1, so evaluation is Theta of n."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "ev[0]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "pop right operand first, then left"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "evin"
+      },
+      {
+       "action": "hide",
+       "target": "ev"
+      },
+      {
+       "action": "hide",
+       "target": "evp"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Convert an infix expression with a power, evaluate a postfix expression, and trace a sequence of pushes and pops. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: A plus B in brackets becomes A B plus. C minus D becomes C D minus. Times comes next, since the stack pops it when divide arrives."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then E, and power is pushed above divide, because it has higher precedence. F, then pop power and divide. A B plus C D minus times E F power divide."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[0][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: 8, 2, 3, power: 2 cubed is 8. Divide: 8 over 8 is 1. Then 2 times 3 is 6, and 1 plus 6 is 7."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then 5 times 1 is 5, and 7 minus 5 is 2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[3][2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: the stack is 1, 2, 3; pop gives 3; push 4; pop gives 4; pop gives 2. Popped 3, 4, 2, and 1 is left."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: in evaluation, computing second-popped minus first-popped the wrong way round. 14 minus 5, not 5 minus 14."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "left operand = second popped"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A stack is last in, first out, with Theta of 1 push and pop, in an array with a top index or as a linked list. It checks brackets by matching each closer with the top."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Infix converts to postfix with an operator stack and precedence rules, and postfix is evaluated with a stack of numbers in one pass."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: the opposite discipline. First in, first out: queues."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: queues"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

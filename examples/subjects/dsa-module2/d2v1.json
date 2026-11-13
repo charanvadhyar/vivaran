@@ -1,0 +1,1339 @@
+{
+ "version": 1,
+ "title": "Binary trees",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The words for trees"
+    ],
+    [
+     2,
+     "Binary trees and their kinds"
+    ],
+    [
+     3,
+     "How many nodes per level"
+    ],
+    [
+     4,
+     "Leaves and two-child nodes"
+    ],
+    [
+     5,
+     "Height and number of nodes"
+    ],
+    [
+     6,
+     "Storing a tree in an array"
+    ],
+    [
+     7,
+     "Storing a tree with pointers"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "tr",
+   "type": "diagram",
+   "region": "left",
+   "layout": "tree",
+   "shape": "circle",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "A"
+    },
+    {
+     "id": "B"
+    },
+    {
+     "id": "C"
+    },
+    {
+     "id": "D"
+    },
+    {
+     "id": "E"
+    },
+    {
+     "id": "F"
+    },
+    {
+     "id": "G"
+    },
+    {
+     "id": "H"
+    },
+    {
+     "id": "I"
+    }
+   ],
+   "edges": [
+    {
+     "from": "A",
+     "to": "B"
+    },
+    {
+     "from": "A",
+     "to": "C"
+    },
+    {
+     "from": "B",
+     "to": "D"
+    },
+    {
+     "from": "B",
+     "to": "E"
+    },
+    {
+     "from": "C",
+     "to": "F"
+    },
+    {
+     "from": "E",
+     "to": "G"
+    },
+    {
+     "from": "E",
+     "to": "H"
+    },
+    {
+     "from": "F",
+     "to": "I"
+    }
+   ]
+  },
+  {
+   "id": "wd",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "word",
+    "in this tree"
+   ],
+   "rows": [
+    [
+     "root",
+     "A"
+    ],
+    [
+     "B's children",
+     "D, E: siblings"
+    ],
+    [
+     "leaves",
+     "D, G, H, I"
+    ],
+    [
+     "degree",
+     "A 2 · C 1 · D 0"
+    ],
+    [
+     "depth",
+     "A 0 · E 2 · G 3"
+    ],
+    [
+     "height",
+     "3"
+    ]
+   ]
+  },
+  {
+   "id": "ty",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "kind",
+    "rule",
+    "example"
+   ],
+   "rows": [
+    [
+     "binary tree",
+     "each node has at most 2 children: a left and a right",
+     "left ≠ right"
+    ],
+    [
+     "full (strict)",
+     "every node has 0 or 2 children",
+     "no single children"
+    ],
+    [
+     "perfect",
+     "every level completely filled",
+     "height h: 2ʰ⁺¹ − 1 nodes"
+    ],
+    [
+     "complete",
+     "all levels full except the last, filled from the left",
+     "heaps (video 9)"
+    ],
+    [
+     "skewed",
+     "every node has only one child",
+     "a linked list in disguise"
+    ]
+   ]
+  },
+  {
+   "id": "lv",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"level\" 0: 1 quad \"level\" 1: 2 quad \"level\" 2: 4 quad \"level\" 3: 8",
+    "\"at most\" 2^i \"nodes on level\" i quad \"(each node has at most 2 children)\"",
+    "\"height\" h: quad \"at most\" 1 + 2 + 4 + dots.c + 2^h = 2^(h+1) - 1 \"nodes\"",
+    "h = 3: quad 15 \"nodes at most\""
+   ]
+  },
+  {
+   "id": "lf",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "n_0 = \"leaves\", quad n_1 = \"one child\", quad n_2 = \"two children\"",
+    "\"nodes:\" quad n = n_0 + n_1 + n_2",
+    "\"edges: every node but the root has one edge up:\" quad n - 1 = n_1 + 2 n_2",
+    "\"subtract:\" quad n_0 = n_2 + 1",
+    "\"our tree:\" quad n_0 = 4, quad n_2 = 3 quad checkmark"
+   ]
+  },
+  {
+   "id": "hn",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "n <= 2^(h+1) - 1 quad => quad h >= log_2(n + 1) - 1",
+    "\"minimum height:\" quad h_min = ceil(log_2(n + 1)) - 1 quad \"(a complete tree)\"",
+    "\"maximum height:\" quad h_max = n - 1 quad \"(a skewed tree)\"",
+    "n = 9: quad h_min = ceil(log_2 10) - 1 = 3 quad h_max = 8",
+    "\"search cost follows height: keeping trees short is the goal of AVL and red-black trees\""
+   ]
+  },
+  {
+   "id": "ar",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "index",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+   ],
+   "rows": [
+    [
+     "node",
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F"
+    ]
+   ]
+  },
+  {
+   "id": "arf",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "node at index i (from 1)",
+    "where"
+   ],
+   "rows": [
+    [
+     "left child",
+     "2i"
+    ],
+    [
+     "right child",
+     "2i + 1"
+    ],
+    [
+     "parent",
+     "⌊i / 2⌋"
+    ],
+    [
+     "a node is a leaf when",
+     "2i > n"
+    ],
+    [
+     "fits",
+     "complete trees; skewed trees waste cells"
+    ]
+   ]
+  },
+  {
+   "id": "lk",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "linked representation",
+    ""
+   ],
+   "rows": [
+    [
+     "each node",
+     "left · data · right"
+    ],
+    [
+     "n nodes",
+     "2n pointer fields"
+    ],
+    [
+     "used pointers",
+     "n − 1: one per edge"
+    ],
+    [
+     "null pointers",
+     "2n − (n − 1) = n + 1"
+    ],
+    [
+     "fits",
+     "any shape; no wasted cells, but 2 pointers per node"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "a) a binary tree has 20 leaves and 10 nodes with one child: how many nodes in all?"
+    ],
+    [
+     "b) a complete binary tree of 100 nodes in an array from index 1: parent and children of 37; is 51 a leaf?"
+    ],
+    [
+     "c) the minimum height of a binary tree with 100 nodes"
+    ],
+    [
+     "d) null pointers in the linked form of the tree in (a)"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a",
+     "n₂ = n₀ − 1 = 19;  n = 20 + 10 + 19",
+     "49"
+    ],
+    [
+     "b",
+     "parent ⌊37/2⌋ = 18;  children 74 and 75",
+     "18; 74, 75"
+    ],
+    [
+     "b",
+     "2 × 51 = 102 > 100: no child exists",
+     "yes, a leaf"
+    ],
+    [
+     "c",
+     "⌈log₂ 101⌉ − 1 = 7 − 1",
+     "6"
+    ],
+    [
+     "d",
+     "n + 1",
+     "50"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Lists are straight lines. Trees branch, and that one change lets us search, sort and organise data in logarithmic time. This first video of Module 2 sets up the words, the counting rules, and two ways to store a binary tree."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Binary trees"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The vocabulary, binary trees and their kinds, nodes per level, and the rule linking leaves to two-child nodes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then height against number of nodes, storing a tree in an array, storing it with pointers, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "words",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: here is a tree of 9 nodes. A is the root, the only node with no parent."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: the words"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "tr"
+      },
+      {
+       "action": "show",
+       "target": "wd"
+      },
+      {
+       "action": "highlight",
+       "target": "tr.A"
+      },
+      {
+       "action": "highlight",
+       "target": "wd[0]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "B is A's child and A is B's parent. D and E, children of the same parent, are siblings."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr.E"
+      },
+      {
+       "action": "highlight",
+       "target": "wd[1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A node with no children is a leaf: D, G, H and I."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "tr.D"
+      },
+      {
+       "action": "mark",
+       "target": "tr.G",
+       "delay": 0.1
+      },
+      {
+       "action": "mark",
+       "target": "tr.H",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "tr.I",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "wd[2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The degree of a node is its number of children. A has 2, C has 1, a leaf has 0."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr.C"
+      },
+      {
+       "action": "highlight",
+       "target": "wd[3]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The depth, or level, of a node counts edges from the root: A is at 0, E at 2, G at 3. The height of the tree is the largest depth: 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr.G"
+      },
+      {
+       "action": "highlight",
+       "target": "wd[4..=5]",
+       "delay": 0.3
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "root · leaf · degree · depth · height"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "kinds",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: in a binary tree, every node has at most two children, and they are told apart: left and right. A single left child is a different tree from a single right child."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: kinds of binary tree"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tr"
+      },
+      {
+       "action": "hide",
+       "target": "wd"
+      },
+      {
+       "action": "show",
+       "target": "ty"
+      },
+      {
+       "action": "highlight",
+       "target": "ty[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A full, or strict, binary tree has no single children: every node has 0 or 2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ty[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A perfect tree fills every level completely."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ty[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A complete tree fills every level except perhaps the last, and the last is filled from the left. Heaps are complete trees."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ty[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A skewed tree gives every node one child: it is really a linked list, and loses all the advantages of branching."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ty[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "full · perfect · complete · skewed"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "level",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: how many nodes can each level hold? Level 0 has the root: 1. Each node has at most 2 children, so level 1 has at most 2, level 2 at most 4, level 3 at most 8."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: nodes per level"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ty"
+      },
+      {
+       "action": "show",
+       "target": "lv"
+      },
+      {
+       "action": "highlight",
+       "target": "lv[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In general, at most 2 to the i nodes on level i."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "lv[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "lv[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Add the levels from 0 to h: 1 plus 2 plus up to 2 to the h, which is 2 to the h plus 1, minus 1."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "lv[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "lv[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A tree of height 3 holds at most 15 nodes; our tree has 9."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "lv[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "lv[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "level i ≤ 2ⁱ · height h ≤ 2ʰ⁺¹ − 1 nodes"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "leaf",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: a rule that appears in almost every exam. Let n 0, n 1 and n 2 count the nodes with 0, 1 and 2 children."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: leaves and two-child nodes"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lv"
+      },
+      {
+       "action": "show",
+       "target": "lf"
+      },
+      {
+       "action": "highlight",
+       "target": "lf[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every node is one of the three: n is n 0 plus n 1 plus n 2."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "lf[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "lf[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Count edges two ways. Every node except the root has exactly one edge up to its parent: n minus 1 edges. And every node has as many edges down as children: n 1 plus 2 n 2."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "lf[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "lf[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Subtract the two equations: n 0 equals n 2 plus 1. Leaves always outnumber two-child nodes by exactly one."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "lf[3]"
+      },
+      {
+       "action": "mark",
+       "target": "lf[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check our tree: 4 leaves, D, G, H and I; 3 two-child nodes, A, B and E. 4 is 3 plus 1."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "lf[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "lf[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "n₀ = n₂ + 1, whatever the shape"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "height",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: turn the node count round. Since n is at most 2 to the h plus 1, minus 1, the height is at least log 2 of n plus 1, minus 1."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: height and node count"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lf"
+      },
+      {
+       "action": "show",
+       "target": "hn"
+      },
+      {
+       "action": "highlight",
+       "target": "hn[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the minimum height is the ceiling of log 2 of n plus 1, minus 1, reached by a complete tree."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hn[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "hn[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The maximum is n minus 1, reached by a skewed tree."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hn[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "hn[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For 9 nodes: between 3 and 8."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hn[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "hn[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Searching a tree costs about its height. So the same 9, or the same million, nodes can cost log n or n, depending on shape. Balanced trees, later in this module, exist to keep the height logarithmic."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hn[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "hn[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "height between log₂ n and n − 1"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "array",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a complete tree fits neatly in an array. Number the nodes level by level, left to right, from 1: A, B, C, D, E, F."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: in an array"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hn"
+      },
+      {
+       "action": "show",
+       "target": "ar"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the node at index i has its left child at 2i and its right child at 2i plus 1. B, at 2, has children at 4 and 5: D and E."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "arf"
+      },
+      {
+       "action": "highlight",
+       "target": "arf[0..=1]"
+      },
+      {
+       "action": "highlight",
+       "target": "ar[0][2]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Its parent is at i over 2, rounded down. F, at 6, has its parent at 3: C."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "arf[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "ar[0][6]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A node is a leaf when 2i is beyond n: here, nodes 4, 5 and 6."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "arf[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "No pointers are stored at all. But other shapes waste space: a skewed tree of height h needs 2 to the h plus 1 cells for only h plus 1 nodes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "arf[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "children 2i, 2i + 1 · parent ⌊i/2⌋"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "link",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: for general trees, each node holds a left pointer, the data, and a right pointer."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: with pointers"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ar"
+      },
+      {
+       "action": "hide",
+       "target": "arf"
+      },
+      {
+       "action": "show",
+       "target": "lk"
+      },
+      {
+       "action": "highlight",
+       "target": "lk[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "n nodes have 2n pointer fields."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lk[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Only n minus 1 of them are used: one per edge."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lk[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So n plus 1 are null. Threaded binary trees reuse those empty fields to point to the next node in order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lk[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Any shape fits, with no wasted cells, at the cost of two pointers per node."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lk[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "n nodes: n + 1 null pointers"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "lk"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Count the nodes, use the array formulas, find the minimum height, and count null pointers. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: n 2 is n 0 minus 1, 19. Total: 20 plus 10 plus 19, 49 nodes."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: the parent of 37 is 37 over 2 rounded down, 18. Its children are 74 and 75."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Node 51: 2 times 51 is 102, beyond 100, so it has no children. A leaf. In fact every node from 51 to 100 is a leaf."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: log 2 of 101 is about 6.66; the ceiling is 7; minus 1 is 6."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: 49 nodes have 49 plus 1, 50 null pointers."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[4][2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: using 0-based formulas with 1-based numbering. From index 0, the children are 2i plus 1 and 2i plus 2."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "check whether the array starts at 0 or 1"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Trees have roots, leaves, depths and a height. Binary trees can be full, perfect, complete or skewed. Level i holds at most 2 to the i nodes, and leaves are always two-child nodes plus one."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Height lies between log n and n minus 1. Complete trees fit an array with children at 2i and 2i plus 1; pointers fit any shape and leave n plus 1 nulls."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: visiting every node of a tree. Preorder, inorder, postorder and level order."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: tree traversals"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

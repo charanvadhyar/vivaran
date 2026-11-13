@@ -1,0 +1,1698 @@
+{
+ "version": 1,
+ "title": "AVL trees",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The balance factor"
+    ],
+    [
+     2,
+     "Why AVL trees stay short"
+    ],
+    [
+     3,
+     "Single rotations"
+    ],
+    [
+     4,
+     "Double rotations"
+    ],
+    [
+     5,
+     "Inserting 10, 20, 30"
+    ],
+    [
+     6,
+     "Inserting 40, 50, 25"
+    ],
+    [
+     7,
+     "Deleting, and the costs"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "bf",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "AVL tree (Adelson-Velsky and Landis, 1962)",
+    ""
+   ],
+   "rows": [
+    [
+     "balance factor of a node",
+     "height(left subtree) − height(right subtree)"
+    ],
+    [
+     "height of an empty subtree",
+     "−1, so a leaf has height 0"
+    ],
+    [
+     "the AVL rule",
+     "every node's balance factor is −1, 0 or +1"
+    ],
+    [
+     "after an insert or delete",
+     "if some node reaches ±2, rotate to repair it"
+    ]
+   ]
+  },
+  {
+   "id": "hb",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "N(h) = \"fewest nodes in an AVL tree of height\" h",
+    "N(h) = N(h - 1) + N(h - 2) + 1, quad N(0) = 1, N(1) = 2",
+    "N: quad 1, 2, 4, 7, 12, 20, dots quad \"(Fibonacci-like: grows like\" 1.618^h \")\"",
+    "\"so\" h < 1.44 log_2(n + 2) quad n = 10^6: quad h <= 29 \"instead of up to\" 999999"
+   ]
+  },
+  {
+   "id": "rt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "case",
+    "new key went into",
+    "fix"
+   ],
+   "rows": [
+    [
+     "LL",
+     "the left subtree of the left child",
+     "one right rotation at the unbalanced node"
+    ],
+    [
+     "RR",
+     "the right subtree of the right child",
+     "one left rotation"
+    ],
+    [
+     "LR",
+     "the right subtree of the left child",
+     "left-rotate the child, then right-rotate the node"
+    ],
+    [
+     "RL",
+     "the left subtree of the right child",
+     "right-rotate the child, then left-rotate the node"
+    ],
+    [
+     "after the fix",
+     "the subtree has its old height again",
+     "nothing above it changes: at most 2 rotations per insert"
+    ]
+   ]
+  },
+  {
+   "id": "rr",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "LEFT-ROTATE(x)                 // x is too heavy on the right",
+    "    y = x.right",
+    "    x.right = y.left           // y's left subtree moves across to x",
+    "    y.left = x                 // x becomes y's left child",
+    "    update heights of x, then y; y takes x's place",
+    "",
+    "keys in order before and after:  x < y.left < y  — unchanged"
+   ]
+  },
+  {
+   "id": "pre1",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n10",
+     "label": "10",
+     "at": [
+      0,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n20",
+     "label": "20",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n10",
+     "to": "n20"
+    }
+   ]
+  },
+  {
+   "id": "pre2",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n10",
+     "label": "10",
+     "at": [
+      0,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n20",
+     "label": "20",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n30",
+     "label": "30",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n10",
+     "to": "n20"
+    },
+    {
+     "from": "n20",
+     "to": "n30"
+    }
+   ]
+  },
+  {
+   "id": "post2",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n10",
+     "label": "10",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n20",
+     "label": "20",
+     "at": [
+      1,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n30",
+     "label": "30",
+     "at": [
+      2,
+      1
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n20",
+     "to": "n10"
+    },
+    {
+     "from": "n20",
+     "to": "n30"
+    }
+   ]
+  },
+  {
+   "id": "pre3",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n10",
+     "label": "10",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n20",
+     "label": "20",
+     "at": [
+      1,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n30",
+     "label": "30",
+     "at": [
+      2,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n40",
+     "label": "40",
+     "at": [
+      3,
+      2
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n20",
+     "to": "n10"
+    },
+    {
+     "from": "n20",
+     "to": "n30"
+    },
+    {
+     "from": "n30",
+     "to": "n40"
+    }
+   ]
+  },
+  {
+   "id": "pre4",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n10",
+     "label": "10",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n20",
+     "label": "20",
+     "at": [
+      1,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n30",
+     "label": "30",
+     "at": [
+      2,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n40",
+     "label": "40",
+     "at": [
+      3,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n50",
+     "label": "50",
+     "at": [
+      4,
+      3
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n20",
+     "to": "n10"
+    },
+    {
+     "from": "n20",
+     "to": "n30"
+    },
+    {
+     "from": "n30",
+     "to": "n40"
+    },
+    {
+     "from": "n40",
+     "to": "n50"
+    }
+   ]
+  },
+  {
+   "id": "post4",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n10",
+     "label": "10",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n20",
+     "label": "20",
+     "at": [
+      1,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n30",
+     "label": "30",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n40",
+     "label": "40",
+     "at": [
+      3,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n50",
+     "label": "50",
+     "at": [
+      4,
+      2
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n20",
+     "to": "n10"
+    },
+    {
+     "from": "n40",
+     "to": "n30"
+    },
+    {
+     "from": "n20",
+     "to": "n40"
+    },
+    {
+     "from": "n40",
+     "to": "n50"
+    }
+   ]
+  },
+  {
+   "id": "pre5",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n10",
+     "label": "10",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n20",
+     "label": "20",
+     "at": [
+      1,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n25",
+     "label": "25",
+     "at": [
+      2,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n30",
+     "label": "30",
+     "at": [
+      3,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n40",
+     "label": "40",
+     "at": [
+      4,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n50",
+     "label": "50",
+     "at": [
+      5,
+      2
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n20",
+     "to": "n10"
+    },
+    {
+     "from": "n40",
+     "to": "n30"
+    },
+    {
+     "from": "n30",
+     "to": "n25"
+    },
+    {
+     "from": "n20",
+     "to": "n40"
+    },
+    {
+     "from": "n40",
+     "to": "n50"
+    }
+   ]
+  },
+  {
+   "id": "post5",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n10",
+     "label": "10",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n20",
+     "label": "20",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n25",
+     "label": "25",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n30",
+     "label": "30",
+     "at": [
+      3,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n40",
+     "label": "40",
+     "at": [
+      4,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n50",
+     "label": "50",
+     "at": [
+      5,
+      2
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n30",
+     "to": "n20"
+    },
+    {
+     "from": "n20",
+     "to": "n10"
+    },
+    {
+     "from": "n20",
+     "to": "n25"
+    },
+    {
+     "from": "n30",
+     "to": "n40"
+    },
+    {
+     "from": "n40",
+     "to": "n50"
+    }
+   ]
+  },
+  {
+   "id": "co",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "operation on an AVL tree of n keys",
+    "cost"
+   ],
+   "rows": [
+    [
+     "search",
+     "O(log n): the height is at most 1.44 log₂ n"
+    ],
+    [
+     "insert",
+     "O(log n) walk + at most one single or double rotation"
+    ],
+    [
+     "delete",
+     "O(log n) walk + up to O(log n) rotations, one per level"
+    ],
+    [
+     "the price",
+     "a height (or balance factor) stored in every node"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "insert 50, 20, 60, 10, 8, 15, 32, 46, 11, 48 into an empty AVL tree"
+    ],
+    [
+     "a) after which insertions is a rotation needed, of which kind, at which node?"
+    ],
+    [
+     "b) draw the final tree and give its height"
+    ]
+   ]
+  },
+  {
+   "id": "qt",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "n8",
+     "label": "8",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n10",
+     "label": "10",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n11",
+     "label": "11",
+     "at": [
+      2,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n15",
+     "label": "15",
+     "at": [
+      3,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n20",
+     "label": "20",
+     "at": [
+      4,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n32",
+     "label": "32",
+     "at": [
+      5,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n46",
+     "label": "46",
+     "at": [
+      6,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n48",
+     "label": "48",
+     "at": [
+      7,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n50",
+     "label": "50",
+     "at": [
+      8,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "n60",
+     "label": "60",
+     "at": [
+      9,
+      2
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n20",
+     "to": "n10"
+    },
+    {
+     "from": "n10",
+     "to": "n8"
+    },
+    {
+     "from": "n15",
+     "to": "n11"
+    },
+    {
+     "from": "n50",
+     "to": "n46"
+    },
+    {
+     "from": "n46",
+     "to": "n32"
+    },
+    {
+     "from": "n10",
+     "to": "n15"
+    },
+    {
+     "from": "n20",
+     "to": "n50"
+    },
+    {
+     "from": "n46",
+     "to": "n48"
+    },
+    {
+     "from": "n50",
+     "to": "n60"
+    }
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "insert",
+    "unbalanced at",
+    "case"
+   ],
+   "rows": [
+    [
+     "8",
+     "20 (bf +2)",
+     "LL: right-rotate 20"
+    ],
+    [
+     "15",
+     "50 (bf +2)",
+     "LR: left-rotate 10, right-rotate 50"
+    ],
+    [
+     "48",
+     "32 (bf −2)",
+     "RR: left-rotate 32"
+    ],
+    [
+     "final",
+     "root 20",
+     "height 3"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A binary search tree is fast only while it stays short, and sorted input makes it a chain. The AVL tree, the first self-balancing tree, checks its balance after every change and repairs it with rotations. This video shows how."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "AVL trees"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The balance factor, why AVL trees stay short, and single and double rotations."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then two worked insertion sequences, deletion and costs, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bf",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: the balance factor of a node is the height of its left subtree minus the height of its right subtree."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: the balance factor"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "bf"
+      },
+      {
+       "action": "highlight",
+       "target": "bf[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An empty subtree has height minus 1, so a leaf has height 0 and balance factor 0."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bf[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An AVL tree keeps every node's balance factor at minus 1, 0 or plus 1: the two subtrees of any node differ in height by at most one."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bf[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An insertion or deletion can push some node to plus or minus 2. Then a rotation restores the rule."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bf[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "balance factor ∈ {−1, 0, +1} at every node"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "height",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: why does this keep the tree short? Ask the opposite: what is the fewest nodes an AVL tree of height h can have?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: why AVL trees stay short"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bf"
+      },
+      {
+       "action": "show",
+       "target": "hb"
+      },
+      {
+       "action": "highlight",
+       "target": "hb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The sparsest tree of height h has a root, one subtree of height h minus 1, and one of height h minus 2, both as sparse as possible."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hb[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "hb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That gives 1, 2, 4, 7, 12, 20: a Fibonacci-like sequence, growing exponentially in h."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hb[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "hb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Turn it round: the height is less than 1.44 log 2 of n plus 2. A million keys give a height of at most 29, where a plain BST could reach 999,999."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hb[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "hb[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "AVL height < 1.44 log₂ n"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "single",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: rotations. Find the lowest node that became unbalanced, and look at where the new key went. Four cases."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: single rotations"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hb"
+      },
+      {
+       "action": "show",
+       "target": "rt"
+      },
+      {
+       "action": "highlight",
+       "target": "rt[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "LL: the key went into the left subtree of the left child. One right rotation fixes it. RR is the mirror image: one left rotation."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rt[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A left rotation at x: y, x's right child, moves up. y's left subtree moves across to become x's right subtree. x becomes y's left child."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "rt"
+      },
+      {
+       "action": "show",
+       "target": "rr"
+      },
+      {
+       "action": "mark_lines",
+       "target": "rr",
+       "from": 1,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Only three pointers change, and the inorder order of the keys is untouched: it is still a search tree."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "rr",
+       "from": 7,
+       "to": 7
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "rotation: 3 pointers, order kept"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "double",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: LR: the key went into the right subtree of the left child. One rotation is not enough; it just moves the bend to the other side."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: double rotations"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rr"
+      },
+      {
+       "action": "show",
+       "target": "rt"
+      },
+      {
+       "action": "highlight",
+       "target": "rt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So first left-rotate the child, turning it into an LL case, then right-rotate the node. RL is the mirror: right-rotate the child, then left-rotate the node."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rt[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "After either fix, the repaired subtree has the same height it had before the insertion. So nothing above it can be unbalanced any more: an insertion needs at most one single or one double rotation."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rt[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "LL, RR: single · LR, RL: double"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ex1",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: insert 10, 20, 30 into an empty AVL tree. 10, then 20 to its right: balance factor of 10 is minus 1, still fine."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: inserting 10, 20, 30"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rt"
+      },
+      {
+       "action": "show",
+       "target": "pre1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert 30. Now 10 has an empty left subtree, height minus 1, and a right subtree of height 1: balance factor minus 2."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "pre1"
+      },
+      {
+       "action": "show",
+       "target": "pre2"
+      },
+      {
+       "action": "highlight",
+       "target": "pre2.n10"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The key went right, then right: the RR case. Left-rotate at 10: 20 comes up as the root, with 10 and 30 as its children. Perfectly balanced."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "pre2"
+      },
+      {
+       "action": "show",
+       "target": "post2"
+      },
+      {
+       "action": "mark",
+       "target": "post2.n20"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Without rotations these three keys would have made a chain. Insert 40: it goes right of 30, and every balance factor is still within 1."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "post2"
+      },
+      {
+       "action": "show",
+       "target": "pre3"
+      },
+      {
+       "action": "highlight",
+       "target": "pre3.n40"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ex2",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: insert 50. It goes right of 40, and now 30 has balance factor minus 2. The lowest unbalanced node is 30, not the root."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: inserting 40, 50, 25"
+      },
+      {
+       "action": "hide",
+       "target": "pre3"
+      },
+      {
+       "action": "show",
+       "target": "pre4"
+      },
+      {
+       "action": "highlight",
+       "target": "pre4.n30"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "RR again: left-rotate at 30. 40 takes its place, with 30 and 50 as children. The root's balance is fine again."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "pre4"
+      },
+      {
+       "action": "show",
+       "target": "post4"
+      },
+      {
+       "action": "mark",
+       "target": "post4.n40"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert 25: right of 20, left of 40, left of 30. Now the root 20 has a left subtree of height 0 and a right subtree of height 2: balance factor minus 2."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "post4"
+      },
+      {
+       "action": "show",
+       "target": "pre5"
+      },
+      {
+       "action": "highlight",
+       "target": "pre5.n20"
+      },
+      {
+       "action": "highlight",
+       "target": "pre5.n25",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The key went right of 20, then left of 40: the RL case. Right-rotate 40, bringing 30 up; then left-rotate 20. 30 becomes the root, with 20 and 40 below it."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "pre5"
+      },
+      {
+       "action": "show",
+       "target": "post5"
+      },
+      {
+       "action": "mark",
+       "target": "post5.n30"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Six keys inserted in a nearly sorted order, and the tree has height 2. Inorder still gives 10, 20, 25, 30, 40, 50."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "rotate at the lowest node with balance ±2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cost",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: costs. Search is O of log n, because the height is at most 1.44 log 2 n."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: deleting and the costs"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "post5"
+      },
+      {
+       "action": "show",
+       "target": "co"
+      },
+      {
+       "action": "highlight",
+       "target": "co[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert walks down, then back up updating heights, and does at most one single or double rotation."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Delete works like BST deletion, then walks back up; a rotation can shorten a subtree and unbalance its parent, so up to one rotation per level, O of log n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The price is a height or balance factor stored in every node, and the code to keep it up to date. Red-black trees, next, relax the rule to rotate less often."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "co[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "every operation O(log n), guaranteed"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question: ten insertions into an AVL tree."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "co"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find each rotation, its kind and where it happens, and draw the final tree. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "50, 20, 60 and 10 need nothing. Then 8 goes left of 10, and 20 has balance factor plus 2. Left, then left: LL. Right-rotate 20; 10 comes up, with 8 and 20."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "15: left of 50, right of 10, left of 20. Now 50 has a left subtree of height 2 and a right subtree of height 0: balance factor plus 2. Left, then right: LR. Left-rotate 10, then right-rotate 50. 20 becomes the root."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "32, 46 and 11 fit without trouble. Then 48 goes right of 46, which hangs right of 32: 32 has balance factor minus 2. RR: left-rotate 32, and 46 takes its place."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The final tree: 20 at the root; 10 on its left with 8 and 15, and 11 under 15; 50 on its right, with 46, holding 32 and 48, and 60. Height 3."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "qt"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      },
+      {
+       "action": "mark",
+       "target": "qt.n20",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: rotating at the root instead of at the lowest unbalanced node. Always walk up from the new leaf and stop at the first node with balance plus or minus 2."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "rotate at the lowest unbalanced node"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qt"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every AVL node has balance factor minus 1, 0 or 1, which keeps the height below 1.44 log n. LL and RR need one rotation; LR and RL need two."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insertions rotate at the lowest unbalanced node, at most once. Deletions may rotate on every level. Every operation is O of log n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: a looser balance rule with colours instead of heights. Red-black trees."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: red-black trees"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

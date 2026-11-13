@@ -1,0 +1,1341 @@
+{
+ "version": 1,
+ "title": "Binary search trees",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The search-tree property"
+    ],
+    [
+     2,
+     "Searching"
+    ],
+    [
+     3,
+     "Inserting"
+    ],
+    [
+     4,
+     "Minimum, maximum, successor"
+    ],
+    [
+     5,
+     "Deleting: leaf and one child"
+    ],
+    [
+     6,
+     "Deleting: two children"
+    ],
+    [
+     7,
+     "Why the shape matters"
+    ],
+    [
+     8,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "bp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "binary search tree property",
+    ""
+   ],
+   "rows": [
+    [
+     "every key in x's left subtree",
+     "< x.key"
+    ],
+    [
+     "every key in x's right subtree",
+     "> x.key"
+    ],
+    [
+     "so an inorder traversal",
+     "lists the keys in sorted order"
+    ],
+    [
+     "search, insert, delete, min, max, successor",
+     "all O(h), h = the height"
+    ]
+   ]
+  },
+  {
+   "id": "bt",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "k50",
+     "label": "50",
+     "at": [
+      4,
+      0
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": []
+  },
+  {
+   "id": "sc",
+   "type": "code",
+   "region": "right",
+   "language": "text",
+   "lines": [
+    "SEARCH(x, k)",
+    "  while x != nil and k != x.key",
+    "    if k < x.key",
+    "      x = x.left",
+    "    else x = x.right",
+    "  return x"
+   ]
+  },
+  {
+   "id": "su",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "query",
+    "how",
+    "in our tree"
+   ],
+   "rows": [
+    [
+     "minimum",
+     "follow left pointers to the end",
+     "20"
+    ],
+    [
+     "maximum",
+     "follow right pointers to the end",
+     "80"
+    ],
+    [
+     "successor of x, x has a right subtree",
+     "the minimum of that right subtree",
+     "succ(30) = 35"
+    ],
+    [
+     "successor of x, no right subtree",
+     "go up until you arrive from a left child",
+     "succ(40) = 50"
+    ]
+   ]
+  },
+  {
+   "id": "sk",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "insert in this order",
+    "shape",
+    "height"
+   ],
+   "rows": [
+    [
+     "50 30 70 20 40 60 80 35",
+     "bushy",
+     "3"
+    ],
+    [
+     "10 20 30 40 50",
+     "a right-leaning chain",
+     "4 = n − 1"
+    ],
+    [
+     "random order, n keys",
+     "expected height",
+     "O(log n)"
+    ],
+    [
+     "sorted order, n keys",
+     "a linked list",
+     "n − 1: every operation Θ(n)"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "a) insert 45, 15, 79, 90, 10, 55, 12, 20, 50 into an empty BST: draw it and give its height"
+    ],
+    [
+     "b) the comparisons made when searching for 12"
+    ],
+    [
+     "c) delete 45: what replaces it?  d) the inorder traversal afterwards"
+    ]
+   ]
+  },
+  {
+   "id": "et",
+   "type": "diagram",
+   "region": "center",
+   "layout": "grid",
+   "nodes": [
+    {
+     "id": "e45",
+     "label": "45",
+     "at": [
+      4,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "e15",
+     "label": "15",
+     "at": [
+      2,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "e79",
+     "label": "79",
+     "at": [
+      7,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "e90",
+     "label": "90",
+     "at": [
+      8,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "e10",
+     "label": "10",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "e55",
+     "label": "55",
+     "at": [
+      6,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "e12",
+     "label": "12",
+     "at": [
+      1,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "e20",
+     "label": "20",
+     "at": [
+      3,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "e50",
+     "label": "50",
+     "at": [
+      5,
+      3
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "e45",
+     "to": "e15"
+    },
+    {
+     "from": "e15",
+     "to": "e10"
+    },
+    {
+     "from": "e79",
+     "to": "e55"
+    },
+    {
+     "from": "e55",
+     "to": "e50"
+    },
+    {
+     "from": "e45",
+     "to": "e79"
+    },
+    {
+     "from": "e79",
+     "to": "e90"
+    },
+    {
+     "from": "e10",
+     "to": "e12"
+    },
+    {
+     "from": "e15",
+     "to": "e20"
+    }
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "part",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a) height",
+     "3"
+    ],
+    [
+     "b) search 12",
+     "45 → 15 → 10 → 12: 4"
+    ],
+    [
+     "c) delete 45",
+     "successor 50 moves up"
+    ],
+    [
+     "d) inorder",
+     "10 12 15 20 50 55 79 90"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A sorted array finds a key in log n steps, but inserting costs n. A linked list inserts cheaply but searches in n. The binary search tree aims to do both in time proportional to its height. This video builds one."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Binary search trees"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the eight stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The search-tree property, searching, inserting, and finding the minimum, maximum and successor."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then deleting, in three cases, why the shape of the tree decides everything, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=7]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "prop",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: in a binary search tree, every key in a node's left subtree is smaller than the node's key."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 8: the property"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "bp"
+      },
+      {
+       "action": "highlight",
+       "target": "bp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And every key in its right subtree is larger. This holds at every node, not just between parent and child."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bp[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So an inorder traversal, left, node, right, lists the keys in sorted order."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every operation follows one path from the root, so each costs O of h, the height of the tree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bp[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "left < node < right, everywhere"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "insert",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2, done first because we need a tree: insert 50, 30, 70, 20, 40, 60, 80 and 35, in that order. 50 becomes the root."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 8: inserting"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bp"
+      },
+      {
+       "action": "show",
+       "target": "bt"
+      },
+      {
+       "action": "highlight",
+       "target": "bt.k50"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "30 is smaller than 50: go left, the spot is empty, put it there. 70 is larger: go right."
+     },
+     "do": [
+      {
+       "action": "add_node",
+       "target": "bt",
+       "id": "k30",
+       "label": "30",
+       "at": [
+        1,
+        1
+       ],
+       "shape": "circle",
+       "delay": 0.0
+      },
+      {
+       "action": "add_edge",
+       "target": "bt",
+       "from": "k50",
+       "to": "k30",
+       "delay": 0.05
+      },
+      {
+       "action": "add_node",
+       "target": "bt",
+       "id": "k70",
+       "label": "70",
+       "at": [
+        6,
+        1
+       ],
+       "shape": "circle",
+       "delay": 0.4
+      },
+      {
+       "action": "add_edge",
+       "target": "bt",
+       "from": "k50",
+       "to": "k70",
+       "delay": 0.45
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "20: left of 50, left of 30. 40: left of 50, then right of 30."
+     },
+     "do": [
+      {
+       "action": "add_node",
+       "target": "bt",
+       "id": "k20",
+       "label": "20",
+       "at": [
+        0,
+        2
+       ],
+       "shape": "circle",
+       "delay": 0.0
+      },
+      {
+       "action": "add_edge",
+       "target": "bt",
+       "from": "k30",
+       "to": "k20",
+       "delay": 0.05
+      },
+      {
+       "action": "add_node",
+       "target": "bt",
+       "id": "k40",
+       "label": "40",
+       "at": [
+        3,
+        2
+       ],
+       "shape": "circle",
+       "delay": 0.4
+      },
+      {
+       "action": "add_edge",
+       "target": "bt",
+       "from": "k30",
+       "to": "k40",
+       "delay": 0.45
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "60 and 80 settle under 70, on its left and right."
+     },
+     "do": [
+      {
+       "action": "add_node",
+       "target": "bt",
+       "id": "k60",
+       "label": "60",
+       "at": [
+        5,
+        2
+       ],
+       "shape": "circle",
+       "delay": 0.0
+      },
+      {
+       "action": "add_edge",
+       "target": "bt",
+       "from": "k70",
+       "to": "k60",
+       "delay": 0.05
+      },
+      {
+       "action": "add_node",
+       "target": "bt",
+       "id": "k80",
+       "label": "80",
+       "at": [
+        7,
+        2
+       ],
+       "shape": "circle",
+       "delay": 0.4
+      },
+      {
+       "action": "add_edge",
+       "target": "bt",
+       "from": "k70",
+       "to": "k80",
+       "delay": 0.45
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "35: smaller than 50, larger than 30, smaller than 40. It becomes 40's left child. A new key always becomes a leaf, at the end of the search path for it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bt.k50"
+      },
+      {
+       "action": "highlight",
+       "target": "bt.k30",
+       "delay": 0.15
+      },
+      {
+       "action": "highlight",
+       "target": "bt.k40",
+       "delay": 0.3
+      },
+      {
+       "action": "add_node",
+       "target": "bt",
+       "id": "k35",
+       "label": "35",
+       "at": [
+        2,
+        3
+       ],
+       "shape": "circle",
+       "delay": 0.5
+      },
+      {
+       "action": "add_edge",
+       "target": "bt",
+       "from": "k40",
+       "to": "k35",
+       "delay": 0.55
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "insert = search, then hang a new leaf"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "search",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: searching. Compare the key with the current node: smaller, go left; larger, go right; equal, found."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 8: searching"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "move",
+       "target": "bt",
+       "region": "left"
+      },
+      {
+       "action": "show",
+       "target": "sc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "sc",
+       "from": 1,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Search for 35: 35 is less than 50, go left. More than 30, go right. Less than 40, go left. Found, after 4 comparisons."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bt.k50"
+      },
+      {
+       "action": "highlight",
+       "target": "bt.k30",
+       "delay": 0.25
+      },
+      {
+       "action": "highlight",
+       "target": "bt.k40",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "bt.k35",
+       "delay": 0.75
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Search for 65: right of 50, left of 70, right of 60: that pointer is nil. Not found, after 3 comparisons. Each step discards a whole subtree."
+     },
+     "do": [
+      {
+       "action": "reset",
+       "target": "bt.k35"
+      },
+      {
+       "action": "highlight",
+       "target": "bt.k50"
+      },
+      {
+       "action": "highlight",
+       "target": "bt.k70",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "bt.k60",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The cost is at most the height plus 1 comparisons. Here the height is 3."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "each comparison discards a subtree"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "succ",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the minimum is found by going left until you cannot: 20. The maximum, by going right: 80."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 8: min, max, successor"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sc"
+      },
+      {
+       "action": "move",
+       "target": "bt",
+       "region": "center"
+      },
+      {
+       "action": "mark",
+       "target": "bt.k20"
+      },
+      {
+       "action": "mark",
+       "target": "bt.k80",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The successor of x is the next key in sorted order. If x has a right subtree, it is that subtree's minimum: the successor of 30 is the leftmost node under 40, which is 35."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "bt"
+      },
+      {
+       "action": "show",
+       "target": "su"
+      },
+      {
+       "action": "highlight",
+       "target": "su[0..=1]"
+      },
+      {
+       "action": "highlight",
+       "target": "su[2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If x has no right subtree, go up until you arrive at a node from its left child. 40 has none: up to 30, arriving from the right; up to 50, arriving from the left. So the successor of 40 is 50."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "su[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "successor: min of right subtree, or the first left-turn ancestor"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "del1",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: deleting has three cases. A leaf just disappears: delete 20."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 8: deleting, easy cases"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "su"
+      },
+      {
+       "action": "show",
+       "target": "bt"
+      },
+      {
+       "action": "highlight",
+       "target": "bt.k20"
+      },
+      {
+       "action": "remove",
+       "target": "bt.k20",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A node with one child is replaced by that child. Delete 40: its only child, 35, moves up and becomes 30's right child."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bt.k40"
+      },
+      {
+       "action": "add_edge",
+       "target": "bt",
+       "from": "k30",
+       "to": "k35",
+       "delay": 0.4
+      },
+      {
+       "action": "remove",
+       "target": "bt.k40",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The ordering survives: 35 was in 30's right subtree before, and still is."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bt.k35"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "leaf: remove · one child: splice it up"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "del2",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: a node with two children cannot simply vanish. Delete 50, the root."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 8: deleting, two children"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "highlight",
+       "target": "bt.k50"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Replace its key with its successor, the smallest key in its right subtree: 60. That keeps everything on the left smaller and everything on the right larger."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bt.k60"
+      },
+      {
+       "action": "set",
+       "target": "bt.k50",
+       "value": "60",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The successor has no left child, by definition, so removing it from its old place is one of the easy cases. Here 60 was a leaf."
+     },
+     "do": [
+      {
+       "action": "remove",
+       "target": "bt.k60"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The tree is now 60 at the root, with 30 and 35 on the left, 70 and 80 on the right. Inorder: 30, 35, 60, 70, 80, still sorted. The predecessor, the largest key on the left, works equally well."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bt.k50"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "two children: copy in the successor, delete it below"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shape",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 7: everything costs O of h. Our 8 keys gave a bushy tree of height 3."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 7 of 8: why the shape matters"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bt"
+      },
+      {
+       "action": "show",
+       "target": "sk"
+      },
+      {
+       "action": "highlight",
+       "target": "sk[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Insert 10, 20, 30, 40, 50 in sorted order, and every key goes right: a chain of height 4, which is n minus 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sk[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In random order, the expected height is O of log n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sk[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But sorted input, which is common in practice, turns the tree into a linked list, and every operation into Theta of n. AVL and red-black trees, next, rebalance as they go to guarantee O of log n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sk[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "unbalanced: up to n − 1 high"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sk"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Build the tree, count the comparisons to find 12, delete the root and list the keys in order. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "45 is the root. 15 goes left, 79 right. 90 right of 79. 10 left of 15. 55 left of 79. 12: left of 45, left of 15, right of 10. 20 right of 15. 50: right of 45, left of 79, left of 55."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "et"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The deepest nodes, 12 and 50, are 3 edges down: height 3."
+     },
+     "do": [
+      {
+       "action": "move",
+       "target": "et",
+       "region": "left"
+      },
+      {
+       "action": "highlight",
+       "target": "et.e12"
+      },
+      {
+       "action": "highlight",
+       "target": "et.e50",
+       "delay": 0.3
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: searching for 12 compares with 45, 15, 10 and 12: 4 comparisons."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 45 has two children. Its successor is the leftmost key in its right subtree: 79, then 55, then 50. 50 is copied into the root and removed from below, where it was a leaf."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "et.e50"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[2]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d: inorder gives 10, 12, 15, 20, 50, 55, 79, 90: sorted, as it must be."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[3][1]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: using the parent's key instead of the successor when deleting a node with two children."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "two children: successor (or predecessor), never the parent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "et"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In a BST, left is smaller and right is larger at every node, so inorder is sorted. Search and insert follow one path; a new key becomes a leaf. Minimum, maximum and successor follow pointers."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Deleting removes a leaf, splices out a one-child node, or copies in the successor. Every operation is O of height, and height can reach n minus 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: a tree that rebalances itself after every insertion. The AVL tree."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=7]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: AVL trees"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

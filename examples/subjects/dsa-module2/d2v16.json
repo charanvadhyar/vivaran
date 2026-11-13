@@ -1,0 +1,1440 @@
+{
+ "version": 1,
+ "title": "Maximum flow: push-relabel",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The idea: preflow, excess and height"
+    ],
+    [
+     2,
+     "The two operations: push and relabel"
+    ],
+    [
+     3,
+     "Starting: initialise the preflow"
+    ],
+    [
+     4,
+     "A full trace"
+    ],
+    [
+     5,
+     "Why it ends with a maximum flow"
+    ],
+    [
+     6,
+     "Push-relabel versus Ford-Fulkerson"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "idea",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "push-relabel",
+    ""
+   ],
+   "rows": [
+    [
+     "Ford-Fulkerson",
+     "keeps a valid flow; improves it along whole paths s ⇝ t"
+    ],
+    [
+     "push-relabel",
+     "works locally, one edge at a time"
+    ],
+    [
+     "preflow",
+     "capacities hold, but a vertex may take in more than it sends out"
+    ],
+    [
+     "excess e(u)",
+     "flow in − flow out; u overflows when e(u) > 0"
+    ],
+    [
+     "height h(u)",
+     "flow is pushed only downhill, from height k to k − 1"
+    ],
+    [
+     "the end",
+     "no vertex overflows: the preflow is a flow, and it is maximum"
+    ]
+   ]
+  },
+  {
+   "id": "ops",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "PUSH(u, v)      // u overflows, c_f(u, v) > 0, u.h = v.h + 1",
+    "    Δ = min(u.e, c_f(u, v))",
+    "    if (u, v) is in E:  (u, v).f = (u, v).f + Δ",
+    "    else:               (v, u).f = (v, u).f − Δ      // cancel",
+    "    u.e = u.e − Δ;  v.e = v.e + Δ",
+    "",
+    "RELABEL(u)      // u overflows, no residual edge (u, v) goes downhill",
+    "    u.h = 1 + min { v.h : (u, v) in E_f }",
+    "",
+    "INITIALIZE-PREFLOW(G, s)",
+    "    every h, e and f = 0;   s.h = |V|",
+    "    for each edge (s, v):  (s, v).f = c(s, v);  v.e = c(s, v);  s.e = s.e − c(s, v)",
+    "",
+    "GENERIC-PUSH-RELABEL(G):  initialise, then while some push or relabel applies, do it"
+   ]
+  },
+  {
+   "id": "g",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "directed": true,
+   "nodes": [
+    {
+     "id": "s",
+     "label": "s",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "a",
+     "label": "a",
+     "at": [
+      1,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "b",
+     "label": "b",
+     "at": [
+      1,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "t",
+     "label": "t",
+     "at": [
+      2,
+      1
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "s",
+     "to": "a",
+     "label": "0/4"
+    },
+    {
+     "from": "s",
+     "to": "b",
+     "label": "0/2"
+    },
+    {
+     "from": "a",
+     "to": "b",
+     "label": "0/3"
+    },
+    {
+     "from": "a",
+     "to": "t",
+     "label": "0/1"
+    },
+    {
+     "from": "b",
+     "to": "t",
+     "label": "0/3"
+    }
+   ]
+  },
+  {
+   "id": "he",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "vertex",
+    "height h",
+    "excess e"
+   ],
+   "rows": [
+    [
+     "s",
+     "0",
+     "0"
+    ],
+    [
+     "a",
+     "0",
+     "0"
+    ],
+    [
+     "b",
+     "0",
+     "0"
+    ],
+    [
+     "t",
+     "0",
+     "0"
+    ]
+   ]
+  },
+  {
+   "id": "why",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "why it works",
+    ""
+   ],
+   "rows": [
+    [
+     "s.h = |V| = 4, t.h = 0",
+     "a residual path s ⇝ t would drop 4 levels in at most 3 edges: impossible"
+    ],
+    [
+     "so at every moment",
+     "G_f has no augmenting path"
+    ],
+    [
+     "when nothing overflows",
+     "the preflow is a flow with no augmenting path: maximum"
+    ],
+    [
+     "an overflowing vertex",
+     "always has a residual path back to s, so heights stay ≤ 2|V| − 1"
+    ],
+    [
+     "bounds",
+     "O(V²) relabels, O(V² E) pushes: generic O(V² E)"
+    ],
+    [
+     "relabel-to-front (Cormen)",
+     "O(V³)"
+    ]
+   ]
+  },
+  {
+   "id": "cmp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "Ford-Fulkerson / Edmonds-Karp",
+    "push-relabel"
+   ],
+   "rows": [
+    [
+     "keeps",
+     "a valid flow",
+     "a preflow (excess allowed)"
+    ],
+    [
+     "one step",
+     "a whole path s ⇝ t",
+     "one edge, or one height"
+    ],
+    [
+     "stops when",
+     "no augmenting path",
+     "no overflowing vertex"
+    ],
+    [
+     "time",
+     "O(V E²)",
+     "O(V² E); O(V³) relabel-to-front"
+    ],
+    [
+     "in practice",
+     "simple to code",
+     "fastest on large dense networks"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "s→A 5, s→B 3, A→B 2, A→t 2, B→t 4"
+    ],
+    [
+     "a) give every height and excess after INITIALIZE-PREFLOW"
+    ],
+    [
+     "b) apply the operations at A until A no longer overflows"
+    ],
+    [
+     "c) what is the maximum flow value? Prove it with a cut"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "result"
+   ],
+   "rows": [
+    [
+     "a)",
+     "s.h = 4; edges out of s saturated",
+     "h: s 4, A 0, B 0, t 0;  e: A 5, B 3, s −8"
+    ],
+    [
+     "b) 1",
+     "A overflows; no neighbour at height −1",
+     "relabel A: 1 + min(0, 0, 4) = 1"
+    ],
+    [
+     "b) 2",
+     "A.h = 1 = B.h + 1 and t.h + 1",
+     "push 2 to B, push 2 to t: A.e = 1"
+    ],
+    [
+     "b) 3",
+     "A→B, A→t full; only A→s is residual",
+     "relabel A: 1 + 4 = 5; push 1 back to s"
+    ],
+    [
+     "c)",
+     "cut S = {s, A, B}: c(A, t) + c(B, t) = 2 + 4",
+     "max flow = 6"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Ford-Fulkerson pushes flow along a whole path from source to sink at a time. Push-relabel does something quite different: it floods the network from the source and lets water run downhill, one edge at a time, raising vertices when it gets stuck. It is behind the fastest practical max-flow programs."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Maximum flow: push-relabel"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The idea, the two operations, how to start, and a full trace."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then why it gives a maximum flow, how it compares with Ford-Fulkerson, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "idea",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: Ford-Fulkerson always holds a valid flow and improves it along whole paths. Push-relabel works locally: one vertex, one edge at a time."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the idea"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "idea"
+      },
+      {
+       "action": "highlight",
+       "target": "idea[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It holds a preflow: every edge respects its capacity, but a vertex may take in more than it sends out, for now."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "idea[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The difference, flow in minus flow out, is the vertex's excess. A vertex with positive excess is overflowing, and must get rid of it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "idea[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each vertex also has a height. Flow is only pushed downhill, from a vertex to a neighbour exactly one level lower, like water in a reservoir."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "idea[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "When no vertex overflows any more, the preflow is a real flow, and as we will see, a maximum one."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "idea[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "preflow + heights; push downhill"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ops",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: Cormen's two operations. Push applies when u overflows, the residual edge u to v has room, and u is exactly one level above v."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: push and relabel"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "idea"
+      },
+      {
+       "action": "show",
+       "target": "ops"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ops",
+       "from": 1,
+       "to": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Push as much as possible: delta, the smaller of u's excess and the edge's residual capacity. On a real edge, flow goes up. On a back edge, flow on the original edge goes down: cancelling, as in Ford-Fulkerson."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ops",
+       "from": 2,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Excess moves with it: u loses delta, v gains delta."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ops",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Relabel applies when u overflows but every residual edge out of u leads to a vertex no lower than u. Nothing can flow, so lift u to one more than its lowest residual neighbour."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ops",
+       "from": 7,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now u stands exactly one level above that neighbour, so a push becomes possible."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "push: downhill by one level;  relabel: lift just enough"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "init",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: start with all heights, excesses and flows at zero. Then raise the source to the number of vertices."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: initialise"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ops",
+       "from": 10,
+       "to": 11
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And fill every edge leaving the source to capacity. Its neighbours overflow at once; the source's excess goes negative."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ops",
+       "from": 12,
+       "to": 12
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The generic algorithm: after initialising, as long as some push or relabel applies anywhere, apply it, in any order."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ops",
+       "from": 14,
+       "to": 14
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "s.h = |V|; saturate every edge out of s"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: a network of four vertices. Edges are labelled flow over capacity; the table holds each vertex's height and excess."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: a full trace"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ops"
+      },
+      {
+       "action": "show",
+       "target": "g"
+      },
+      {
+       "action": "show",
+       "target": "he"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Initialise: s goes to height 4, the number of vertices. s to a carries 4, s to b carries 2. So a has excess 4, b has 2, and s has minus 6."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "he[0][1]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "he[0][2]",
+       "value": "-6",
+       "delay": 0.28
+      },
+      {
+       "action": "set",
+       "target": "he[1][2]",
+       "value": "4",
+       "delay": 0.36
+      },
+      {
+       "action": "set",
+       "target": "he[2][2]",
+       "value": "2",
+       "delay": 0.44
+      },
+      {
+       "action": "set",
+       "target": "g.s->a",
+       "value": "4/4",
+       "delay": 0.52
+      },
+      {
+       "action": "set",
+       "target": "g.s->b",
+       "value": "2/2",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a overflows at height 0, and nothing is lower. Relabel: its residual neighbours b and t are at 0, s at 4. a becomes 1 plus 0, height 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.a"
+      },
+      {
+       "action": "highlight",
+       "target": "he[1]"
+      },
+      {
+       "action": "set",
+       "target": "he[1][1]",
+       "value": "1",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now push downhill: a to b takes 3, its full capacity. a's excess drops to 1, b's rises to 5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.a->b"
+      },
+      {
+       "action": "highlight",
+       "target": "he[1]"
+      },
+      {
+       "action": "set",
+       "target": "he[1][2]",
+       "value": "1",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "he[2][2]",
+       "value": "5",
+       "delay": 0.38
+      },
+      {
+       "action": "set",
+       "target": "g.a->b",
+       "value": "3/3",
+       "delay": 0.46
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Push a to t: 1 more, its full capacity. a's excess is 0. The sink t has received 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.a->t"
+      },
+      {
+       "action": "highlight",
+       "target": "he[1]"
+      },
+      {
+       "action": "set",
+       "target": "he[1][2]",
+       "value": "0",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "he[3][2]",
+       "value": "1",
+       "delay": 0.38
+      },
+      {
+       "action": "set",
+       "target": "g.a->t",
+       "value": "1/1",
+       "delay": 0.46
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b overflows with 5 at height 0. Relabel to 1, one above t."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.b"
+      },
+      {
+       "action": "highlight",
+       "target": "he[2]"
+      },
+      {
+       "action": "set",
+       "target": "he[2][1]",
+       "value": "1",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Push b to t: only 3 fits. b still holds 2, and the sink has 4. Both edges into t are now full, so the remaining 2 can never reach t: they must go back."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.b->t"
+      },
+      {
+       "action": "highlight",
+       "target": "he[2]"
+      },
+      {
+       "action": "set",
+       "target": "he[2][2]",
+       "value": "2",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "he[3][2]",
+       "value": "4",
+       "delay": 0.38
+      },
+      {
+       "action": "set",
+       "target": "g.b->t",
+       "value": "3/3",
+       "delay": 0.46
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Watch how. b's only residual edges now lead back: to a, by cancelling flow, and to s. Lowest is a at 1, so b rises to 2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.b"
+      },
+      {
+       "action": "highlight",
+       "target": "he[2]"
+      },
+      {
+       "action": "set",
+       "target": "he[2][1]",
+       "value": "2",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Push b to a, 2 units: this cancels 2 of the 3 we sent from a to b."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.a->b"
+      },
+      {
+       "action": "highlight",
+       "target": "he[2]"
+      },
+      {
+       "action": "set",
+       "target": "he[1][2]",
+       "value": "2",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "he[2][2]",
+       "value": "0",
+       "delay": 0.38
+      },
+      {
+       "action": "set",
+       "target": "g.a->b",
+       "value": "1/3",
+       "delay": 0.46
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now a overflows at height 1. It cannot push to t, which is full, so it rises to 3, one above b. It pushes the 2 back to b."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.a"
+      },
+      {
+       "action": "highlight",
+       "target": "he[1]"
+      },
+      {
+       "action": "set",
+       "target": "he[1][1]",
+       "value": "3",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "g.a->b"
+      },
+      {
+       "action": "highlight",
+       "target": "he[1]"
+      },
+      {
+       "action": "set",
+       "target": "he[1][2]",
+       "value": "0",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "he[2][2]",
+       "value": "2",
+       "delay": 0.38
+      },
+      {
+       "action": "set",
+       "target": "g.a->b",
+       "value": "3/3",
+       "delay": 0.46
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The two bounce: b rises to 4 and pushes to a; a rises to 5, one above the source."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.b"
+      },
+      {
+       "action": "highlight",
+       "target": "he[2]"
+      },
+      {
+       "action": "set",
+       "target": "he[2][1]",
+       "value": "4",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "g.a->b"
+      },
+      {
+       "action": "highlight",
+       "target": "he[2]"
+      },
+      {
+       "action": "set",
+       "target": "he[1][2]",
+       "value": "2",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "he[2][2]",
+       "value": "0",
+       "delay": 0.38
+      },
+      {
+       "action": "set",
+       "target": "g.a->b",
+       "value": "1/3",
+       "delay": 0.46
+      },
+      {
+       "action": "highlight",
+       "target": "g.a"
+      },
+      {
+       "action": "highlight",
+       "target": "he[1]"
+      },
+      {
+       "action": "set",
+       "target": "he[1][1]",
+       "value": "5",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Finally a pushes 2 down to s, cancelling 2 of the flow on s to a. Nothing overflows. The flow value is 4: a to t, 1, and b to t, 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.s->a"
+      },
+      {
+       "action": "highlight",
+       "target": "he[1]"
+      },
+      {
+       "action": "set",
+       "target": "he[0][2]",
+       "value": "-4",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "he[1][2]",
+       "value": "0",
+       "delay": 0.38
+      },
+      {
+       "action": "set",
+       "target": "g.s->a",
+       "value": "2/4",
+       "delay": 0.46
+      },
+      {
+       "action": "mark",
+       "target": "g.t",
+       "delay": 0.8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "excess that cannot reach t climbs back to s"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the cut separating t from everything else, edges a to t and b to t, has capacity 1 plus 3, 4. So 4 is maximum."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.a->t"
+      },
+      {
+       "action": "highlight",
+       "target": "g.b->t",
+       "delay": 0.4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: why must the answer be maximum? The source sits at height 4, the sink at 0, and every residual edge drops at most one level."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: why it works"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "g"
+      },
+      {
+       "action": "hide",
+       "target": "he"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      },
+      {
+       "action": "highlight",
+       "target": "why[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A simple path from s to t has at most 3 edges, so it cannot fall 4 levels. So, at every moment, there is no augmenting path."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "When nothing overflows, we hold a true flow with no augmenting path: by max-flow min-cut, it is maximum."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And it does stop: an overflowing vertex always has a residual path back to s, so no height ever exceeds 2 V minus 1. That limits the relabels to O of V squared, and the pushes to O of V squared E."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cormen's relabel-to-front version picks the order carefully and runs in O of V cubed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "h(s) = |V| ⇒ never an augmenting path"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cmp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: side by side. Ford-Fulkerson keeps a flow and works along whole paths; push-relabel keeps a preflow and works one edge at a time."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: compared"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "cmp"
+      },
+      {
+       "action": "highlight",
+       "target": "cmp[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One stops when no augmenting path remains; the other when no vertex overflows."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Edmonds-Karp takes O of V E squared; push-relabel O of V squared E, or V cubed. On large dense networks push-relabel is usually fastest."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cmp[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "both give the same maximum value"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cmp"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Initialise the preflow, apply the operations at A, and find the maximum flow with a cut to prove it. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: the source rises to 4, the number of vertices. s to A fills with 5, s to B with 3. So A has excess 5, B has 3, s minus 8; every other height is 0."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: A overflows, but its neighbours B and t are at the same height, 0. Relabel A to 1 plus 0, 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now A is one above both. Push 2 to B and 2 to t, both edges' full capacity. A still has 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Both edges out of A are full; the only residual edge goes back to s, at height 4. Relabel A to 5, and push the 1 back to s. A no longer overflows."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: the cut with only t on one side has edges A to t, 2, and B to t, 4: capacity 6. B will send its 3 plus 2 from A: 4 to t, 1 back to s. The maximum flow is 6."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[4][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: pushing to a neighbour that is lower but not exactly one level lower. Push only from height k to height k minus 1."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "push only when u.h = v.h + 1"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Push-relabel holds a preflow with heights. Push sends excess one level downhill; relabel lifts a stuck vertex just enough."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Excess that cannot reach t climbs back to s. Since the source starts at height V, there is never an augmenting path, so the final flow is maximum."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That completes Module 2. Next, Module 3: divide and conquer, starting with merge sort."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: Module 3, divide and conquer"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
