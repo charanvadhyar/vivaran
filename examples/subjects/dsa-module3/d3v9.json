@@ -1,0 +1,1502 @@
+{
+ "version": 1,
+ "title": "Huffman coding",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Fixed-length and variable-length codes"
+    ],
+    [
+     2,
+     "Prefix codes and code trees"
+    ],
+    [
+     3,
+     "Huffman's greedy rule"
+    ],
+    [
+     4,
+     "Cormen's example, merge by merge"
+    ],
+    [
+     5,
+     "Reading off the codes; encoding and decoding"
+    ],
+    [
+     6,
+     "The algorithm, its cost, and why it is optimal"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "fx",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "character",
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f"
+   ],
+   "rows": [
+    [
+     "frequency (thousands)",
+     "45",
+     "13",
+     "12",
+     "16",
+     "9",
+     "5"
+    ],
+    [
+     "fixed-length code",
+     "000",
+     "001",
+     "010",
+     "011",
+     "100",
+     "101"
+    ],
+    [
+     "variable-length code",
+     "0",
+     "101",
+     "100",
+     "111",
+     "1101",
+     "1100"
+    ]
+   ]
+  },
+  {
+   "id": "cost",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"fixed: \" 3 times 100000 = 300000 \" bits\"",
+    "\"variable: \" (45 dot 1 + 13 dot 3 + 12 dot 3 + 16 dot 3 + 9 dot 4 + 5 dot 4) times 1000 = 224000 \" bits\"",
+    "\"saving: about 25 percent\""
+   ]
+  },
+  {
+   "id": "pf",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "prefix codes",
+    ""
+   ],
+   "rows": [
+    [
+     "prefix code",
+     "no codeword is a prefix of another"
+    ],
+    [
+     "why",
+     "decoding is unambiguous: read bits until a codeword matches"
+    ],
+    [
+     "bad example",
+     "a = 0, b = 01: does 01 start a or b?"
+    ],
+    [
+     "code tree",
+     "a binary tree: 0 = go left, 1 = go right; characters at the leaves"
+    ],
+    [
+     "cost of a tree",
+     "B(T) = Σ freq(c) × depth(c)"
+    ]
+   ]
+  },
+  {
+   "id": "gr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "Huffman's greedy rule",
+    ""
+   ],
+   "rows": [
+    [
+     "start",
+     "every character is a one-node tree, weighted by its frequency"
+    ],
+    [
+     "repeat n − 1 times",
+     "take the two trees of least weight; join them under a new root"
+    ],
+    [
+     "new root's weight",
+     "the sum of the two"
+    ],
+    [
+     "intuition",
+     "the rarest characters end up deepest, with the longest codes"
+    ]
+   ]
+  },
+  {
+   "id": "mg",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "queue (by weight)",
+    "merge the two smallest",
+    "new tree"
+   ],
+   "rows": [
+    [
+     "f 5, e 9, c 12, b 13, d 16, a 45",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "tr",
+   "type": "diagram",
+   "region": "left",
+   "layout": "tree",
+   "nodes": [
+    {
+     "id": "n0",
+     "label": "100"
+    },
+    {
+     "id": "n1",
+     "label": "a:45"
+    },
+    {
+     "id": "n2",
+     "label": "55"
+    },
+    {
+     "id": "n3",
+     "label": "25"
+    },
+    {
+     "id": "n4",
+     "label": "c:12"
+    },
+    {
+     "id": "n5",
+     "label": "b:13"
+    },
+    {
+     "id": "n6",
+     "label": "30"
+    },
+    {
+     "id": "n7",
+     "label": "14"
+    },
+    {
+     "id": "n8",
+     "label": "f:5"
+    },
+    {
+     "id": "n9",
+     "label": "e:9"
+    },
+    {
+     "id": "n10",
+     "label": "d:16"
+    }
+   ],
+   "edges": [
+    {
+     "from": "n3",
+     "to": "n4",
+     "label": "0"
+    },
+    {
+     "from": "n3",
+     "to": "n5",
+     "label": "1"
+    },
+    {
+     "from": "n7",
+     "to": "n8",
+     "label": "0"
+    },
+    {
+     "from": "n7",
+     "to": "n9",
+     "label": "1"
+    },
+    {
+     "from": "n6",
+     "to": "n7",
+     "label": "0"
+    },
+    {
+     "from": "n6",
+     "to": "n10",
+     "label": "1"
+    },
+    {
+     "from": "n2",
+     "to": "n3",
+     "label": "0"
+    },
+    {
+     "from": "n2",
+     "to": "n6",
+     "label": "1"
+    },
+    {
+     "from": "n0",
+     "to": "n1",
+     "label": "0"
+    },
+    {
+     "from": "n0",
+     "to": "n2",
+     "label": "1"
+    }
+   ]
+  },
+  {
+   "id": "ct",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "char",
+    "freq",
+    "code",
+    "bits"
+   ],
+   "rows": [
+    [
+     "a",
+     "45",
+     "",
+     ""
+    ],
+    [
+     "b",
+     "13",
+     "",
+     ""
+    ],
+    [
+     "c",
+     "12",
+     "",
+     ""
+    ],
+    [
+     "d",
+     "16",
+     "",
+     ""
+    ],
+    [
+     "e",
+     "9",
+     "",
+     ""
+    ],
+    [
+     "f",
+     "5",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "hc",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "HUFFMAN(C)",
+    "    n = |C|;   Q = C                       // a min-priority queue on frequency",
+    "    for i = 1 to n − 1",
+    "        allocate a new node z",
+    "        z.left = x = EXTRACT-MIN(Q)",
+    "        z.right = y = EXTRACT-MIN(Q)",
+    "        z.freq = x.freq + y.freq",
+    "        INSERT(Q, z)",
+    "    return EXTRACT-MIN(Q)                 // the root",
+    "",
+    "binary heap: n − 1 rounds × O(log n) = O(n log n)"
+   ]
+  },
+  {
+   "id": "op",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "why Huffman is optimal",
+    ""
+   ],
+   "rows": [
+    [
+     "greedy choice",
+     "some optimal tree has the two rarest characters as sibling leaves at the greatest depth"
+    ],
+    [
+     "reason",
+     "swapping a rarer character deeper never increases Σ freq × depth"
+    ],
+    [
+     "optimal substructure",
+     "merge them into one character z of their summed frequency: the rest is the same problem, smaller"
+    ],
+    [
+     "so",
+     "every merge keeps an optimal tree within reach: the final tree is optimal among prefix codes"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "frequencies: A 10, E 15, I 12, S 3, T 4, P 13, N 1"
+    ],
+    [
+     "a) the merges, in order"
+    ],
+    [
+     "b) the length of each character's code"
+    ],
+    [
+     "c) total bits, against a fixed-length code"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "result"
+   ],
+   "rows": [
+    [
+     "a)",
+     "N 1 + S 3 = 4;  T 4 + (4) = 8;  (8) + A 10 = 18",
+     ""
+    ],
+    [
+     "a)",
+     "I 12 + P 13 = 25;  E 15 + (18) = 33;  (25) + (33) = 58",
+     "root 58"
+    ],
+    [
+     "b)",
+     "depths in the tree",
+     "I, P, E: 2 · A: 3 · T: 4 · N, S: 5"
+    ],
+    [
+     "c)",
+     "10·3 + 15·2 + 12·2 + 3·5 + 4·4 + 13·2 + 1·5",
+     "146 bits"
+    ],
+    [
+     "c)",
+     "7 characters need 3 bits each: 3 × 58",
+     "174 bits"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Every zip file, every JPEG and MP3 uses a trick from 1952: give frequent symbols short codes and rare ones long codes. David Huffman, then a student, found the greedy algorithm that makes the best such code. This video builds it."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Huffman coding"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Fixed and variable-length codes, prefix codes and code trees, Huffman's rule, and Cormen's example."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then reading off the codes, the algorithm and why it is optimal, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fx",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: Cormen's example. A file of 100 thousand characters uses only six: a to f, with these frequencies, in thousands."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: fixed or variable length"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "fx"
+      },
+      {
+       "action": "highlight",
+       "target": "fx[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A fixed-length code needs 3 bits per character, since 2 bits give only four codewords."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fx[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A variable-length code gives a, the most common, a single bit, and f, the rarest, four bits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fx[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The fixed code needs 300 thousand bits."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "fx"
+      },
+      {
+       "action": "show",
+       "target": "cost"
+      },
+      {
+       "action": "highlight",
+       "target": "cost[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The variable code: 45 times 1, plus 13 times 3, and so on: 224 thousand bits."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cost[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "cost[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A saving of about a quarter, and Huffman's algorithm proves no prefix code can do better."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "cost[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "cost[2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "frequent: short code · rare: long code"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pf",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: a variable-length code must be decodable. In a prefix code, no codeword is the start of another."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: prefix codes"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cost"
+      },
+      {
+       "action": "show",
+       "target": "pf"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then decoding is easy: read bits until they spell a codeword, output that character, and start again."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pf[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If a were 0 and b were 0 1, then a 0 could be the whole of a, or the start of b. We could not tell."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pf[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A prefix code is a binary tree: 0 means go left, 1 means go right, and each character sits at a leaf. Leaves can never be on the path to other leaves, which is exactly the prefix property."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pf[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The cost of a tree is the sum, over characters, of frequency times depth: the depth is the code length."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pf[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "code = path from the root to a leaf"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gr",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: Huffman builds the tree bottom up. Start with each character as a tree of one node, weighted by its frequency."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: the greedy rule"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pf"
+      },
+      {
+       "action": "show",
+       "target": "gr"
+      },
+      {
+       "action": "highlight",
+       "target": "gr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then repeatedly take the two trees of smallest weight and join them under a new root."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The new root's weight is the sum of the two."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gr[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Rare characters are merged first, so they end up deepest in the tree, with the longest codes."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gr[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "merge the two lightest, repeat"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mg",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: the queue starts with all six, by frequency: f 5, e 9, c 12, b 13, d 16, a 45."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: merge by merge"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "gr"
+      },
+      {
+       "action": "show",
+       "target": "mg"
+      },
+      {
+       "action": "highlight",
+       "target": "mg[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The two smallest are f, 5, and e, 9. Merge them into a tree of weight 14."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "mg[0][1]",
+       "value": "f 5 + e 9"
+      },
+      {
+       "action": "set",
+       "target": "mg[0][2]",
+       "value": "14",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "mg[0]"
+      },
+      {
+       "action": "set",
+       "target": "mg[1][0]",
+       "value": "c 12, b 13, (14), d 16, a 45",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Now the smallest are c, 12, and b, 13: merge into 25."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "mg[1][1]",
+       "value": "c 12 + b 13"
+      },
+      {
+       "action": "set",
+       "target": "mg[1][2]",
+       "value": "25",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "mg[1]"
+      },
+      {
+       "action": "set",
+       "target": "mg[2][0]",
+       "value": "(14), d 16, (25), a 45",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next, the 14 tree and d, 16: merge into 30."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "mg[2][1]",
+       "value": "(14) + d 16"
+      },
+      {
+       "action": "set",
+       "target": "mg[2][2]",
+       "value": "30",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "mg[2]"
+      },
+      {
+       "action": "set",
+       "target": "mg[3][0]",
+       "value": "(25), (30), a 45",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then 25 and 30: merge into 55. Only a, 45, and the 55 tree remain."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "mg[3][1]",
+       "value": "(25) + (30)"
+      },
+      {
+       "action": "set",
+       "target": "mg[3][2]",
+       "value": "55",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "mg[3]"
+      },
+      {
+       "action": "set",
+       "target": "mg[4][0]",
+       "value": "a 45, (55)",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Finally a and 55 make the root, 100: the whole file. Five merges for six characters."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "mg[4][1]",
+       "value": "a 45 + (55)"
+      },
+      {
+       "action": "set",
+       "target": "mg[4][2]",
+       "value": "100",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "mg[4]"
+      },
+      {
+       "action": "mark",
+       "target": "mg[4][2]",
+       "delay": 0.7
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "n − 1 merges build the tree"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "codes",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: here is the finished tree. Left edges are 0, right edges are 1. a hangs right below the root, on the left."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: reading the codes"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "mg"
+      },
+      {
+       "action": "show",
+       "target": "tr"
+      },
+      {
+       "action": "show",
+       "target": "ct"
+      },
+      {
+       "action": "highlight",
+       "target": "tr.n1"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So a's code is just 0. On the right, 55 splits into 25 and 30; 25 holds c and b: c is 1, 0, 0, and b is 1, 0, 1."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "ct[0][2]",
+       "value": "0"
+      },
+      {
+       "action": "set",
+       "target": "ct[0][3]",
+       "value": "1",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "ct[2][2]",
+       "value": "100",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "ct[2][3]",
+       "value": "3",
+       "delay": 0.45
+      },
+      {
+       "action": "set",
+       "target": "ct[1][2]",
+       "value": "101",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "ct[1][3]",
+       "value": "3",
+       "delay": 0.65
+      },
+      {
+       "action": "highlight",
+       "target": "tr.n4",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "tr.n5",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Under 30, d is on the right: 1, 1, 1. And the 14 tree holds f and e: 1, 1, 0, 0 and 1, 1, 0, 1."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "ct[3][2]",
+       "value": "111"
+      },
+      {
+       "action": "set",
+       "target": "ct[3][3]",
+       "value": "3",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "ct[5][2]",
+       "value": "1100",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "ct[5][3]",
+       "value": "4",
+       "delay": 0.45
+      },
+      {
+       "action": "set",
+       "target": "ct[4][2]",
+       "value": "1101",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "ct[4][3]",
+       "value": "4",
+       "delay": 0.65
+      },
+      {
+       "action": "highlight",
+       "target": "tr.n10"
+      },
+      {
+       "action": "highlight",
+       "target": "tr.n8",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "tr.n9",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To encode the word face: f, 1 1 0 0; a, 0; c, 1 0 0; e, 1 1 0 1. Twelve bits, the same as a fixed code would need, because this word uses two rare letters. On typical text, full of a's, the saving appears."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ct[5]"
+      },
+      {
+       "action": "highlight",
+       "target": "ct[0]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "ct[2]",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "ct[4]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To decode, start at the root and follow the bits: 1, 1, 0, 0 reaches the leaf f. Output f, return to the root, and continue. No separators are needed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr.n8"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "decode: walk from the root, restart at each leaf"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Try one: decode 0 1 0 1 1 1 0 0. The first 0 reaches a at once. Then 1, 0, 1 reaches b. Then 1, 1, 0, 0 reaches f. The message is a, b, f."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr.n1"
+      },
+      {
+       "action": "highlight",
+       "target": "tr.n5",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "tr.n8",
+       "delay": 0.75
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Real compressors store the tree, or the code lengths, at the start of the file, so the decoder can rebuild it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ct"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "algo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: Cormen's HUFFMAN keeps the trees in a min-priority queue, keyed on frequency."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: algorithm and proof"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tr"
+      },
+      {
+       "action": "hide",
+       "target": "ct"
+      },
+      {
+       "action": "show",
+       "target": "hc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "hc",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "n minus 1 times: extract the two smallest, x and y, make them the children of a new node z, whose frequency is their sum, and insert z."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "hc",
+       "from": 3,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The last tree left is the root. With a binary heap, each round costs log n: O of n log n in all."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "hc",
+       "from": 9,
+       "to": 11
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why optimal? First, the greedy choice: some optimal tree has the two rarest characters as siblings at the deepest level. Swapping a rarer character deeper never increases the cost."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "hc"
+      },
+      {
+       "action": "show",
+       "target": "op"
+      },
+      {
+       "action": "highlight",
+       "target": "op[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Second, optimal substructure: treat the merged pair as one character with their total frequency, and what remains is the same problem with one fewer character."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "op[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So every merge stays on the path to an optimal tree, and Huffman's code is the best possible prefix code."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "op[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "O(n log n); optimal among prefix codes"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "op"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "List the merges, give each code length, and compare the total with a fixed-length code. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: N 1 and S 3 make 4. Then T 4 and that 4 make 8. Then 8 and A 10 make 18."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then I 12 and P 13 make 25. E 15 and 18 make 33. Finally 25 and 33 make the root, 58."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: reading depths off the tree: I, P and E have 2-bit codes, A 3, T 4, and N and S 5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 10 times 3, plus 15 times 2, and so on: 146 bits. A fixed code needs 3 bits for 7 characters: 3 times 58, 174. Huffman saves 28 bits."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3..=4]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[3][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: with ties, different trees are possible, and so are different codes. But the total, 146 bits, is always the same. Check your total, not just your codes."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "ties change codes, never the total"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Variable-length prefix codes give frequent characters short codewords; a prefix code is a binary tree with characters at the leaves."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Huffman repeatedly merges the two lightest trees, in O of n log n, and the result is an optimal prefix code."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That completes Module 3. Next, Module 4: dynamic programming, starting with matrix chain multiplication."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: Module 4, dynamic programming"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

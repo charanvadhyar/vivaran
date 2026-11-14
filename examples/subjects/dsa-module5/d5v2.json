@@ -1,0 +1,1290 @@
+{
+ "version": 1,
+ "title": "Reductions and NP-completeness",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Reductions: solving one problem with another"
+    ],
+    [
+     2,
+     "What a reduction tells us"
+    ],
+    [
+     3,
+     "NP-hard and NP-complete"
+    ],
+    [
+     4,
+     "A reduction worked: HAM-CYCLE to TSP"
+    ],
+    [
+     5,
+     "How to prove a problem NP-complete"
+    ],
+    [
+     6,
+     "The family tree of NP-complete problems"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "rd",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "polynomial-time reduction  A ≤p B",
+    ""
+   ],
+   "rows": [
+    [
+     "a function f",
+     "turns any instance x of A into an instance f(x) of B"
+    ],
+    [
+     "computable fast",
+     "f runs in polynomial time"
+    ],
+    [
+     "preserves the answer",
+     "x is a yes-instance of A  ⇔  f(x) is a yes-instance of B"
+    ],
+    [
+     "so",
+     "to decide x, compute f(x) and ask B's algorithm"
+    ],
+    [
+     "everyday example",
+     "\"is n odd?\" reduces to \"is the last digit odd?\""
+    ]
+   ]
+  },
+  {
+   "id": "wt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "if A ≤p B",
+    "then"
+   ],
+   "rows": [
+    [
+     "B ∈ P",
+     "A ∈ P: the reduction plus B's algorithm is polynomial"
+    ],
+    [
+     "A is hard",
+     "B is at least as hard: otherwise A would be easy"
+    ],
+    [
+     "read ≤p as",
+     "\"A is no harder than B\""
+    ],
+    [
+     "direction matters",
+     "to show B hard, reduce a known hard problem TO B"
+    ]
+   ]
+  },
+  {
+   "id": "nc",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "definitions",
+    ""
+   ],
+   "rows": [
+    [
+     "NP-hard",
+     "every problem in NP reduces to it"
+    ],
+    [
+     "NP-complete (NPC)",
+     "NP-hard, and itself in NP"
+    ],
+    [
+     "key theorem",
+     "if any NPC problem is in P, then P = NP"
+    ],
+    [
+     "contrapositive",
+     "if P ≠ NP, no NPC problem has a polynomial algorithm"
+    ],
+    [
+     "NP-hard but not in NP",
+     "e.g. the optimisation versions, or the halting problem"
+    ]
+   ]
+  },
+  {
+   "id": "g",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "a",
+     "label": "a",
+     "at": [
+      0,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "b",
+     "label": "b",
+     "at": [
+      3,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "c",
+     "label": "c",
+     "at": [
+      6,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "d",
+     "label": "d",
+     "at": [
+      3,
+      2
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "a",
+     "to": "b"
+    },
+    {
+     "from": "a",
+     "to": "c"
+    },
+    {
+     "from": "b",
+     "to": "c"
+    },
+    {
+     "from": "c",
+     "to": "d"
+    },
+    {
+     "from": "d",
+     "to": "a"
+    }
+   ]
+  },
+  {
+   "id": "k",
+   "type": "diagram",
+   "region": "right",
+   "layout": "grid",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "a",
+     "label": "a",
+     "at": [
+      0,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "b",
+     "label": "b",
+     "at": [
+      3,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "c",
+     "label": "c",
+     "at": [
+      6,
+      3
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "d",
+     "label": "d",
+     "at": [
+      3,
+      2
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "a",
+     "to": "b",
+     "label": "0"
+    },
+    {
+     "from": "a",
+     "to": "c",
+     "label": "0"
+    },
+    {
+     "from": "a",
+     "to": "d",
+     "label": "0"
+    },
+    {
+     "from": "b",
+     "to": "c",
+     "label": "0"
+    },
+    {
+     "from": "b",
+     "to": "d",
+     "label": "1"
+    },
+    {
+     "from": "c",
+     "to": "d",
+     "label": "0"
+    }
+   ]
+  },
+  {
+   "id": "how",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "to prove that problem X is NP-complete",
+    ""
+   ],
+   "rows": [
+    [
+     "1. X ∈ NP",
+     "give a certificate and a polynomial verifier"
+    ],
+    [
+     "2. pick a known NPC problem Y",
+     "e.g. 3-CNF-SAT, CLIQUE, VERTEX-COVER"
+    ],
+    [
+     "3. design f",
+     "turn every instance of Y into an instance of X"
+    ],
+    [
+     "4. prove both directions",
+     "yes for Y ⇒ yes for X,  and  yes for X ⇒ yes for Y"
+    ],
+    [
+     "5. check f is polynomial",
+     "then Y ≤p X, so X is NP-hard; with 1, NP-complete"
+    ]
+   ]
+  },
+  {
+   "id": "tree",
+   "type": "diagram",
+   "region": "center",
+   "layout": "tree",
+   "directed": true,
+   "nodes": [
+    {
+     "id": "cs",
+     "label": "CIRCUIT-SAT"
+    },
+    {
+     "id": "sat",
+     "label": "SAT"
+    },
+    {
+     "id": "cnf",
+     "label": "3-CNF-SAT"
+    },
+    {
+     "id": "cl",
+     "label": "CLIQUE"
+    },
+    {
+     "id": "ss",
+     "label": "SUBSET-SUM"
+    },
+    {
+     "id": "vc",
+     "label": "VERTEX-COVER"
+    },
+    {
+     "id": "hc",
+     "label": "HAM-CYCLE"
+    },
+    {
+     "id": "tsp",
+     "label": "TSP"
+    }
+   ],
+   "edges": [
+    {
+     "from": "cs",
+     "to": "sat"
+    },
+    {
+     "from": "sat",
+     "to": "cnf"
+    },
+    {
+     "from": "cnf",
+     "to": "cl"
+    },
+    {
+     "from": "cnf",
+     "to": "ss"
+    },
+    {
+     "from": "cl",
+     "to": "vc"
+    },
+    {
+     "from": "vc",
+     "to": "hc"
+    },
+    {
+     "from": "hc",
+     "to": "tsp"
+    }
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "a) A ≤p B and B can be solved in O(n²). What follows about A?"
+    ],
+    [
+     "b) A ≤p B, A is NP-complete, and B ∈ NP. What is B?"
+    ],
+    [
+     "c) reduce HAM-CYCLE on vertices p, q, r, s with edges p–q, q–r, r–s, p–r to TSP: costs, k, and the answer"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a)",
+     "compute f(x) in polynomial time, then run B's algorithm on it",
+     "A ∈ P"
+    ],
+    [
+     "b)",
+     "every NP problem reduces to A, and A to B: B is NP-hard; and B ∈ NP",
+     "B is NP-complete"
+    ],
+    [
+     "c)",
+     "complete graph on 4 vertices: edges of G cost 0; p–s and q–s cost 1; k = 0",
+     ""
+    ],
+    [
+     "c)",
+     "s has only one edge in G, so every tour pays at least 1: cheapest tour costs 1 > 0",
+     "TSP says no ⇒ no Hamiltonian cycle"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "How can we say a problem is hard, when nobody has proved that it has no fast algorithm? By comparison: if a fast algorithm for it would also solve a problem known to be hard. That comparison is a reduction, and it is the main tool of this module."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Reductions and NP-completeness"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Reductions, what they tell us, NP-hard and NP-complete, and a worked reduction."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the recipe for NP-completeness proofs, the family tree of NP-complete problems, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rd",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a polynomial-time reduction from A to B is a function f that turns any instance of A into an instance of B."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: reductions"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "rd"
+      },
+      {
+       "action": "highlight",
+       "target": "rd[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "f must run in polynomial time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rd[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And it must preserve the answer: x is a yes-instance of A exactly when f of x is a yes-instance of B."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rd[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then any algorithm for B also decides A: transform the input, and ask B."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rd[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An everyday example: is a number odd? Reduce it to: is its last digit odd? Ten easy cases answer every number."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rd[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "A ≤p B: transform A's input into B's"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "wt",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: if A reduces to B, and B is in P, then A is in P too: the transformation plus B's algorithm stays polynomial."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: what it tells us"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rd"
+      },
+      {
+       "action": "show",
+       "target": "wt"
+      },
+      {
+       "action": "highlight",
+       "target": "wt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Turned round: if A is hard, B must be hard too, or A would be easy."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So read the symbol as: A is no harder than B."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The direction is the commonest mistake. To prove a new problem B hard, reduce a known hard problem to B, not B to it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wt[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "reduce the known hard problem TO the new one"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "nc",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: a problem is NP-hard if every problem in NP reduces to it."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: NP-complete"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "wt"
+      },
+      {
+       "action": "show",
+       "target": "nc"
+      },
+      {
+       "action": "highlight",
+       "target": "nc[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It is NP-complete if it is NP-hard and also in NP: the hardest problems inside NP."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nc[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The key theorem: if any single NP-complete problem has a polynomial algorithm, then every problem in NP does, and P equals NP."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nc[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Equivalently, if P is not NP, no NP-complete problem can be solved in polynomial time. That is why NP-complete means: stop looking for a fast exact algorithm."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nc[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Some problems are NP-hard without being in NP, such as the optimisation versions, which do not have yes-or-no answers."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nc[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "NPC = in NP + NP-hard"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Thousands of practical problems are now known to be NP-complete: timetabling, routing, packing, circuit layout, protein folding models. They stand or fall together."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nc[2]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ex",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: Cormen's reduction from Hamiltonian cycle to the travelling salesman. Start with any graph G: here, four vertices and five edges."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: HAM-CYCLE ≤p TSP"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "nc"
+      },
+      {
+       "action": "show",
+       "target": "g"
+      },
+      {
+       "action": "highlight",
+       "target": "g.a"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Build a complete graph on the same vertices. An edge costs 0 if it is in G, and 1 if it is not. Here only b to d is missing from G, so it costs 1."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "k"
+      },
+      {
+       "action": "highlight",
+       "target": "k.b->d",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Ask TSP: is there a tour of cost at most k equal to 0?"
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "k.a"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A tour of cost 0 uses only edges of G, and visits every vertex once: exactly a Hamiltonian cycle. And a Hamiltonian cycle in G is a tour of cost 0. So the answers agree."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "k.a->b"
+      },
+      {
+       "action": "mark",
+       "target": "k.b->c",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "k.c->d",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "k.a->d",
+       "delay": 0.6
+      },
+      {
+       "action": "mark",
+       "target": "g.a->b"
+      },
+      {
+       "action": "mark",
+       "target": "g.b->c",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "g.c->d",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.d->a",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Building the complete graph takes O of n squared time: polynomial. So Hamiltonian cycle reduces to TSP, and since Hamiltonian cycle is NP-complete, TSP is NP-hard."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "HAM-CYCLE ≤p TSP: cost 0 for edges of G"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Notice what the reduction does not do: it never searches for a cycle. It only rewrites the question. All the hard work is left to whoever solves TSP."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "k.b->d"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "how",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the recipe for proving a problem X NP-complete. First, show X is in NP: give a certificate and a fast verifier."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: the recipe"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "g"
+      },
+      {
+       "action": "hide",
+       "target": "k"
+      },
+      {
+       "action": "show",
+       "target": "how"
+      },
+      {
+       "action": "highlight",
+       "target": "how[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Second, choose a problem Y already known to be NP-complete."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "how[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Third, design a transformation from instances of Y to instances of X."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "how[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Fourth, prove both directions: a yes for Y gives a yes for X, and a yes for X gives a yes for Y."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "how[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Fifth, check the transformation is polynomial. Then X is NP-hard, and with step 1, NP-complete."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "how[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "in NP + known NPC ≤p X"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tree",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: it all starts with circuit satisfiability. Cook and Levin showed directly that every NP problem reduces to it. It is the first NP-complete problem."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: the family tree"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "how"
+      },
+      {
+       "action": "show",
+       "target": "tree"
+      },
+      {
+       "action": "highlight",
+       "target": "tree.cs"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "From there, Cormen chains reductions: circuit satisfiability to formula satisfiability, SAT, then to 3-CNF-SAT."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tree.sat"
+      },
+      {
+       "action": "highlight",
+       "target": "tree.cnf",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "3-CNF-SAT reduces to CLIQUE, and to SUBSET-SUM."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tree.cl"
+      },
+      {
+       "action": "highlight",
+       "target": "tree.ss",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "CLIQUE to VERTEX-COVER, then to HAM-CYCLE, and finally to TSP, the reduction we just saw."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tree.vc"
+      },
+      {
+       "action": "highlight",
+       "target": "tree.hc",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "tree.tsp",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The next three videos walk down the top of this tree: circuits and 3-CNF, then cliques, independent sets and vertex covers."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "tree.cs"
+      },
+      {
+       "action": "mark",
+       "target": "tree.sat",
+       "delay": 0.1
+      },
+      {
+       "action": "mark",
+       "target": "tree.cnf",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "tree.cl",
+       "delay": 0.3
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "every arrow is a ≤p reduction"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tree"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Draw conclusions from two reductions, and carry out one. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: transform A's input in polynomial time and run B's quadratic algorithm on it. The total is polynomial, so A is in P."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: every NP problem reduces to A, and A reduces to B, so every NP problem reduces to B: B is NP-hard. Since B is in NP, it is NP-complete."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: build the complete graph on p, q, r, s. The four edges of G cost 0. The two missing ones, p to s and q to s, cost 1. Ask for a tour of cost at most 0."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Vertex s has only one edge in G, to r, but a tour needs two edges at every vertex. So every tour pays at least 1. TSP answers no, and correctly: G has no Hamiltonian cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[3][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: reducing the new problem to a known hard one. That shows nothing about hardness. Reduce the known hard problem to the new one."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "known NPC ≤p new problem"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A reduction transforms instances of A into instances of B in polynomial time, preserving the answer. It shows A is no harder than B."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "NP-complete problems are in NP and NP-hard. To add one, reduce a known NP-complete problem to it. The tree starts at circuit satisfiability."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: the root of the tree. Circuit satisfiability, and 3-CNF satisfiability."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: Circuit-SAT and 3-CNF-SAT"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

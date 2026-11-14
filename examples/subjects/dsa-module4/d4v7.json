@@ -1,0 +1,1555 @@
+{
+ "version": 1,
+ "title": "A* search",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The lab problem: routing on a city grid"
+    ],
+    [
+     2,
+     "Least-cost search: f = g + h"
+    ],
+    [
+     3,
+     "A good heuristic for the grid"
+    ],
+    [
+     4,
+     "A* on a 4 × 5 grid, traced"
+    ],
+    [
+     5,
+     "Why A* finds the cheapest path"
+    ],
+    [
+     6,
+     "A* against Dijkstra; the algorithm"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "pb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the delivery grid (lab 8)",
+    ""
+   ],
+   "rows": [
+    [
+     "city map",
+     "an M × N grid; each cell has a traffic cost"
+    ],
+    [
+     "restricted zones",
+     "cells that cannot be entered (cost ∞): marked X"
+    ],
+    [
+     "moves",
+     "horizontal, vertical and diagonal: 8 neighbours"
+    ],
+    [
+     "cost of a path",
+     "the sum of the costs of the cells entered"
+    ],
+    [
+     "goal",
+     "the cheapest path from the depot to the delivery cell"
+    ]
+   ]
+  },
+  {
+   "id": "fg",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "least-cost (LC) search",
+    ""
+   ],
+   "rows": [
+    [
+     "g(n)",
+     "the cost of the best path found from the start to n"
+    ],
+    [
+     "h(n)",
+     "an estimate of the cost still needed from n to the goal"
+    ],
+    [
+     "f(n) = g(n) + h(n)",
+     "estimated cost of the cheapest path through n"
+    ],
+    [
+     "always expand",
+     "the live node with the smallest f: a priority queue"
+    ],
+    [
+     "h = 0",
+     "Dijkstra's algorithm: no sense of direction"
+    ]
+   ]
+  },
+  {
+   "id": "hh",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "choosing h for the grid",
+    ""
+   ],
+   "rows": [
+    [
+     "admissible",
+     "h never overestimates the true remaining cost"
+    ],
+    [
+     "with diagonal moves",
+     "reaching the goal needs at least max(|Δrow|, |Δcol|) moves"
+    ],
+    [
+     "every cell costs at least 1",
+     "h(n) = max(|Δrow|, |Δcol|) × 1: admissible"
+    ],
+    [
+     "Manhattan distance |Δr| + |Δc|",
+     "would overestimate when diagonals are allowed: not admissible here"
+    ]
+   ]
+  },
+  {
+   "id": "gd",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "",
+    "c0",
+    "c1",
+    "c2",
+    "c3",
+    "c4"
+   ],
+   "rows": [
+    [
+     "r0",
+     "1",
+     "1",
+     "3",
+     "1",
+     "1"
+    ],
+    [
+     "r1",
+     "1",
+     "X",
+     "X",
+     "5",
+     "1"
+    ],
+    [
+     "r2",
+     "2",
+     "X",
+     "1",
+     "1",
+     "2"
+    ],
+    [
+     "r3",
+     "1",
+     "1",
+     "1",
+     "X",
+     "1"
+    ]
+   ]
+  },
+  {
+   "id": "ex",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "expanded",
+    "g",
+    "h",
+    "f"
+   ],
+   "rows": [
+    [
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "why",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "why A* is optimal",
+    ""
+   ],
+   "rows": [
+    [
+     "claim",
+     "with an admissible h, the first time the goal is expanded, its g is the least cost"
+    ],
+    [
+     "suppose a cheaper path exists",
+     "some node n on it is still waiting in the queue"
+    ],
+    [
+     "then",
+     "f(n) = g(n) + h(n) ≤ the cheaper cost < g(goal) = f(goal)"
+    ],
+    [
+     "so",
+     "n would have been expanded before the goal: contradiction"
+    ],
+    [
+     "consistent h",
+     "h(u) ≤ cost(u, v) + h(v): each cell is expanded at most once (ours is)"
+    ]
+   ]
+  },
+  {
+   "id": "ac",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "A-STAR(grid, s, t)",
+    "    g[s] = 0;   insert s into Q with key f = h(s)",
+    "    while Q is not empty",
+    "        u = EXTRACT-MIN(Q)                  // least f",
+    "        if u == t:  return g[t] and the path by parent links",
+    "        mark u closed",
+    "        for each of the 8 neighbours v of u, not X and not closed",
+    "            if g[u] + cost(v) < g[v]",
+    "                g[v] = g[u] + cost(v);  parent[v] = u",
+    "                insert or decrease v in Q with key g[v] + h(v)",
+    "    return \"no path\"",
+    "",
+    "binary heap: O(E log V); a better h only reduces the nodes expanded"
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "grid rows: (1 4 1 1) · (1 X X 1) · (3 1 2 1); start top-left, goal bottom-right; 8 moves"
+    ],
+    [
+     "a) the order A* expands cells, with g, h and f"
+    ],
+    [
+     "b) the cheapest path and its cost"
+    ],
+    [
+     "c) the cost of the route along the top row, and why A* never expands it"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "expanded",
+    "g",
+    "h",
+    "f"
+   ],
+   "rows": [
+    [
+     "(0,0) start",
+     "0",
+     "3",
+     "3"
+    ],
+    [
+     "(1,0)",
+     "1",
+     "3",
+     "4"
+    ],
+    [
+     "(2,1) diagonal",
+     "2",
+     "2",
+     "4"
+    ],
+    [
+     "(2,2)",
+     "4",
+     "1",
+     "5"
+    ],
+    [
+     "(2,3) goal",
+     "5",
+     "0",
+     "5:  path (0,0) (1,0) (2,1) (2,2) (2,3), cost 5"
+    ],
+    [
+     "c) top route",
+     "4 + 1 + 1 + 1 = 7",
+     "",
+     "(0,1) has f = 4 + 2 = 6 > 5: never chosen"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A delivery vehicle crosses a city grid. Some streets are jammed, some are closed. Searching every possible route is wasteful, because most of them head the wrong way."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "A* search"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A star searches with a sense of direction, and still guarantees the cheapest route. It is the algorithm behind the lab's routing task."
+     }
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The lab problem, least-cost search with f equals g plus h, a heuristic for the grid, and a full trace."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then why A star is optimal, A star against Dijkstra, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: the city is a grid of cells, and each cell has a traffic cost: the delay for driving through it."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the problem"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "pb"
+      },
+      {
+       "action": "highlight",
+       "target": "pb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Restricted zones and accident sites cannot be entered at all. We mark them X."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The vehicle moves to any of its 8 neighbours: across, up and down, or diagonally."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A path costs the sum of the cells it enters. We want the cheapest path from the depot to the destination."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "cost of a path = sum of cells entered"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fg",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: least-cost search keeps, for every node, g: the cost of the best path found to it so far."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: f = g + h"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pb"
+      },
+      {
+       "action": "show",
+       "target": "fg"
+      },
+      {
+       "action": "highlight",
+       "target": "fg[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And h: an estimate of the cost still needed to reach the goal."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fg[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Their sum, f, estimates the cost of the cheapest complete path through that node."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fg[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The live nodes sit in a priority queue, and the one with the smallest f is always expanded next. This is the least-cost branch and bound from the last video."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fg[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If h is 0 everywhere, this is just Dijkstra's algorithm: it spreads out evenly, with no idea where the goal lies."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "fg[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "expand the smallest f = g + h"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hh",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: choosing h. The rule is that h must be admissible: it may underestimate, but never overestimate, the true remaining cost."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: the heuristic"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "fg"
+      },
+      {
+       "action": "show",
+       "target": "hh"
+      },
+      {
+       "action": "highlight",
+       "target": "hh[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With diagonal moves, getting from one cell to another takes at least the larger of the row difference and the column difference."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hh[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Every cell costs at least 1, so h equals that number of moves times 1. It can never overestimate."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hh[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The Manhattan distance, rows plus columns, would overestimate whenever a diagonal shortcut exists. With 8 moves, it is not admissible."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hh[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "h = max(|Δr|, |Δc|) × cheapest cell"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: a 4 by 5 grid. Start at the top-left corner, row 0, column 0; the goal is the bottom-right, row 3, column 4. X marks closed cells."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: a trace"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hh"
+      },
+      {
+       "action": "show",
+       "target": "gd"
+      },
+      {
+       "action": "show",
+       "target": "ex"
+      },
+      {
+       "action": "highlight",
+       "target": "gd[0][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "gd[3][5]",
+       "delay": 0.4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Expand the start: g is 0, and the goal is 4 moves away: h 4, f 4. Its neighbours enter the queue."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "ex[0][0]",
+       "value": "(0,0)"
+      },
+      {
+       "action": "set",
+       "target": "ex[0][1]",
+       "value": "0",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "ex[0][2]",
+       "value": "4",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "ex[0][3]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "ex[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "gd[0][1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The smallest f is row 0, column 1: g 1, h 3, f 4. Moving right is moving towards the goal."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "ex[1][0]",
+       "value": "(0,1)"
+      },
+      {
+       "action": "set",
+       "target": "ex[1][1]",
+       "value": "1",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "ex[1][2]",
+       "value": "3",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "ex[1][3]",
+       "value": "4",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "ex[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "gd[0][2]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next, row 1, column 0: g 1, but still 4 moves from the goal: f 5."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "ex[2][0]",
+       "value": "(1,0)"
+      },
+      {
+       "action": "set",
+       "target": "ex[2][1]",
+       "value": "1",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "ex[2][2]",
+       "value": "4",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "ex[2][3]",
+       "value": "5",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "ex[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "gd[1][1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 0, column 2 costs 3 to enter: g 4, h 3, f 7. Now several cells tie at f 7."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "ex[3][0]",
+       "value": "(0,2)"
+      },
+      {
+       "action": "set",
+       "target": "ex[3][1]",
+       "value": "4",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "ex[3][2]",
+       "value": "3",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "ex[3][3]",
+       "value": "7",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "ex[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "gd[0][3]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 2, column 0: g 3 through the left column, f 7."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "ex[4][0]",
+       "value": "(2,0)"
+      },
+      {
+       "action": "set",
+       "target": "ex[4][1]",
+       "value": "3",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "ex[4][2]",
+       "value": "4",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "ex[4][3]",
+       "value": "7",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "ex[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "gd[2][1]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 3, column 1, reached diagonally: g 4, h 3, f 7."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "ex[5][0]",
+       "value": "(3,1)"
+      },
+      {
+       "action": "set",
+       "target": "ex[5][1]",
+       "value": "4",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "ex[5][2]",
+       "value": "3",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "ex[5][3]",
+       "value": "7",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "ex[5]"
+      },
+      {
+       "action": "highlight",
+       "target": "gd[3][2]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 2, column 2: g 5, h 2, f 7."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "ex[6][0]",
+       "value": "(2,2)"
+      },
+      {
+       "action": "set",
+       "target": "ex[6][1]",
+       "value": "5",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "ex[6][2]",
+       "value": "2",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "ex[6][3]",
+       "value": "7",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "ex[6]"
+      },
+      {
+       "action": "highlight",
+       "target": "gd[2][3]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 3, column 2: g 5, h 2, f 7."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "ex[7][0]",
+       "value": "(3,2)"
+      },
+      {
+       "action": "set",
+       "target": "ex[7][1]",
+       "value": "5",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "ex[7][2]",
+       "value": "2",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "ex[7][3]",
+       "value": "7",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "ex[7]"
+      },
+      {
+       "action": "highlight",
+       "target": "gd[3][3]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 2, column 3: g 6, h 1, f 7."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "ex[8][0]",
+       "value": "(2,3)"
+      },
+      {
+       "action": "set",
+       "target": "ex[8][1]",
+       "value": "6",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "ex[8][2]",
+       "value": "1",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "ex[8][3]",
+       "value": "7",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "ex[8]"
+      },
+      {
+       "action": "highlight",
+       "target": "gd[2][4]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The goal: g 7, h 0, f 7. It is expanded with the smallest f, so its cost, 7, is final."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "ex[9][0]",
+       "value": "(3,4)"
+      },
+      {
+       "action": "set",
+       "target": "ex[9][1]",
+       "value": "7",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "ex[9][2]",
+       "value": "0",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "ex[9][3]",
+       "value": "7",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "ex[9]"
+      },
+      {
+       "action": "highlight",
+       "target": "gd[3][5]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Following the parent links back gives the path: down the left column, diagonally down to row 3, column 1, diagonally up to row 2, column 2, right, and diagonally into the goal. Cost 1, 2, 1, 1, 1, 1: 7."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "gd[0][1]"
+      },
+      {
+       "action": "mark",
+       "target": "gd[1][1]",
+       "delay": 0.1
+      },
+      {
+       "action": "mark",
+       "target": "gd[2][1]",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "gd[3][2]",
+       "delay": 0.3
+      },
+      {
+       "action": "mark",
+       "target": "gd[2][3]",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "gd[2][4]",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "gd[3][5]",
+       "delay": 0.6
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "cheapest path: cost 7"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The top route through the 3 and the 5 costs more. A star touched only two of its cells, and never went near the right side of row 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gd[1][4]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: why is the answer guaranteed cheapest? Claim: with an admissible h, when the goal is first expanded, its g is the least possible cost."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: why it is optimal"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "gd"
+      },
+      {
+       "action": "hide",
+       "target": "ex"
+      },
+      {
+       "action": "show",
+       "target": "why"
+      },
+      {
+       "action": "highlight",
+       "target": "why[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Suppose a cheaper path existed. Some node n on that path is still waiting in the queue."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Because h never overestimates, f of n is at most the cheaper path's cost, which is less than the goal's f."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So n has a smaller f and would have been expanded before the goal: a contradiction."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If h is also consistent, never dropping by more than the cost of a step, each cell is expanded at most once. Ours is consistent."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "why[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "admissible h ⇒ optimal path"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "algo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: on our grid, A star expanded 10 cells. Dijkstra, with h equal to 0, expands 14 to find the same cost: it searches in every direction equally."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: the algorithm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "why"
+      },
+      {
+       "action": "show",
+       "target": "ac"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The algorithm: repeatedly extract the cell with least f. If it is the goal, stop and follow the parent links."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 3,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Otherwise relax each open neighbour: if going through u is cheaper, update its g and parent, and its key in the queue."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 7,
+       "to": 10
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If the queue empties first, the goal cannot be reached: the closed zones wall it off."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 11,
+       "to": 11
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With a binary heap the cost is O of E log V, like Dijkstra. A better heuristic does not change that bound, but it cuts the number of cells expanded, which is what matters on a large map."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 13,
+       "to": 13
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "A* = Dijkstra + a sense of direction"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ac"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Trace the expansions, give the path and its cost, and explain why the top route is never taken. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Expand the start: g 0, h 3, f 3. Then row 1, column 0: g 1, h 3, f 4."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then row 2, column 1, diagonally: g 2, h 2, f 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 2, column 2 costs 2: g 4, h 1, f 5. Then the goal: g 5, h 0, f 5. The path costs 1, 1, 2, 1: 5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3..=4]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[4][3]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: the top route costs 4 plus 1 plus 1 plus 1, 7. Its first cell, row 0, column 1, already has f equal to 4 plus 2, 6, more than 5, so A star never expands it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: using Manhattan distance when diagonal moves are allowed. It overestimates, and A star may then miss the cheapest path."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "diagonals allowed: use max(|Δr|, |Δc|)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A star expands the node with the smallest f, the cost so far plus an estimate of the cost to go. On a grid with diagonal moves, the estimate is the larger coordinate difference."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With an admissible estimate, the first time the goal is expanded its cost is optimal, and A star expands fewer cells than Dijkstra."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: the lab's knight's tour, backtracking on a chessboard, with Warnsdorff's rule."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: the knight's tour"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

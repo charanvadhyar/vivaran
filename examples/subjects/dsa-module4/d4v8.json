@@ -1,0 +1,1572 @@
+{
+ "version": 1,
+ "title": "Backtracking: the knight's tour",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The lab problem: a closed knight's tour"
+    ],
+    [
+     2,
+     "Backtracking on the board"
+    ],
+    [
+     3,
+     "Warnsdorff's rule: hardest square first"
+    ],
+    [
+     4,
+     "An 8 × 8 closed tour, built"
+    ],
+    [
+     5,
+     "Generalising to n × n"
+    ],
+    [
+     6,
+     "Why it works so well; cost"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "pb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the knight's tour (lab 7)",
+    ""
+   ],
+   "rows": [
+    [
+     "a knight moves",
+     "two squares one way and one square the other: up to 8 moves"
+    ],
+    [
+     "tour",
+     "visit every square exactly once"
+    ],
+    [
+     "closed tour",
+     "the last square is one knight's move from the first"
+    ],
+    [
+     "output",
+     "the order of the squares, starting from the given one"
+    ],
+    [
+     "generalise",
+     "an n × n board"
+    ]
+   ]
+  },
+  {
+   "id": "bt",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "TOUR(r, c, k)            // the knight stands on (r, c) after k moves; B[r][c] = k",
+    "    if k == n²",
+    "        return (the start is one knight's move from (r, c))   // closed?",
+    "    for each knight move (r', c') onto an unvisited square",
+    "        B[r'][c'] = k + 1",
+    "        if TOUR(r', c', k + 1):  return true",
+    "        B[r'][c'] = 0      // undo: backtrack",
+    "    return false",
+    "",
+    "plain order of moves: 5 × 5 open tour from a corner needs 8,840 calls"
+   ]
+  },
+  {
+   "id": "wr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "Warnsdorff's rule (1823)",
+    ""
+   ],
+   "rows": [
+    [
+     "degree of a square",
+     "how many unvisited squares a knight could jump to from it"
+    ],
+    [
+     "rule",
+     "move to the neighbour of least degree"
+    ],
+    [
+     "why",
+     "squares with few exits are visited before they are cut off"
+    ],
+    [
+     "ties",
+     "break them in a fixed order of the 8 moves"
+    ],
+    [
+     "inside backtracking",
+     "try neighbours in increasing degree; backtrack if stuck"
+    ]
+   ]
+  },
+  {
+   "id": "bd",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "",
+    "c0",
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "c6",
+    "c7"
+   ],
+   "rows": [
+    [
+     "r0",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "r1",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "r2",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "r3",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "r4",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "r5",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "r6",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "r7",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "dg",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "from",
+    "least degree",
+    "go to"
+   ],
+   "rows": [
+    [
+     "(0,0)",
+     "(2,1) 5, (1,2) 5",
+     "(2,1)"
+    ],
+    [
+     "(2,1)",
+     "(0,2) 3, (4,0) 3",
+     "(0,2)"
+    ],
+    [
+     "(0,2)",
+     "(1,0) 2",
+     "(1,0)"
+    ],
+    [
+     "(1,0)",
+     "(3,1) 5",
+     "(3,1)"
+    ]
+   ]
+  },
+  {
+   "id": "gn",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "n × n boards",
+    ""
+   ],
+   "rows": [
+    [
+     "any closed tour",
+     "needs n² even: a knight always changes square colour, so a closed tour alternates colours"
+    ],
+    [
+     "n = 5 (25 squares)",
+     "open tours exist; closed ones are impossible"
+    ],
+    [
+     "closed tours exist",
+     "for every even n ≥ 6"
+    ],
+    [
+     "the program",
+     "the same code with n as a parameter; Warnsdorff keeps it fast for n > 8"
+    ]
+   ]
+  },
+  {
+   "id": "cs",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "search effort",
+    "calls to TOUR"
+   ],
+   "rows": [
+    [
+     "5 × 5 open tour, plain move order",
+     "8,840"
+    ],
+    [
+     "5 × 5 open tour, Warnsdorff order",
+     "25: no backtracking at all"
+    ],
+    [
+     "8 × 8 open tour, Warnsdorff",
+     "64"
+    ],
+    [
+     "8 × 8 closed tour, Warnsdorff + backtracking",
+     "117"
+    ],
+    [
+     "worst case",
+     "still exponential: up to 8 choices at each of n² levels"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "a) prove that a 5 × 5 board has no closed knight's tour"
+    ],
+    [
+     "b) a knight starts in a corner of a 5 × 5 board: the Warnsdorff degrees of its two possible moves"
+    ],
+    [
+     "c) how many moves does a closed tour of an n × n board make?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a)",
+     "each move changes colour; a closed tour of 25 squares returns after 25 moves",
+     ""
+    ],
+    [
+     "a)",
+     "an odd number of colour changes cannot end on the starting colour",
+     "impossible"
+    ],
+    [
+     "b)",
+     "(2,1) and (1,2): each has 5 unvisited neighbours",
+     "5 and 5: a tie"
+    ],
+    [
+     "c)",
+     "n² − 1 moves to visit every square, plus 1 back to the start",
+     "n² moves"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A knight on an empty chessboard must land on every square exactly once, and finish one jump from where it began. People have studied this puzzle for over a thousand years. It is the lab's backtracking task, and one simple rule from 1823 makes it fast."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Backtracking: the knight's tour"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The problem, plain backtracking, Warnsdorff's rule, and an 8 by 8 tour built step by step."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the general n by n board, the cost, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a knight moves two squares in one direction and one square at right angles: up to 8 moves from a square."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the problem"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "pb"
+      },
+      {
+       "action": "highlight",
+       "target": "pb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A tour visits every square exactly once."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The lab asks for a closed tour: the last square must be a knight's move from the first, so the tour could start again."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The program prints the order of the squares, and should work for any n by n board."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "every square once; end next to the start"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bt",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: backtracking. Number the squares in the order visited. Square k holds the knight after k minus 1 moves."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: backtracking"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pb"
+      },
+      {
+       "action": "show",
+       "target": "bt"
+      },
+      {
+       "action": "mark_lines",
+       "target": "bt",
+       "from": 1,
+       "to": 1
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "When all n squared squares are numbered, check that the start is one move away."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "bt",
+       "from": 2,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Otherwise try each move onto an unvisited square, number it, and recurse."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "bt",
+       "from": 4,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If the recursion fails, clear the square and try the next move. That is the backtrack."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "bt",
+       "from": 7,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The trouble with a fixed order: the knight wanders into the middle early, leaves corner squares stranded with no unvisited neighbours, and only discovers the problem dozens of moves later. Backtracking then has a huge subtree to undo."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "bt",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Trying the moves in a fixed order is slow: even a 5 by 5 open tour takes 8840 calls. On 8 by 8, plain backtracking can run for hours."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "bt",
+       "from": 10,
+       "to": 10
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "number, recurse, un-number"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "wr",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: H. C. von Warnsdorff's rule. The degree of a square is the number of unvisited squares a knight could jump to from it."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: Warnsdorff's rule"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bt"
+      },
+      {
+       "action": "show",
+       "target": "wr"
+      },
+      {
+       "action": "highlight",
+       "target": "wr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The rule: always jump to the neighbour with the smallest degree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The intuition: a square with few exits left will soon have none. Visit it now, while you still can."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wr[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Ties are broken in a fixed order of the eight moves."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wr[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Combined with backtracking, the rule simply sets the order in which moves are tried. If it ever leads to a dead end, backtracking repairs it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "wr[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "go where the exits are fewest"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tour",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: an 8 by 8 board, starting in the top-left corner, row 0, column 0. That is square 1."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: an 8 × 8 tour"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "wr"
+      },
+      {
+       "action": "show",
+       "target": "bd"
+      },
+      {
+       "action": "show",
+       "target": "dg"
+      },
+      {
+       "action": "set",
+       "target": "bd[0][1]",
+       "value": "1"
+      },
+      {
+       "action": "highlight",
+       "target": "bd[0][1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Two moves are possible, to row 2, column 1, or row 1, column 2. Both have degree 5: a tie, so take the first in move order. Square 2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dg[0]"
+      },
+      {
+       "action": "set",
+       "target": "bd[2][2]",
+       "value": "2",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "bd[2][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "From there, five candidates, with degrees 7, 7, 5, 3 and 3. The two of degree 3 are on the edge: row 0, column 2 comes first. Square 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dg[1]"
+      },
+      {
+       "action": "set",
+       "target": "bd[0][3]",
+       "value": "3",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "From row 0, column 2, the options have degrees 7, 5 and 2. Row 1, column 0 has only 2 exits: go there now. Square 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dg[2]"
+      },
+      {
+       "action": "set",
+       "target": "bd[1][1]",
+       "value": "4",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then row 3, column 1, degree 5, beats the other option, degree 7. Square 5. The knight hugs the edge, clearing the awkward squares first."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dg[3]"
+      },
+      {
+       "action": "set",
+       "target": "bd[3][2]",
+       "value": "5",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Continuing by the same rule: squares 6 to 16 run down the left side, along the bottom edge and up the right."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bd[5][1]",
+       "value": "6"
+      },
+      {
+       "action": "set",
+       "target": "bd[7][2]",
+       "value": "7",
+       "delay": 0.08
+      },
+      {
+       "action": "set",
+       "target": "bd[6][4]",
+       "value": "8",
+       "delay": 0.16
+      },
+      {
+       "action": "set",
+       "target": "bd[7][6]",
+       "value": "9",
+       "delay": 0.25
+      },
+      {
+       "action": "set",
+       "target": "bd[6][8]",
+       "value": "10",
+       "delay": 0.33
+      },
+      {
+       "action": "set",
+       "target": "bd[4][7]",
+       "value": "11",
+       "delay": 0.41
+      },
+      {
+       "action": "set",
+       "target": "bd[2][8]",
+       "value": "12",
+       "delay": 0.49
+      },
+      {
+       "action": "set",
+       "target": "bd[0][7]",
+       "value": "13",
+       "delay": 0.57
+      },
+      {
+       "action": "set",
+       "target": "bd[1][5]",
+       "value": "14",
+       "delay": 0.65
+      },
+      {
+       "action": "set",
+       "target": "bd[2][7]",
+       "value": "15",
+       "delay": 0.74
+      },
+      {
+       "action": "set",
+       "target": "bd[0][8]",
+       "value": "16",
+       "delay": 0.82
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Squares 17 to 32 make a second lap around the outer rings of the board."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bd[1][6]",
+       "value": "17"
+      },
+      {
+       "action": "set",
+       "target": "bd[0][4]",
+       "value": "18",
+       "delay": 0.06
+      },
+      {
+       "action": "set",
+       "target": "bd[1][2]",
+       "value": "19",
+       "delay": 0.11
+      },
+      {
+       "action": "set",
+       "target": "bd[3][1]",
+       "value": "20",
+       "delay": 0.17
+      },
+      {
+       "action": "set",
+       "target": "bd[5][2]",
+       "value": "21",
+       "delay": 0.23
+      },
+      {
+       "action": "set",
+       "target": "bd[7][1]",
+       "value": "22",
+       "delay": 0.28
+      },
+      {
+       "action": "set",
+       "target": "bd[6][3]",
+       "value": "23",
+       "delay": 0.34
+      },
+      {
+       "action": "set",
+       "target": "bd[7][5]",
+       "value": "24",
+       "delay": 0.39
+      },
+      {
+       "action": "set",
+       "target": "bd[6][7]",
+       "value": "25",
+       "delay": 0.45
+      },
+      {
+       "action": "set",
+       "target": "bd[4][8]",
+       "value": "26",
+       "delay": 0.51
+      },
+      {
+       "action": "set",
+       "target": "bd[5][6]",
+       "value": "27",
+       "delay": 0.56
+      },
+      {
+       "action": "set",
+       "target": "bd[7][7]",
+       "value": "28",
+       "delay": 0.62
+      },
+      {
+       "action": "set",
+       "target": "bd[5][8]",
+       "value": "29",
+       "delay": 0.68
+      },
+      {
+       "action": "set",
+       "target": "bd[3][7]",
+       "value": "30",
+       "delay": 0.73
+      },
+      {
+       "action": "set",
+       "target": "bd[1][8]",
+       "value": "31",
+       "delay": 0.79
+      },
+      {
+       "action": "set",
+       "target": "bd[0][6]",
+       "value": "32",
+       "delay": 0.84
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Squares 33 to 48 work inwards."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bd[1][4]",
+       "value": "33"
+      },
+      {
+       "action": "set",
+       "target": "bd[0][2]",
+       "value": "34",
+       "delay": 0.06
+      },
+      {
+       "action": "set",
+       "target": "bd[2][3]",
+       "value": "35",
+       "delay": 0.11
+      },
+      {
+       "action": "set",
+       "target": "bd[3][5]",
+       "value": "36",
+       "delay": 0.17
+      },
+      {
+       "action": "set",
+       "target": "bd[4][3]",
+       "value": "37",
+       "delay": 0.23
+      },
+      {
+       "action": "set",
+       "target": "bd[5][5]",
+       "value": "38",
+       "delay": 0.28
+      },
+      {
+       "action": "set",
+       "target": "bd[7][4]",
+       "value": "39",
+       "delay": 0.34
+      },
+      {
+       "action": "set",
+       "target": "bd[6][2]",
+       "value": "40",
+       "delay": 0.39
+      },
+      {
+       "action": "set",
+       "target": "bd[4][1]",
+       "value": "41",
+       "delay": 0.45
+      },
+      {
+       "action": "set",
+       "target": "bd[5][3]",
+       "value": "42",
+       "delay": 0.51
+      },
+      {
+       "action": "set",
+       "target": "bd[6][1]",
+       "value": "43",
+       "delay": 0.56
+      },
+      {
+       "action": "set",
+       "target": "bd[7][3]",
+       "value": "44",
+       "delay": 0.62
+      },
+      {
+       "action": "set",
+       "target": "bd[6][5]",
+       "value": "45",
+       "delay": 0.68
+      },
+      {
+       "action": "set",
+       "target": "bd[4][4]",
+       "value": "46",
+       "delay": 0.73
+      },
+      {
+       "action": "set",
+       "target": "bd[3][6]",
+       "value": "47",
+       "delay": 0.79
+      },
+      {
+       "action": "set",
+       "target": "bd[2][4]",
+       "value": "48",
+       "delay": 0.84
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Squares 49 to 64 take what is left, including the far corner at 59. Along the way the search backtracked a few times: 117 calls for 64 squares."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bd[0][5]",
+       "value": "49"
+      },
+      {
+       "action": "set",
+       "target": "bd[1][7]",
+       "value": "50",
+       "delay": 0.06
+      },
+      {
+       "action": "set",
+       "target": "bd[3][8]",
+       "value": "51",
+       "delay": 0.11
+      },
+      {
+       "action": "set",
+       "target": "bd[2][6]",
+       "value": "52",
+       "delay": 0.17
+      },
+      {
+       "action": "set",
+       "target": "bd[3][4]",
+       "value": "53",
+       "delay": 0.23
+      },
+      {
+       "action": "set",
+       "target": "bd[4][6]",
+       "value": "54",
+       "delay": 0.28
+      },
+      {
+       "action": "set",
+       "target": "bd[2][5]",
+       "value": "55",
+       "delay": 0.34
+      },
+      {
+       "action": "set",
+       "target": "bd[3][3]",
+       "value": "56",
+       "delay": 0.39
+      },
+      {
+       "action": "set",
+       "target": "bd[4][5]",
+       "value": "57",
+       "delay": 0.45
+      },
+      {
+       "action": "set",
+       "target": "bd[5][7]",
+       "value": "58",
+       "delay": 0.51
+      },
+      {
+       "action": "set",
+       "target": "bd[7][8]",
+       "value": "59",
+       "delay": 0.56
+      },
+      {
+       "action": "set",
+       "target": "bd[6][6]",
+       "value": "60",
+       "delay": 0.62
+      },
+      {
+       "action": "set",
+       "target": "bd[5][4]",
+       "value": "61",
+       "delay": 0.68
+      },
+      {
+       "action": "set",
+       "target": "bd[4][2]",
+       "value": "62",
+       "delay": 0.73
+      },
+      {
+       "action": "set",
+       "target": "bd[2][1]",
+       "value": "63",
+       "delay": 0.79
+      },
+      {
+       "action": "set",
+       "target": "bd[1][3]",
+       "value": "64",
+       "delay": 0.84
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Square 64 is at row 1, column 2: one knight's move from square 1 in the corner. A closed tour, found in 117 calls."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "bd[1][3]"
+      },
+      {
+       "action": "mark",
+       "target": "bd[0][1]",
+       "delay": 0.3
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "closed tour: 64 is a knight's move from 1"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gn",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the lab asks to generalise to n by n. A knight always moves from a light square to a dark one, or back."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: n × n boards"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bd"
+      },
+      {
+       "action": "hide",
+       "target": "dg"
+      },
+      {
+       "action": "show",
+       "target": "gn"
+      },
+      {
+       "action": "highlight",
+       "target": "gn[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So a closed tour alternates colours all the way round, and needs an even number of squares. A 5 by 5 board, with 25, has open tours but no closed one."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gn[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For every even n from 6 up, closed tours exist."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gn[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Open tours, which need not return, exist for every n from 5 upwards. Boards of 2, 3 and 4 have no tour at all: there are not enough moves to escape the corners."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gn[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The program is the same, with n as a parameter. Warnsdorff's ordering keeps it fast for boards larger than 8."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gn[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "closed tour needs n² even"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cs",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: the difference the rule makes. A 5 by 5 open tour: 8840 calls with plain order, 25 with Warnsdorff's: no backtracking at all."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: cost"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "gn"
+      },
+      {
+       "action": "show",
+       "target": "cs"
+      },
+      {
+       "action": "highlight",
+       "target": "cs[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An 8 by 8 open tour: 64 calls, one per square. The closed tour: 117, a little backtracking at the end."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cs[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The worst case is still exponential, up to 8 choices at each of n squared levels. The heuristic changes the order, not the bound, but in practice it is what makes the search finish."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cs[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "same algorithm, better order"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cs"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Prove the 5 by 5 case impossible, compute two degrees, and count the moves in a closed tour. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: every knight's move changes the square's colour. A closed tour of 25 squares makes 25 moves to return to the start."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "25 colour changes is odd, so the knight would end on the opposite colour from where it began: it cannot be back at the start. Impossible."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[1][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: from a corner, the knight can reach row 2, column 1 or row 1, column 2. Each has 5 unvisited neighbours: a tie."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: visiting all n squared squares takes n squared minus 1 moves, and one more returns to the start: n squared moves in all."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: forgetting to clear a square when backtracking. Without the undo, a failed branch leaves squares marked as visited."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "always undo the square on the way back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A closed knight's tour is a backtracking search over moves. Warnsdorff's rule tries the square with the fewest exits first."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Closed tours need an even number of squares. With the rule, an 8 by 8 closed tour takes 117 calls instead of hours."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That completes Module 4. Module 5 asks which problems have no fast algorithm at all: P, NP and NP-completeness."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: Module 5, P and NP"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

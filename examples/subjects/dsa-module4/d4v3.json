@@ -1,0 +1,1501 @@
+{
+ "version": 1,
+ "title": "Backtracking: the N-Queens problem",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Backtracking: search with pruning"
+    ],
+    [
+     2,
+     "The N-Queens problem"
+    ],
+    [
+     3,
+     "Checking a square; the algorithm"
+    ],
+    [
+     4,
+     "Four queens, traced"
+    ],
+    [
+     5,
+     "How much the pruning saves"
+    ],
+    [
+     6,
+     "The general backtracking template"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "bk",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "backtracking",
+    ""
+   ],
+   "rows": [
+    [
+     "solution",
+     "a vector (x₁, x₂, …, xₙ), chosen one component at a time"
+    ],
+    [
+     "state-space tree",
+     "each level fixes one more component"
+    ],
+    [
+     "search",
+     "depth first through that tree"
+    ],
+    [
+     "bounding function",
+     "the moment a partial vector cannot be completed, stop exploring below it"
+    ],
+    [
+     "backtrack",
+     "undo the last choice, and try the next value"
+    ]
+   ]
+  },
+  {
+   "id": "pb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "N-Queens",
+    ""
+   ],
+   "rows": [
+    [
+     "place n queens on an n × n board",
+     "no two attack: no shared row, column or diagonal"
+    ],
+    [
+     "any 4 squares on a 4 × 4 board",
+     "C(16, 4) = 1820 ways"
+    ],
+    [
+     "one queen per row",
+     "xᵢ = the column of the queen in row i: 4⁴ = 256"
+    ],
+    [
+     "also one per column",
+     "a permutation: 4! = 24"
+    ],
+    [
+     "8 queens",
+     "C(64, 8) ≈ 4.4 billion placements; 8! = 40,320 permutations; 92 solutions"
+    ]
+   ]
+  },
+  {
+   "id": "pc",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "PLACE(k, i)          // can queen k go in column i, given x[1 .. k−1]?",
+    "    for j = 1 to k − 1",
+    "        if x[j] == i                      return false   // same column",
+    "        if |x[j] − i| == |j − k|          return false   // same diagonal",
+    "    return true",
+    "",
+    "NQUEENS(k, n)        // place queens k .. n",
+    "    for i = 1 to n",
+    "        if PLACE(k, i)",
+    "            x[k] = i",
+    "            if k == n:  print x[1 .. n]",
+    "            else NQUEENS(k + 1, n)"
+   ]
+  },
+  {
+   "id": "bd",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "",
+    "c1",
+    "c2",
+    "c3",
+    "c4"
+   ],
+   "rows": [
+    [
+     "r1",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "r2",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "r3",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "r4",
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "lg",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "x = (x₁, x₂, x₃, x₄)",
+    "event"
+   ],
+   "rows": [
+    [
+     "",
+     ""
+    ],
+    [
+     "",
+     ""
+    ],
+    [
+     "",
+     ""
+    ],
+    [
+     "",
+     ""
+    ],
+    [
+     "",
+     ""
+    ],
+    [
+     "",
+     ""
+    ],
+    [
+     "",
+     ""
+    ],
+    [
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "sv",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "how much is searched",
+    "4 queens",
+    "8 queens"
+   ],
+   "rows": [
+    [
+     "any squares",
+     "1820",
+     "4,426,165,368"
+    ],
+    [
+     "one per row and column (permutations)",
+     "24",
+     "40,320"
+    ],
+    [
+     "backtracking, first solution",
+     "8 queens placed",
+     "113 placements"
+    ],
+    [
+     "backtracking, all solutions",
+     "16 queens placed, 2 solutions",
+     "2,056 placements, 92 solutions"
+    ]
+   ]
+  },
+  {
+   "id": "tp",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "BACKTRACK(k)",
+    "    for each candidate value v for x[k]",
+    "        if (x[1], …, x[k−1], v) passes the bounding function",
+    "            x[k] = v",
+    "            if x[1 .. k] is a complete solution:  report it",
+    "            else BACKTRACK(k + 1)",
+    "",
+    "same skeleton: subset sum, graph colouring, the knight's tour (lab 7)",
+    "worst case still exponential: pruning is what makes it practical"
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "a) the first solution NQUEENS finds for n = 5 (columns tried from 1 upward)"
+    ],
+    [
+     "b) does it ever backtrack on the way?"
+    ],
+    [
+     "c) the two solutions for n = 4, and how they are related"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a)",
+     "r1: c1 · r2: c1 column, c2 diagonal → c3 · r3: c1–c4 attacked → c5",
+     ""
+    ],
+    [
+     "a)",
+     "r4: c1 column → c2 · r5: c1, c2, c3 columns → c4",
+     "x = (1, 3, 5, 2, 4)"
+    ],
+    [
+     "b)",
+     "every row found a safe column at once",
+     "no backtracking"
+    ],
+    [
+     "c)",
+     "(2, 4, 1, 3) and (3, 1, 4, 2)",
+     "mirror images of each other"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Can eight queens sit on a chessboard without any two attacking each other? There are over four billion ways to place them. Backtracking finds an answer after trying about a hundred, by giving up on a partial placement the moment it goes wrong."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Backtracking: the N-Queens problem"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Backtracking, the N-Queens problem, the algorithm, and a full trace with four queens."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then how much the pruning saves, the general template, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bk",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: backtracking builds a solution as a vector, one component at a time."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: backtracking"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "bk"
+      },
+      {
+       "action": "highlight",
+       "target": "bk[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The choices form a state-space tree: the root is the empty vector, and each level fixes one more component."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bk[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The search goes depth first through that tree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bk[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The key ingredient is the bounding function: as soon as a partial vector cannot possibly be completed, the whole subtree below it is skipped."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bk[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the algorithm backtracks: it undoes the last choice and tries the next value."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "bk[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "depth-first + prune dead partial solutions"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: place n queens on an n by n board so that no two share a row, a column or a diagonal."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: N-Queens"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bk"
+      },
+      {
+       "action": "show",
+       "target": "pb"
+      },
+      {
+       "action": "highlight",
+       "target": "pb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Choosing any four squares on a 4 by 4 board: 1820 ways."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Since each row needs exactly one queen, write x i for the column of the queen in row i. Now there are 4 to the 4, 256 vectors."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the columns must all differ, so x is a permutation: 24."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For eight queens: over 4 billion placements, 40 thousand permutations, and only 92 solutions."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "x[i] = column of the queen in row i"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "algo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: can queen k go in column i? Compare it with each earlier queen j."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: the algorithm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pb"
+      },
+      {
+       "action": "show",
+       "target": "pc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "pc",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Same column if x j equals i."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "pc",
+       "from": 3,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Same diagonal if the column difference equals the row difference: the absolute value of x j minus i, equals the absolute value of j minus k."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "pc",
+       "from": 4,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For example, a queen at row 1, column 1 and one at row 3, column 3: two rows apart and two columns apart, so they share a diagonal. Row 1, column 3 and row 2, column 2: one and one: the other diagonal."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "pc",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "NQUEENS tries every column for queen k. If it is safe, place it, then either print the full solution, or recurse to the next row."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "pc",
+       "from": 7,
+       "to": 12
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "When the loop runs out of columns, the call simply returns: that is the backtrack. The caller then tries its own next column."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "pc",
+       "from": 8,
+       "to": 8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "same diagonal: |x[j] − i| = |j − k|"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: four queens. Row 1: column 1 is safe. Place it."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: four queens"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pc"
+      },
+      {
+       "action": "show",
+       "target": "bd"
+      },
+      {
+       "action": "show",
+       "target": "lg"
+      },
+      {
+       "action": "set",
+       "target": "bd[0][1]",
+       "value": "Q",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "lg[0][0]",
+       "value": "(1)",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "lg[0][1]",
+       "value": "place",
+       "delay": 0.65
+      },
+      {
+       "action": "highlight",
+       "target": "lg[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 2: column 1 shares a column, column 2 a diagonal. Column 3 is safe."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bd[1][1]",
+       "value": "×"
+      },
+      {
+       "action": "set",
+       "target": "bd[1][2]",
+       "value": "×",
+       "delay": 0.08
+      },
+      {
+       "action": "set",
+       "target": "bd[1][3]",
+       "value": "Q",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "lg[1][0]",
+       "value": "(1, 3)",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "lg[1][1]",
+       "value": "place",
+       "delay": 0.65
+      },
+      {
+       "action": "highlight",
+       "target": "lg[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 3: column 1 is attacked by the first queen; columns 2 and 4 by the second, diagonally; column 3 shares the second queen's column. A dead end. Backtrack: remove the queen in row 2."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bd[1][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[1][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[2][1]",
+       "value": "×"
+      },
+      {
+       "action": "set",
+       "target": "bd[2][2]",
+       "value": "×",
+       "delay": 0.08
+      },
+      {
+       "action": "set",
+       "target": "bd[2][3]",
+       "value": "×",
+       "delay": 0.16
+      },
+      {
+       "action": "set",
+       "target": "bd[2][4]",
+       "value": "×",
+       "delay": 0.24
+      },
+      {
+       "action": "set",
+       "target": "bd[1][3]",
+       "value": "",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "lg[2][0]",
+       "value": "(1, –)",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "lg[2][1]",
+       "value": "dead end",
+       "delay": 0.65
+      },
+      {
+       "action": "highlight",
+       "target": "lg[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Try row 2, column 4. Safe. Row 3: column 1 is attacked; column 2 is safe."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bd[2][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[2][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[2][3]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[2][4]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[2][1]",
+       "value": "×"
+      },
+      {
+       "action": "set",
+       "target": "bd[1][4]",
+       "value": "Q",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "bd[2][2]",
+       "value": "Q",
+       "delay": 0.58
+      },
+      {
+       "action": "set",
+       "target": "lg[3][0]",
+       "value": "(1, 4, 2)",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "lg[3][1]",
+       "value": "place",
+       "delay": 0.65
+      },
+      {
+       "action": "highlight",
+       "target": "lg[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 4: every column is attacked. Backtrack to row 3: columns 3 and 4 are attacked too. Back to row 2: no columns left. Back to row 1."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bd[2][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[3][1]",
+       "value": "×"
+      },
+      {
+       "action": "set",
+       "target": "bd[3][2]",
+       "value": "×",
+       "delay": 0.08
+      },
+      {
+       "action": "set",
+       "target": "bd[3][3]",
+       "value": "×",
+       "delay": 0.16
+      },
+      {
+       "action": "set",
+       "target": "bd[3][4]",
+       "value": "×",
+       "delay": 0.24
+      },
+      {
+       "action": "set",
+       "target": "bd[2][2]",
+       "value": "",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "bd[1][4]",
+       "value": "",
+       "delay": 0.58
+      },
+      {
+       "action": "set",
+       "target": "bd[0][1]",
+       "value": "",
+       "delay": 0.66
+      },
+      {
+       "action": "set",
+       "target": "lg[4][0]",
+       "value": "(–)",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "lg[4][1]",
+       "value": "dead ends",
+       "delay": 0.65
+      },
+      {
+       "action": "highlight",
+       "target": "lg[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 1, column 2. Row 2: columns 1 and 3 are diagonal, column 2 is the same column. Column 4 is safe."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bd[3][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[3][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[3][3]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[3][4]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[1][1]",
+       "value": "×"
+      },
+      {
+       "action": "set",
+       "target": "bd[1][2]",
+       "value": "×",
+       "delay": 0.08
+      },
+      {
+       "action": "set",
+       "target": "bd[1][3]",
+       "value": "×",
+       "delay": 0.16
+      },
+      {
+       "action": "set",
+       "target": "bd[0][2]",
+       "value": "Q",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "bd[1][4]",
+       "value": "Q",
+       "delay": 0.58
+      },
+      {
+       "action": "set",
+       "target": "lg[5][0]",
+       "value": "(2, 4)",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "lg[5][1]",
+       "value": "place",
+       "delay": 0.65
+      },
+      {
+       "action": "highlight",
+       "target": "lg[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 3, column 1: safe."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bd[1][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[1][2]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[1][3]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[2][1]",
+       "value": "Q",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "lg[6][0]",
+       "value": "(2, 4, 1)",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "lg[6][1]",
+       "value": "place",
+       "delay": 0.65
+      },
+      {
+       "action": "highlight",
+       "target": "lg[6]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 4: columns 1 and 2 share columns. Column 3 is safe. All four queens placed: the solution 2, 4, 1, 3."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bd[3][1]",
+       "value": "×"
+      },
+      {
+       "action": "set",
+       "target": "bd[3][2]",
+       "value": "×",
+       "delay": 0.08
+      },
+      {
+       "action": "set",
+       "target": "bd[3][3]",
+       "value": "Q",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "lg[7][0]",
+       "value": "(2, 4, 1, 3)",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "lg[7][1]",
+       "value": "solution",
+       "delay": 0.65
+      },
+      {
+       "action": "highlight",
+       "target": "lg[7]"
+      },
+      {
+       "action": "mark",
+       "target": "bd[0]",
+       "delay": 0.8
+      },
+      {
+       "action": "mark",
+       "target": "bd[1]",
+       "delay": 0.8
+      },
+      {
+       "action": "mark",
+       "target": "bd[2]",
+       "delay": 0.8
+      },
+      {
+       "action": "mark",
+       "target": "bd[3]",
+       "delay": 0.8
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "x = (2, 4, 1, 3)"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "To find every solution, the algorithm does not stop here: it prints this one, then carries on as if it had failed. Continuing, it finds exactly one more: 3, 1, 4, 2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "lg[7]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In all, 8 queens were placed and 4 removed along the way, instead of checking 256 vectors."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "bd[3][1]",
+       "value": ""
+      },
+      {
+       "action": "set",
+       "target": "bd[3][2]",
+       "value": ""
+      },
+      {
+       "action": "highlight",
+       "target": "lg"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "save",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: how much does the pruning save? For 4 queens: 1820 square choices, 24 permutations, but backtracking places only 8 queens to find the first solution."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: what pruning saves"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "bd"
+      },
+      {
+       "action": "hide",
+       "target": "lg"
+      },
+      {
+       "action": "show",
+       "target": "sv"
+      },
+      {
+       "action": "highlight",
+       "target": "sv[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For 8 queens, the first solution comes after 113 placements, and all 92 solutions after about two thousand. Compare 4.4 billion."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sv[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each dead end cuts off an entire subtree: every completion of a bad partial placement is skipped at once."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "prune early, prune whole subtrees"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: the same skeleton solves many problems. For each candidate value of the next component:"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: the template"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "sv"
+      },
+      {
+       "action": "show",
+       "target": "tp"
+      },
+      {
+       "action": "mark_lines",
+       "target": "tp",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If the partial solution still passes the bounding function, fix the value, and either report a complete solution or recurse."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tp",
+       "from": 3,
+       "to": 6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Subset sum, graph colouring, and the lab's knight's tour all fit this template; the next videos cover them."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tp",
+       "from": 8,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Backtracking is still exponential in the worst case. What makes it practical is how early the bounding function can say no."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "tp",
+       "from": 9,
+       "to": 9
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "candidate → check → recurse → undo"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tp"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Find the first 5-queens solution, say whether it backtracks, and find both 4-queens solutions. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: row 1, column 1. Row 2: column 1 shares a column, column 2 a diagonal: column 3. Row 3: columns 1 to 4 are all attacked: column 5."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Row 4: column 1 is a shared column, column 2 is safe. Row 5: columns 1, 2 and 3 are taken: column 4. The solution is 1, 3, 5, 2, 4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[1][2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: every row found a safe column immediately, so there was no backtracking at all. Five is an easier case than four."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 4 queens has exactly two solutions: 2, 4, 1, 3 and 3, 1, 4, 2. Each is the other reflected left to right."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: forgetting the diagonal running the other way. The absolute value covers both diagonals at once."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "|Δcolumn| = |Δrow|: both diagonals"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Backtracking builds a solution component by component, depth first, and abandons a branch the moment it cannot succeed. For N-Queens, x i is the column in row i."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The checks for column and diagonal prune so much that eight queens takes about a hundred placements instead of billions."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: backtracking for a numbers problem. Subset sum."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: subset sum"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

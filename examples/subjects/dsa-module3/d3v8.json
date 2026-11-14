@@ -1,0 +1,1720 @@
+{
+ "version": 1,
+ "title": "Minimum spanning trees: Kruskal's algorithm",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Kruskal's idea: cheapest edges first"
+    ],
+    [
+     2,
+     "Detecting a cycle: disjoint sets"
+    ],
+    [
+     3,
+     "Cormen's example, edge by edge"
+    ],
+    [
+     4,
+     "The algorithm"
+    ],
+    [
+     5,
+     "Union by rank and path compression"
+    ],
+    [
+     6,
+     "Running time; Prim or Kruskal?"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "idea",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "Kruskal's idea",
+    ""
+   ],
+   "rows": [
+    [
+     "start",
+     "a forest: every vertex is its own tree"
+    ],
+    [
+     "sort",
+     "all edges by weight, smallest first"
+    ],
+    [
+     "for each edge",
+     "if its ends are in different trees, take it: the two trees merge"
+    ],
+    [
+     "otherwise",
+     "skip it: it would close a cycle"
+    ],
+    [
+     "why safe",
+     "the edge is light across the cut around one of the two trees (cut property)"
+    ],
+    [
+     "stop",
+     "after n − 1 edges: one tree"
+    ]
+   ]
+  },
+  {
+   "id": "ds",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "disjoint-set operations",
+    ""
+   ],
+   "rows": [
+    [
+     "MAKE-SET(v)",
+     "a new set containing only v"
+    ],
+    [
+     "FIND-SET(v)",
+     "the representative of v's set: its tree's root"
+    ],
+    [
+     "UNION(u, v)",
+     "merge the two sets"
+    ],
+    [
+     "cycle test",
+     "edge (u, v) closes a cycle exactly when FIND-SET(u) = FIND-SET(v)"
+    ]
+   ]
+  },
+  {
+   "id": "g",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "a",
+     "label": "a",
+     "at": [
+      0,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "b",
+     "label": "b",
+     "at": [
+      2,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "c",
+     "label": "c",
+     "at": [
+      4,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "d",
+     "label": "d",
+     "at": [
+      7,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "e",
+     "label": "e",
+     "at": [
+      8,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "f",
+     "label": "f",
+     "at": [
+      6,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "g",
+     "label": "g",
+     "at": [
+      4,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "h",
+     "label": "h",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "i",
+     "label": "i",
+     "at": [
+      4,
+      1
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "a",
+     "to": "b",
+     "label": "4"
+    },
+    {
+     "from": "a",
+     "to": "h",
+     "label": "8"
+    },
+    {
+     "from": "b",
+     "to": "c",
+     "label": "8"
+    },
+    {
+     "from": "b",
+     "to": "h",
+     "label": "11"
+    },
+    {
+     "from": "c",
+     "to": "d",
+     "label": "7"
+    },
+    {
+     "from": "c",
+     "to": "f",
+     "label": "4"
+    },
+    {
+     "from": "c",
+     "to": "i",
+     "label": "2"
+    },
+    {
+     "from": "d",
+     "to": "e",
+     "label": "9"
+    },
+    {
+     "from": "d",
+     "to": "f",
+     "label": "14"
+    },
+    {
+     "from": "e",
+     "to": "f",
+     "label": "10"
+    },
+    {
+     "from": "f",
+     "to": "g",
+     "label": "2"
+    },
+    {
+     "from": "g",
+     "to": "h",
+     "label": "1"
+    },
+    {
+     "from": "g",
+     "to": "i",
+     "label": "6"
+    },
+    {
+     "from": "h",
+     "to": "i",
+     "label": "7"
+    }
+   ]
+  },
+  {
+   "id": "et",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "edge",
+    "w",
+    "result",
+    "edge ",
+    "w ",
+    "result "
+   ],
+   "rows": [
+    [
+     "g–h",
+     "1",
+     "",
+     "h–i",
+     "7",
+     ""
+    ],
+    [
+     "c–i",
+     "2",
+     "",
+     "a–h",
+     "8",
+     ""
+    ],
+    [
+     "f–g",
+     "2",
+     "",
+     "b–c",
+     "8",
+     ""
+    ],
+    [
+     "a–b",
+     "4",
+     "",
+     "d–e",
+     "9",
+     ""
+    ],
+    [
+     "c–f",
+     "4",
+     "",
+     "e–f",
+     "10",
+     ""
+    ],
+    [
+     "g–i",
+     "6",
+     "",
+     "b–h",
+     "11",
+     ""
+    ],
+    [
+     "c–d",
+     "7",
+     "",
+     "d–f",
+     "14",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "kc",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "MST-KRUSKAL(G, w)",
+    "    A = ∅",
+    "    for each vertex v:  MAKE-SET(v)",
+    "    sort the edges into non-decreasing order of weight w",
+    "    for each edge (u, v), in that order",
+    "        if FIND-SET(u) ≠ FIND-SET(v)",
+    "            A = A ∪ {(u, v)}",
+    "            UNION(u, v)",
+    "    return A"
+   ]
+  },
+  {
+   "id": "uf",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "making the sets fast",
+    ""
+   ],
+   "rows": [
+    [
+     "each set",
+     "a tree of parent pointers; the root is the representative"
+    ],
+    [
+     "union by rank",
+     "hang the shorter tree under the taller: height stays O(log n)"
+    ],
+    [
+     "path compression",
+     "after FIND-SET, point every node on the path straight at the root"
+    ],
+    [
+     "both together",
+     "m operations take O(m α(n)); α grows so slowly it is ≤ 4 in practice"
+    ]
+   ]
+  },
+  {
+   "id": "rt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "",
+    "Kruskal",
+    "Prim"
+   ],
+   "rows": [
+    [
+     "sort the edges",
+     "O(E log E) = O(E log V)",
+     "none"
+    ],
+    [
+     "main loop",
+     "O(E α(V)) with disjoint sets",
+     "O(E log V) with a binary heap"
+    ],
+    [
+     "total",
+     "O(E log V)",
+     "O(E log V), or O(V²) with an array"
+    ],
+    [
+     "grows",
+     "a forest that merges",
+     "one tree"
+    ],
+    [
+     "best for",
+     "sparse graphs, edges already sorted",
+     "dense graphs"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "edges: A–B 4, A–C 4, B–C 2, C–D 3, C–E 2, C–F 4, D–F 3, E–F 3 (ties in this order)"
+    ],
+    [
+     "a) run Kruskal: the edges taken and skipped"
+    ],
+    [
+     "b) the MST weight"
+    ],
+    [
+     "c) for each skipped edge, the cycle it would close"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "edge",
+    "sets before",
+    "result"
+   ],
+   "rows": [
+    [
+     "B–C 2, C–E 2",
+     "all separate",
+     "take both: {B, C, E}"
+    ],
+    [
+     "C–D 3, D–F 3",
+     "D, F separate from {B, C, E}",
+     "take both: {B, C, D, E, F}"
+    ],
+    [
+     "E–F 3",
+     "E and F already together",
+     "skip: E–C–D–F–E"
+    ],
+    [
+     "A–B 4",
+     "A alone",
+     "take: one tree, 5 edges"
+    ],
+    [
+     "A–C 4, C–F 4",
+     "same set",
+     "skip: A–B–C–A, C–D–F–C"
+    ],
+    [
+     "weight",
+     "2 + 2 + 3 + 3 + 4",
+     "14"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Prim grows one tree outward from a start vertex. Kruskal takes the opposite view: forget the start, look at the cheapest connections anywhere in the graph, and keep every one that does not close a loop. On the same graph, it finds a minimum spanning tree of the same weight."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Minimum spanning trees: Kruskal's algorithm"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Kruskal's idea, detecting cycles with disjoint sets, and Cormen's example edge by edge."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the algorithm, making the sets fast, the running time compared with Prim, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "idea",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: start with a forest: every vertex is a tree on its own."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: cheapest edges first"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "idea"
+      },
+      {
+       "action": "highlight",
+       "target": "idea[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sort all the edges by weight, smallest first."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "idea[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Go through them in order. If an edge joins two different trees, take it: the two trees merge into one."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "idea[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If both ends are already in the same tree, skip it: it would close a cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "idea[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why is a taken edge safe? Draw the cut around one of the two trees it joins. No chosen edge crosses that cut, and this is the cheapest edge that does, because every cheaper edge was already considered. The cut property says it belongs to some MST."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "idea[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "After n minus 1 edges, the forest is a single tree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "idea[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "sort edges; take each that joins two trees"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ds",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: how do we test whether two vertices are already in the same tree? With the disjoint-set structure. MAKE-SET starts a set holding one vertex."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: disjoint sets"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "idea"
+      },
+      {
+       "action": "show",
+       "target": "ds"
+      },
+      {
+       "action": "highlight",
+       "target": "ds[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "FIND-SET returns a representative of a vertex's set. Two vertices are in the same set exactly when their representatives match."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ds[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "UNION merges two sets into one."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ds[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So edge u, v closes a cycle exactly when FIND-SET of u equals FIND-SET of v."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ds[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "same representative ⇒ cycle"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why not just search the tree for a path from u to v? That works, but costs O of V per edge. Disjoint sets make the test almost free."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ds[3]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: Cormen's graph again, the one Prim gave weight 37. Here are its 14 edges, sorted by weight."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: edge by edge"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ds"
+      },
+      {
+       "action": "show",
+       "target": "g"
+      },
+      {
+       "action": "show",
+       "target": "et"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "g, h, weight 1: different trees. Take it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "et[0][0]"
+      },
+      {
+       "action": "highlight",
+       "target": "et[0][1]"
+      },
+      {
+       "action": "mark",
+       "target": "g.g->h",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.g",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.h",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "et[0][2]",
+       "value": "take",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "et[0][2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c, i, weight 2: take it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "et[1][0]"
+      },
+      {
+       "action": "highlight",
+       "target": "et[1][1]"
+      },
+      {
+       "action": "mark",
+       "target": "g.c->i",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.c",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.i",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "et[1][2]",
+       "value": "take",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "et[1][2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "f, g, weight 2: take it. Now f, g and h form one tree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "et[2][0]"
+      },
+      {
+       "action": "highlight",
+       "target": "et[2][1]"
+      },
+      {
+       "action": "mark",
+       "target": "g.f->g",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.f",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.g",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "et[2][2]",
+       "value": "take",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "et[2][2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a, b, weight 4: take it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "et[3][0]"
+      },
+      {
+       "action": "highlight",
+       "target": "et[3][1]"
+      },
+      {
+       "action": "mark",
+       "target": "g.a->b",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.a",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.b",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "et[3][2]",
+       "value": "take",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "et[3][2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c, f, weight 4: c's tree is c and i; f's is f, g, h. Different: take it. They merge into c, f, g, h, i."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "et[4][0]"
+      },
+      {
+       "action": "highlight",
+       "target": "et[4][1]"
+      },
+      {
+       "action": "mark",
+       "target": "g.c->f",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.c",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.f",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "et[4][2]",
+       "value": "take",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "et[4][2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "g, i, weight 6: g and i are now in the same tree, through f and c. Skip: it would close a cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "et[5][0]"
+      },
+      {
+       "action": "highlight",
+       "target": "et[5][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "g.g->i",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "et[5][2]",
+       "value": "skip",
+       "delay": 0.5
+      },
+      {
+       "action": "dim",
+       "target": "et[5][2]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c, d, weight 7: d is alone. Take it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "et[6][0]"
+      },
+      {
+       "action": "highlight",
+       "target": "et[6][1]"
+      },
+      {
+       "action": "mark",
+       "target": "g.c->d",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.c",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.d",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "et[6][2]",
+       "value": "take",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "et[6][2]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "h, i, weight 7: same tree. Skip."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "et[0][3]"
+      },
+      {
+       "action": "highlight",
+       "target": "et[0][4]"
+      },
+      {
+       "action": "highlight",
+       "target": "g.h->i",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "et[0][5]",
+       "value": "skip",
+       "delay": 0.5
+      },
+      {
+       "action": "dim",
+       "target": "et[0][5]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a, h, weight 8: a's tree is a, b; h's is the big one. Take it. Prim used b, c here; with the tie, either works."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "et[1][3]"
+      },
+      {
+       "action": "highlight",
+       "target": "et[1][4]"
+      },
+      {
+       "action": "mark",
+       "target": "g.a->h",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.a",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.h",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "et[1][5]",
+       "value": "take",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "et[1][5]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b, c, weight 8: now b and c are in the same tree. Skip."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "et[2][3]"
+      },
+      {
+       "action": "highlight",
+       "target": "et[2][4]"
+      },
+      {
+       "action": "highlight",
+       "target": "g.b->c",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "et[2][5]",
+       "value": "skip",
+       "delay": 0.5
+      },
+      {
+       "action": "dim",
+       "target": "et[2][5]",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "d, e, weight 9: e is alone. Take it. That is the eighth edge: one tree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "et[3][3]"
+      },
+      {
+       "action": "highlight",
+       "target": "et[3][4]"
+      },
+      {
+       "action": "mark",
+       "target": "g.d->e",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.d",
+       "delay": 0.4
+      },
+      {
+       "action": "mark",
+       "target": "g.e",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "et[3][5]",
+       "value": "take",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "et[3][5]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The rest, e, f, b, h and d, f, would all close cycles. The algorithm can stop as soon as it has n minus 1 edges."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "et[4][5]",
+       "value": "—"
+      },
+      {
+       "action": "dim",
+       "target": "et[4][3]",
+       "delay": 0.3
+      },
+      {
+       "action": "dim",
+       "target": "et[4][4]",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "et[5][5]",
+       "value": "—",
+       "delay": 0.1
+      },
+      {
+       "action": "dim",
+       "target": "et[5][3]",
+       "delay": 0.3
+      },
+      {
+       "action": "dim",
+       "target": "et[5][4]",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "et[6][5]",
+       "value": "—",
+       "delay": 0.2
+      },
+      {
+       "action": "dim",
+       "target": "et[6][3]",
+       "delay": 0.3
+      },
+      {
+       "action": "dim",
+       "target": "et[6][4]",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Look at how the forest grew: first scattered pieces, g, h, then c, i, then a, b, which only joined the rest at the end. Kruskal never needs the edges it takes to be connected along the way."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.a->h"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Total: 1, 2, 2, 4, 4, 7, 8 and 9: 37, the same as Prim, though one edge differs."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "MST weight 37, as with Prim"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "algo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: Cormen's MST-KRUSKAL. Start with an empty edge set A, and make every vertex its own set."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: the algorithm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "g"
+      },
+      {
+       "action": "hide",
+       "target": "et"
+      },
+      {
+       "action": "show",
+       "target": "kc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "kc",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sort the edges by weight."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "kc",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For each edge in that order: if its ends are in different sets, add it to A and unite the sets."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "kc",
+       "from": 5,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Return A. It is a minimum spanning tree."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "kc",
+       "from": 9,
+       "to": 9
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "sort, then find-find-union"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "uf",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the sets are stored as trees of parent pointers. The root of each tree is its representative."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: fast disjoint sets"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "kc"
+      },
+      {
+       "action": "show",
+       "target": "uf"
+      },
+      {
+       "action": "highlight",
+       "target": "uf[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Union by rank: when merging, hang the shorter tree under the root of the taller one. Heights stay logarithmic."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "uf[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Path compression: after a FIND-SET walks up to the root, point every node it passed straight at the root. The next search is immediate."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "uf[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For example, if d points to c, c to b, and b to the root a, FIND-SET of d walks three steps. Afterwards d, c and b all point directly at a, so finding any of them again takes one step."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "uf[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Together, any sequence of m operations takes O of m times alpha of n, where alpha is the inverse Ackermann function: at most 4 for any input that fits in the universe."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "uf[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "union by rank + path compression: ≈ constant"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rt",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: Kruskal's cost is dominated by sorting the edges: O of E log E, which is the same as O of E log V, since E is at most V squared."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: Prim or Kruskal?"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "uf"
+      },
+      {
+       "action": "show",
+       "target": "rt"
+      },
+      {
+       "action": "highlight",
+       "target": "rt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The loop over the edges is nearly linear with fast disjoint sets. Prim with a binary heap is also O of E log V."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rt[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Prim grows one tree; Kruskal merges a forest."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rt[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Kruskal suits sparse graphs, especially if the edges come already sorted. Prim with a plain array, at O of V squared, suits dense graphs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rt[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "both O(E log V); Kruskal sparse, Prim dense"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rt"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Run Kruskal, give the weight, and name the cycle each skipped edge would close. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The two edges of weight 2, B, C and C, E, join separate vertices: take both. B, C and E form one tree."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Weight 3: C, D joins D; D, F joins F. Take both."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "E, F, weight 3: E and F are already connected, through C and D. Skip: it would close the cycle E, C, D, F."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A, B, weight 4: A is alone. Take it. Five edges for six vertices: done."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A, C and C, F would close the cycles A, B, C and C, D, F. The MST weighs 2 plus 2 plus 3 plus 3 plus 4: 14."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4..=5]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[5][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: skipping an edge just because both ends already have edges. The test is whether they are in the same tree, not whether they are touched."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "skip only if both ends share a tree"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Kruskal sorts the edges and takes each one that joins two different trees; a disjoint-set structure answers that question in near-constant time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It runs in O of E log V, like Prim, and finds a tree of the same minimum weight."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: greedy for compression. Huffman coding builds the best prefix code by merging the two rarest symbols."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: Huffman coding"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

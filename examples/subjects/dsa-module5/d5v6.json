@@ -1,0 +1,1231 @@
+{
+ "version": 1,
+ "title": "Approximation: set cover",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The set-cover problem"
+    ],
+    [
+     2,
+     "The greedy rule"
+    ],
+    [
+     3,
+     "Twelve elements, six sets, traced"
+    ],
+    [
+     4,
+     "The algorithm and its cost"
+    ],
+    [
+     5,
+     "How far from optimal: the harmonic bound"
+    ],
+    [
+     6,
+     "Vertex cover is a special case"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "pb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "set cover",
+    ""
+   ],
+   "rows": [
+    [
+     "given",
+     "a universe X of elements, and a family of subsets of X"
+    ],
+    [
+     "find",
+     "the fewest subsets whose union is all of X"
+    ],
+    [
+     "examples",
+     "hire the fewest people covering every needed skill · place the fewest towers covering every village"
+    ],
+    [
+     "complexity",
+     "NP-hard: its decision version is NP-complete"
+    ],
+    [
+     "vertex cover",
+     "the special case where each element (edge) lies in exactly two sets (its ends)"
+    ]
+   ]
+  },
+  {
+   "id": "gr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "greedy rule",
+    ""
+   ],
+   "rows": [
+    [
+     "repeat",
+     "take the subset covering the most elements not yet covered"
+    ],
+    [
+     "until",
+     "everything is covered"
+    ],
+    [
+     "intuition",
+     "the biggest bite each time"
+    ],
+    [
+     "guarantee?",
+     "not optimal, but provably close: within a factor H(max |S|)"
+    ]
+   ]
+  },
+  {
+   "id": "st",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "set",
+    "elements"
+   ],
+   "rows": [
+    [
+     "S1",
+     "1 2 3 4 5 6"
+    ],
+    [
+     "S2",
+     "5 6 8 9"
+    ],
+    [
+     "S3",
+     "1 4 7 10"
+    ],
+    [
+     "S4",
+     "2 5 7 8 11"
+    ],
+    [
+     "S5",
+     "3 6 9 12"
+    ],
+    [
+     "S6",
+     "10 11"
+    ]
+   ]
+  },
+  {
+   "id": "tt",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "round",
+    "picked",
+    "newly covered",
+    "still uncovered"
+   ],
+   "rows": [
+    [
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "gc",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "GREEDY-SET-COVER(X, F)",
+    "    U = X;   C = ∅",
+    "    while U is not empty",
+    "        pick S in F maximising |S ∩ U|",
+    "        U = U − S",
+    "        C = C ∪ {S}",
+    "    return C",
+    "",
+    "simple version: O(|X| · |F| · min(|X|, |F|));  with care, linear in Σ |S|"
+   ]
+  },
+  {
+   "id": "hb",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "H(d) = 1 + 1/2 + 1/3 + dots + 1/d approx ln d",
+    "\"greedy uses at most \" H(max |S|) \" times the optimal number of sets\"",
+    "\"our example: \" max |S| = 6, quad H(6) approx 2.45: quad 4 <= 2.45 times 3",
+    "\"overall: \" rho <= ln |X| + 1",
+    "\"no polynomial algorithm does much better, unless P = NP\""
+   ]
+  },
+  {
+   "id": "vc",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "vertex cover as set cover",
+    ""
+   ],
+   "rows": [
+    [
+     "universe",
+     "the edges"
+    ],
+    [
+     "one set per vertex",
+     "the edges touching it"
+    ],
+    [
+     "a set cover",
+     "a set of vertices touching every edge: a vertex cover"
+    ],
+    [
+     "greedy set cover",
+     "= take the vertex covering the most uncovered edges: the max-degree heuristic"
+    ],
+    [
+     "compare",
+     "vertex cover's own algorithm guarantees 2; general set cover only ln n"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "X = {1, 2, 3, 4, 5, 6};  A = {1, 2, 3, 4},  B = {1, 2, 5},  C = {3, 4, 6}"
+    ],
+    [
+     "a) run GREEDY-SET-COVER"
+    ],
+    [
+     "b) an optimal cover"
+    ],
+    [
+     "c) is the result within the H(max |S|) bound?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a)",
+     "A covers 4 new · then B covers 5, C covers 6 (1 each)",
+     "A, B, C: 3 sets"
+    ],
+    [
+     "b)",
+     "B ∪ C = {1, 2, 3, 4, 5, 6}",
+     "B, C: 2 sets"
+    ],
+    [
+     "c)",
+     "max |S| = 4: H(4) = 1 + 1/2 + 1/3 + 1/4 ≈ 2.08;  3 ≤ 2.08 × 2",
+     "yes: ratio 1.5"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A company needs a team that covers a list of skills, and each candidate has some of them. What is the smallest team? That is set cover, one of the most widely applied NP-hard problems. A simple greedy rule gets provably close."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Approximation: set cover"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The problem, the greedy rule, a full trace, and the algorithm."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then how close greedy gets, the link to vertex cover, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: we have a universe of elements, and a family of subsets."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the problem"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "pb"
+      },
+      {
+       "action": "highlight",
+       "target": "pb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "We want the fewest subsets whose union is the whole universe."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Skills and candidates, villages and towers, test cases and requirements: the same structure everywhere."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It is NP-hard. And vertex cover is a special case: each edge is an element, covered by the sets of its two ends."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "fewest sets covering everything"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Brute force tries every collection of subsets: with 6 subsets, 64 collections; with 50, over a thousand million million."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[1]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gr",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: the greedy rule. Take the subset that covers the most elements not yet covered."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: the greedy rule"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pb"
+      },
+      {
+       "action": "show",
+       "target": "gr"
+      },
+      {
+       "action": "highlight",
+       "target": "gr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Repeat until everything is covered."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The biggest bite each time. It is not always optimal, but it comes with a guarantee we will prove."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gr[2..=3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "most new elements first"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: twelve elements, 1 to 12, and six subsets."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: a trace"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "gr"
+      },
+      {
+       "action": "show",
+       "target": "st"
+      },
+      {
+       "action": "show",
+       "target": "tt"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Round 1: S1 covers 6 elements, more than any other. Take it: 1 to 6 are covered."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st[0]"
+      },
+      {
+       "action": "mark",
+       "target": "st[0]",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tt[0][0]",
+       "value": "1"
+      },
+      {
+       "action": "set",
+       "target": "tt[0][1]",
+       "value": "S1",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[0][2]",
+       "value": "1 2 3 4 5 6",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[0][3]",
+       "value": "7 8 9 10 11 12",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "tt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Round 2: count only new elements. S4 now covers 7, 8 and 11: three. S2, S3 and S5 cover two each. Take S4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st[3]"
+      },
+      {
+       "action": "mark",
+       "target": "st[3]",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tt[1][0]",
+       "value": "2"
+      },
+      {
+       "action": "set",
+       "target": "tt[1][1]",
+       "value": "S4",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[1][2]",
+       "value": "7 8 11",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[1][3]",
+       "value": "9 10 12",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "tt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Round 3: S5 adds 9 and 12. The others add at most one. Take S5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st[4]"
+      },
+      {
+       "action": "mark",
+       "target": "st[4]",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tt[2][0]",
+       "value": "3"
+      },
+      {
+       "action": "set",
+       "target": "tt[2][1]",
+       "value": "S5",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[2][2]",
+       "value": "9 12",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[2][3]",
+       "value": "10",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "tt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Round 4: only 10 remains. S3 and S6 both contain it; take S3. Everything is covered with 4 sets."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st[2]"
+      },
+      {
+       "action": "mark",
+       "target": "st[2]",
+       "delay": 0.5
+      },
+      {
+       "action": "set",
+       "target": "tt[3][0]",
+       "value": "4"
+      },
+      {
+       "action": "set",
+       "target": "tt[3][1]",
+       "value": "S3",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "tt[3][2]",
+       "value": "10",
+       "delay": 0.4
+      },
+      {
+       "action": "set",
+       "target": "tt[3][3]",
+       "value": "none",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "tt[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "greedy: 4 sets"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "At the last round, S3 and S6 tied; choosing S6 would also give 4 sets. Ties never change the guarantee."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But S3, S4 and S5 alone cover everything: 3 sets. Greedy's first, biggest choice, S1, turned out not to be needed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "st[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "st[3]",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "st[4]",
+       "delay": 0.6
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "greedy 4 · optimal 3"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "algo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: GREEDY-SET-COVER keeps U, the uncovered elements."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: the algorithm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "st"
+      },
+      {
+       "action": "hide",
+       "target": "tt"
+      },
+      {
+       "action": "show",
+       "target": "gc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "gc",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "While U is not empty, pick the subset with the largest intersection with U."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "gc",
+       "from": 3,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Remove its elements from U and add it to the cover."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "gc",
+       "from": 5,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Done simply, each round scans all subsets: polynomial. With bucket queues it can be made linear in the total size of the subsets."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "gc",
+       "from": 9,
+       "to": 9
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "polynomial time"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The trick for speed: keep, for every subset, a count of its uncovered elements. When an element becomes covered, decrease the count of each subset containing it. Then the best subset is just the one with the largest count."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "gc",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: how far from optimal? Define H of d, the harmonic number: 1 plus a half plus a third, up to 1 over d. It grows like the natural log of d."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: the bound"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "gc"
+      },
+      {
+       "action": "show",
+       "target": "hb"
+      },
+      {
+       "action": "highlight",
+       "target": "hb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cormen proves greedy uses at most H of the largest subset size, times the optimal number. The idea: charge each chosen set's cost to the elements it newly covers; an optimal set's elements together are charged at most H of its size."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hb[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "hb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In our example, the largest set has 6 elements, H of 6 is about 2.45, and indeed 4 is at most 2.45 times 3."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hb[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "hb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In our trace, S1 cost 1 set for 6 new elements: each element was charged a sixth. S4 charged a third to each of 7, 8 and 11; S5 a half each to 9 and 12; S3 a whole 1 to element 10. The charges add up to the 4 sets used."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "hb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In general the ratio is at most log of the universe size, plus 1: a ratio that grows, but slowly."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hb[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "hb[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Remarkably, that is essentially the best possible: no polynomial algorithm can guarantee much better unless P equals NP."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "hb[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "hb[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "ρ ≤ H(max |S|) ≤ ln |X| + 1"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vc",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: vertex cover as set cover. The universe is the edges, and each vertex gives the set of edges touching it."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: vertex cover again"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "hb"
+      },
+      {
+       "action": "show",
+       "target": "vc"
+      },
+      {
+       "action": "highlight",
+       "target": "vc[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A set cover is then exactly a vertex cover."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vc[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And greedy set cover becomes: take the vertex touching the most uncovered edges. That is the max-degree rule from the last video."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vc[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the max-degree heuristic inherits set cover's log n guarantee, which is why it can be log n times worse on bad graphs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vc[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "General set cover can only promise log n; but vertex cover, with its special structure, gets a factor of 2 from the take-both-ends algorithm."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "vc[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "structure buys a better ratio"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "vc"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Run greedy, find an optimal cover, and check the bound. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: A covers 4 elements, the most. Then B and C each add just one new element: B adds 5, C adds 6. Greedy uses 3 sets."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: B and C together cover 1 to 6: 2 sets suffice."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: the largest set has 4 elements. H of 4 is about 2.08, and 3 is at most 2.08 times 2. Within the bound: the actual ratio is 1.5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[2][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: counting all of a set's elements in later rounds. Greedy compares only the elements still uncovered."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "count only new elements"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Set cover picks the fewest subsets covering a universe. Greedy repeatedly takes the subset with the most uncovered elements."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It is within H of the largest set size, about log n, of optimal, and vertex cover is the special case where structure gives a factor of 2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: the travelling salesman. A tour at most twice the optimum, built from a minimum spanning tree."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: approximating TSP"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

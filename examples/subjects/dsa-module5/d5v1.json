@@ -1,0 +1,1134 @@
+{
+ "version": 1,
+ "title": "Complexity classes: P and NP",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "Tractable and intractable"
+    ],
+    [
+     2,
+     "Decision problems"
+    ],
+    [
+     3,
+     "The class P"
+    ],
+    [
+     4,
+     "The class NP: checking a certificate"
+    ],
+    [
+     5,
+     "Easy problems with hard twins"
+    ],
+    [
+     6,
+     "P ⊆ NP, and the open question"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "tr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "n = 60",
+    "steps",
+    "at 10⁹ steps per second"
+   ],
+   "rows": [
+    [
+     "n³",
+     "216,000",
+     "0.0002 seconds"
+    ],
+    [
+     "2ⁿ",
+     "about 1.15 × 10¹⁸",
+     "over 36 years"
+    ],
+    [
+     "tractable",
+     "solvable in O(nᵏ) for some constant k",
+     "polynomial time"
+    ],
+    [
+     "intractable",
+     "no polynomial algorithm known (or possible)",
+     "exponential in practice"
+    ]
+   ]
+  },
+  {
+   "id": "dp",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "optimisation problem",
+    "decision version: answer yes or no"
+   ],
+   "rows": [
+    [
+     "shortest path from u to v",
+     "PATH: is there a path from u to v with at most k edges?"
+    ],
+    [
+     "travelling salesman: cheapest tour",
+     "TSP: is there a tour of cost at most k?"
+    ],
+    [
+     "largest clique",
+     "CLIQUE: is there a clique of size k?"
+    ],
+    [
+     "why decision versions",
+     "if the decision version is hard, the optimisation is at least as hard"
+    ]
+   ]
+  },
+  {
+   "id": "pc",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the class P",
+    ""
+   ],
+   "rows": [
+    [
+     "P",
+     "decision problems solvable in O(nᵏ) time, for some constant k, on input size n"
+    ],
+    [
+     "examples",
+     "sorting, shortest paths, MST, max flow, 2-colouring, LCS, matrix chains"
+    ],
+    [
+     "closed under composition",
+     "a polynomial algorithm calling a polynomial subroutine is still polynomial"
+    ],
+    [
+     "the working definition of efficient",
+     "n¹⁰⁰ is in P, but natural problems rarely need such exponents"
+    ]
+   ]
+  },
+  {
+   "id": "g",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "v1",
+     "label": "1",
+     "at": [
+      0,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "v2",
+     "label": "2",
+     "at": [
+      2,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "v3",
+     "label": "3",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "v4",
+     "label": "4",
+     "at": [
+      3,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "v5",
+     "label": "5",
+     "at": [
+      2,
+      2
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "v1",
+     "to": "v2"
+    },
+    {
+     "from": "v1",
+     "to": "v3"
+    },
+    {
+     "from": "v1",
+     "to": "v4"
+    },
+    {
+     "from": "v2",
+     "to": "v3"
+    },
+    {
+     "from": "v2",
+     "to": "v4"
+    },
+    {
+     "from": "v3",
+     "to": "v5"
+    },
+    {
+     "from": "v4",
+     "to": "v5"
+    }
+   ]
+  },
+  {
+   "id": "np",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "the class NP",
+    ""
+   ],
+   "rows": [
+    [
+     "HAM-CYCLE",
+     "a cycle through every vertex once?"
+    ],
+    [
+     "certificate",
+     "an order of the vertices"
+    ],
+    [
+     "verifier",
+     "checks it in polynomial time"
+    ],
+    [
+     "NP",
+     "yes-answers checkable fast"
+    ],
+    [
+     "the name",
+     "nondeterministic polynomial"
+    ]
+   ]
+  },
+  {
+   "id": "tw",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "in P",
+    "its look-alike, NP-complete"
+   ],
+   "rows": [
+    [
+     "shortest simple path",
+     "longest simple path"
+    ],
+    [
+     "Euler tour: every edge once",
+     "Hamiltonian cycle: every vertex once"
+    ],
+    [
+     "2-CNF satisfiability",
+     "3-CNF satisfiability"
+    ],
+    [
+     "2-colouring",
+     "3-colouring"
+    ],
+    [
+     "minimum spanning tree",
+     "travelling salesman"
+    ]
+   ]
+  },
+  {
+   "id": "pn",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "P and NP",
+    ""
+   ],
+   "rows": [
+    [
+     "P ⊆ NP",
+     "if you can solve it fast, you can check it fast: ignore the certificate and solve"
+    ],
+    [
+     "P = NP?",
+     "unknown: the most famous open problem in computer science"
+    ],
+    [
+     "most researchers believe",
+     "P ≠ NP: checking is easier than finding"
+    ],
+    [
+     "Clay Millennium Prize",
+     "one million dollars for a proof either way"
+    ],
+    [
+     "NP-complete (next videos)",
+     "the hardest problems in NP: a fast algorithm for one gives one for all"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "a) SUBSET-SUM: do some of the given numbers add up to t? Give a certificate and a verifier's cost"
+    ],
+    [
+     "b) is \"given a graph, is there NO Hamiltonian cycle?\" obviously in NP? why?"
+    ],
+    [
+     "c) is \"is there a path from u to v with at most k edges?\" in P? in NP?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a)",
+     "certificate: the chosen subset; add it up, compare with t",
+     "O(n) additions: in NP"
+    ],
+    [
+     "b)",
+     "what short certificate would prove that no cycle exists?",
+     "not obviously: it is in co-NP"
+    ],
+    [
+     "c)",
+     "BFS answers it in O(V + E)",
+     "in P, hence also in NP"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Some problems have fast algorithms, and for others, after decades of effort, nobody has found one. Module 5 makes that difference precise. This first video defines the two classes everything else rests on: P and NP."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Complexity classes: P and NP"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Tractable and intractable problems, decision problems, the class P, and the class NP."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then easy problems with hard twins, how P and NP relate, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tr",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: compare n cubed and 2 to the n for an input of size 60. n cubed is 216 thousand steps: a fraction of a millisecond."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: tractable or not"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "tr"
+      },
+      {
+       "action": "highlight",
+       "target": "tr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "2 to the 60 is over a billion billion steps: more than 36 years at a billion steps a second."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So we call a problem tractable if some algorithm solves it in polynomial time, O of n to the k for a constant k."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Intractable problems have no known polynomial algorithm, and in practice we only know exponential ones."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "polynomial = tractable"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Faster hardware does not rescue an exponential algorithm. A computer a thousand times faster lets a 2 to the n algorithm handle inputs only 10 larger, since 2 to the 10 is about a thousand. For n cubed, the input can grow ten times."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tr[1]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: complexity theory studies decision problems, whose answer is yes or no. Shortest path becomes: is there a path with at most k edges?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: decision problems"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tr"
+      },
+      {
+       "action": "show",
+       "target": "dp"
+      },
+      {
+       "action": "highlight",
+       "target": "dp[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The travelling salesman becomes: is there a tour of cost at most k? The largest clique becomes: is there a clique of size k?"
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dp[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This loses nothing that matters. If the yes-or-no version is already hard, the optimisation version, which answers it, is at least as hard."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dp[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "decision problems: answer yes or no"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "p",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: P is the class of decision problems that can be solved in polynomial time."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: the class P"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "dp"
+      },
+      {
+       "action": "show",
+       "target": "pc"
+      },
+      {
+       "action": "highlight",
+       "target": "pc[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Almost everything in this course so far is in P: sorting, shortest paths, spanning trees, maximum flow, two-colouring, the dynamic programs."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pc[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "P is robust: a polynomial algorithm that calls a polynomial subroutine polynomially often is still polynomial."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pc[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "n to the 100 is technically in P, but natural problems in P almost always have small exponents, so P is a good working definition of efficient."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pc[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "P: solvable in polynomial time"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "np",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: consider the Hamiltonian cycle problem: is there a cycle that visits every vertex exactly once? No polynomial algorithm is known."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: the class NP"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pc"
+      },
+      {
+       "action": "show",
+       "target": "g"
+      },
+      {
+       "action": "show",
+       "target": "np"
+      },
+      {
+       "action": "highlight",
+       "target": "np[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "But suppose someone hands us an answer: the order 1, 2, 4, 5, 3. That is a certificate."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "np[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "g.v1"
+      },
+      {
+       "action": "highlight",
+       "target": "g.v2",
+       "delay": 0.15
+      },
+      {
+       "action": "highlight",
+       "target": "g.v4",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "g.v5",
+       "delay": 0.45
+      },
+      {
+       "action": "highlight",
+       "target": "g.v3",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Checking it is easy. Every vertex appears once. And each consecutive pair is an edge: 1 to 2, 2 to 4, 4 to 5, 5 to 3, and 3 back to 1. Yes: a Hamiltonian cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "np[2]"
+      },
+      {
+       "action": "mark",
+       "target": "g.v1->v2"
+      },
+      {
+       "action": "mark",
+       "target": "g.v2->v4",
+       "delay": 0.15
+      },
+      {
+       "action": "mark",
+       "target": "g.v4->v5",
+       "delay": 0.3
+      },
+      {
+       "action": "mark",
+       "target": "g.v3->v5",
+       "delay": 0.45
+      },
+      {
+       "action": "mark",
+       "target": "g.v1->v3",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A wrong certificate, like 1, 2, 3, 4, 5, fails at once: 3 and 4 are not joined. Checking takes O of n squared time at most."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.v3"
+      },
+      {
+       "action": "highlight",
+       "target": "g.v4",
+       "delay": 0.3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "NP is the class of decision problems whose yes-answers have certificates that can be checked in polynomial time. The name means nondeterministic polynomial: a machine that could guess the certificate would solve the problem fast."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "np[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "NP: a yes-answer can be checked fast"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tw",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: hard problems often look almost exactly like easy ones. Shortest simple path is in P; longest simple path is NP-complete."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: hard twins"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "g"
+      },
+      {
+       "action": "hide",
+       "target": "np"
+      },
+      {
+       "action": "show",
+       "target": "tw"
+      },
+      {
+       "action": "highlight",
+       "target": "tw[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "An Euler tour, using every edge once, is easy to decide. A Hamiltonian cycle, using every vertex once, is hard."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tw[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Satisfiability with two literals per clause is in P; with three it is NP-complete. Two-colouring is BFS; three-colouring is hard."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tw[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Trying every order of the vertices to find a Hamiltonian cycle means trying n minus 1 factorial over 2 orders: 12 for 5 vertices, but over 10 to the 16 for 20. That is why a certificate, which skips the search, is so valuable."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tw[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And the minimum spanning tree is greedy and fast, while the travelling salesman, which also connects every city cheaply, is hard. A small change in the question can cross the line."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "tw[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "small changes, huge difference"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pn",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: every problem in P is in NP. If you can solve it fast, you can check a yes-answer by just solving it."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: P versus NP"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "tw"
+      },
+      {
+       "action": "show",
+       "target": "pn"
+      },
+      {
+       "action": "highlight",
+       "target": "pn[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Is every problem in NP also in P? Nobody knows. It is the most famous open question in computer science."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pn[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Most researchers believe P is not NP: that finding an answer is genuinely harder than checking one. A proof either way would earn a million-dollar Millennium Prize."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pn[2..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The next videos meet the NP-complete problems: the hardest in NP. A polynomial algorithm for any one of them would give one for all of NP."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pn[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "P ⊆ NP; P = NP is open"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pn"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Give a certificate and its checking cost, decide whether a negative question is obviously in NP, and classify a path problem. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: for subset sum, the certificate is the chosen subset. Add its numbers and compare with t: linear time. So subset sum is in NP."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: to prove a graph has no Hamiltonian cycle, what short certificate could we hand over? None is known. Such complements of NP problems form the class co-NP, which is not known to equal NP."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: breadth-first search answers it in O of V plus E. So it is in P, and therefore also in NP."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[2][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: thinking NP means not polynomial. NP means checkable in polynomial time, and it includes all of P."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "NP ≠ “not polynomial”"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "We study yes-or-no problems. P holds those solvable in polynomial time; NP those whose yes-answers can be checked in polynomial time, given a certificate."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Many problems in NP have near twins in P. P is inside NP, and whether they are equal is open."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: how to compare problems. Reductions, and the meaning of NP-complete."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: reductions and NP-completeness"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

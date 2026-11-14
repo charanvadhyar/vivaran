@@ -1,0 +1,1265 @@
+{
+ "version": 1,
+ "title": "Greedy: job sequencing with deadlines",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The greedy method"
+    ],
+    [
+     2,
+     "The problem: jobs, deadlines, profits"
+    ],
+    [
+     3,
+     "The greedy rule"
+    ],
+    [
+     4,
+     "Seven jobs, traced"
+    ],
+    [
+     5,
+     "The algorithm and its cost"
+    ],
+    [
+     6,
+     "Why greedy is optimal here"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "gm",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the greedy method",
+    ""
+   ],
+   "rows": [
+    [
+     "build the answer one choice at a time",
+     "each time, take what looks best right now"
+    ],
+    [
+     "never undo a choice",
+     "fast: usually a sort plus one pass"
+    ],
+    [
+     "it works when",
+     "a locally best choice is always part of some optimal answer"
+    ],
+    [
+     "it can fail",
+     "coins 1, 3, 4 for 6: greedy 4 + 1 + 1 (3 coins), best 3 + 3 (2 coins)"
+    ],
+    [
+     "this module",
+     "job sequencing, Prim, Kruskal, Huffman: all provably optimal"
+    ]
+   ]
+  },
+  {
+   "id": "pb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "job sequencing with deadlines",
+    ""
+   ],
+   "rows": [
+    [
+     "n jobs",
+     "each takes one unit of time on a single machine"
+    ],
+    [
+     "job i",
+     "a deadline dᵢ and a profit pᵢ"
+    ],
+    [
+     "profit",
+     "earned only if job i finishes by time dᵢ"
+    ],
+    [
+     "goal",
+     "choose and order jobs to maximise the total profit"
+    ],
+    [
+     "feasible set",
+     "its jobs can all be scheduled before their deadlines"
+    ]
+   ]
+  },
+  {
+   "id": "rule",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "greedy rule",
+    "why"
+   ],
+   "rows": [
+    [
+     "consider jobs in decreasing order of profit",
+     "the most valuable jobs get first claim"
+    ],
+    [
+     "put each job in the latest free slot ≤ its deadline",
+     "keeps early slots free for jobs with tight deadlines"
+    ],
+    [
+     "no free slot at or before the deadline",
+     "reject the job"
+    ],
+    [
+     "earliest free slot instead?",
+     "J1 (d 2, p 10), J2 (d 1, p 9): J1 takes slot 1, J2 is lost: 10, not 19"
+    ]
+   ]
+  },
+  {
+   "id": "jt",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "job",
+    "deadline",
+    "profit",
+    "slot"
+   ],
+   "rows": [
+    [
+     "J1",
+     "3",
+     "35",
+     ""
+    ],
+    [
+     "J2",
+     "4",
+     "30",
+     ""
+    ],
+    [
+     "J3",
+     "4",
+     "25",
+     ""
+    ],
+    [
+     "J4",
+     "2",
+     "20",
+     ""
+    ],
+    [
+     "J5",
+     "3",
+     "15",
+     ""
+    ],
+    [
+     "J6",
+     "1",
+     "12",
+     ""
+    ],
+    [
+     "J7",
+     "2",
+     "5",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "sl",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "slot 1",
+    "slot 2",
+    "slot 3",
+    "slot 4"
+   ],
+   "rows": [
+    [
+     "",
+     "",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "ac",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "JOB-SEQUENCING(d, p, n)",
+    "    sort the jobs so that p[1] ≥ p[2] ≥ … ≥ p[n]",
+    "    slot[1 .. dmax] = empty",
+    "    for i = 1 to n",
+    "        for t = min(dmax, d[i]) downto 1",
+    "            if slot[t] is empty",
+    "                slot[t] = i;  break",
+    "    return slot",
+    "",
+    "sort: O(n log n)   ·   slot search: O(n) per job   ·   total O(n²);  O(n log n) with disjoint sets"
+   ]
+  },
+  {
+   "id": "pf",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "why it is optimal (exchange argument)",
+    ""
+   ],
+   "rows": [
+    [
+     "let G be greedy's set, O an optimal set",
+     "suppose they first differ at job a, the most profitable job where they disagree"
+    ],
+    [
+     "case 1: a in G, not in O",
+     "a fits where O schedules some cheaper job b; swap b for a: profit does not drop"
+    ],
+    [
+     "case 2: a in O, not in G",
+     "greedy rejected a only because all slots ≤ dₐ held more profitable jobs, which O also has: then O is infeasible"
+    ],
+    [
+     "repeat",
+     "O turns into G without losing profit: G is optimal"
+    ],
+    [
+     "two ingredients",
+     "greedy-choice property + optimal substructure"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "n = 5: profits (20, 15, 10, 5, 1), deadlines (2, 2, 1, 3, 3)"
+    ],
+    [
+     "a) the slot chosen for each job, in greedy order"
+    ],
+    [
+     "b) the schedule and its total profit"
+    ],
+    [
+     "c) is ordering by deadline (earliest first) also optimal here? check"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a)",
+     "J1 (p 20, d 2) → slot 2;  J2 (p 15, d 2) → slot 1",
+     ""
+    ],
+    [
+     "a)",
+     "J3 (d 1): slot 1 taken → rejected;  J4 (d 3) → slot 3;  J5 (d 3): 3, 2, 1 taken → rejected",
+     ""
+    ],
+    [
+     "b)",
+     "J2, J1, J4",
+     "20 + 15 + 5 = 40"
+    ],
+    [
+     "c)",
+     "earliest deadline first: J3, J1 (or J2), J4: 10 + 20 + 5",
+     "35 < 40: not optimal"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A printer, a compute cluster, a freelancer with too many offers: each job pays only if it is done by its deadline, and there is time for only some of them. Which jobs should you take? This video introduces the greedy method, and solves this problem with it."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Greedy: job sequencing with deadlines"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The greedy method, the problem, the greedy rule, and a full trace."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the algorithm and its cost, why greedy is optimal here, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gm",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: a greedy algorithm builds its answer one choice at a time, always taking what looks best at that moment."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the greedy method"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "gm"
+      },
+      {
+       "action": "highlight",
+       "target": "gm[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It never goes back on a choice. That makes it fast: usually a sort and a single pass."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gm[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It gives the best answer only when a locally best choice is always part of some optimal solution. That has to be proved for each problem."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gm[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It can fail. Make 6 from coins of 1, 3 and 4: greedy takes 4, then 1 and 1: three coins. But 3 plus 3 uses two."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gm[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In this module, greedy is provably optimal: job sequencing, the two minimum spanning tree algorithms, and Huffman coding."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gm[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "greedy: best-looking choice, never undone"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: n jobs share one machine. Each job takes one unit of time."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: the problem"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "gm"
+      },
+      {
+       "action": "show",
+       "target": "pb"
+      },
+      {
+       "action": "highlight",
+       "target": "pb[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Job i has a deadline d i and a profit p i."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The profit is earned only if the job finishes by its deadline. A job with deadline 2 must run in slot 1 or slot 2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Choose which jobs to run, and when, to make the total profit as large as possible. A set of jobs that can all meet their deadlines is called feasible."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "unit jobs, deadlines, maximise profit"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Trying every subset is hopeless: 7 jobs give 128 subsets, but 50 jobs give over a thousand million million. Greedy needs one sort and one pass."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "One useful fact: a set of jobs is feasible exactly when, run in order of deadline, each one finishes in time. So we never need to try every order, only to check the sorted one."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[4]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rule",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: the greedy rule. Consider the jobs from the most profitable down."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: the greedy rule"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pb"
+      },
+      {
+       "action": "show",
+       "target": "rule"
+      },
+      {
+       "action": "highlight",
+       "target": "rule[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Put each one in the latest free slot at or before its deadline. That leaves the early slots for jobs whose deadlines are tighter."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rule[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If every slot up to its deadline is taken, reject the job."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rule[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why the latest slot? Suppose J1 has deadline 2 and profit 10, and J2 has deadline 1 and profit 9. Putting J1 in the earliest slot, 1, leaves no room for J2: profit 10. In slot 2, both fit: 19."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "rule[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "highest profit first, latest free slot"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: seven jobs, already sorted by profit, from 35 down to 5. The largest deadline is 4, so there are four slots."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: seven jobs"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rule"
+      },
+      {
+       "action": "show",
+       "target": "jt"
+      },
+      {
+       "action": "show",
+       "target": "sl"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "J1, profit 35, deadline 3: slot 3 is free. Take it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "jt[0]"
+      },
+      {
+       "action": "highlight",
+       "target": "sl[0][2]"
+      },
+      {
+       "action": "set",
+       "target": "sl[0][2]",
+       "value": "J1",
+       "delay": 0.6
+      },
+      {
+       "action": "mark",
+       "target": "sl[0][2]",
+       "delay": 0.7
+      },
+      {
+       "action": "set",
+       "target": "jt[0][3]",
+       "value": "3",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "J2, profit 30, deadline 4: slot 4 is free. Take it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "jt[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "sl[0][3]"
+      },
+      {
+       "action": "set",
+       "target": "sl[0][3]",
+       "value": "J2",
+       "delay": 0.6
+      },
+      {
+       "action": "mark",
+       "target": "sl[0][3]",
+       "delay": 0.7
+      },
+      {
+       "action": "set",
+       "target": "jt[1][3]",
+       "value": "4",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "J3, profit 25, deadline 4: slot 4 is taken, slot 3 is taken, slot 2 is free. Take it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "jt[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "sl[0][3]"
+      },
+      {
+       "action": "highlight",
+       "target": "sl[0][2]",
+       "delay": 0.15
+      },
+      {
+       "action": "highlight",
+       "target": "sl[0][1]",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "sl[0][1]",
+       "value": "J3",
+       "delay": 0.6
+      },
+      {
+       "action": "mark",
+       "target": "sl[0][1]",
+       "delay": 0.7
+      },
+      {
+       "action": "set",
+       "target": "jt[2][3]",
+       "value": "2",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "J4, profit 20, deadline 2: slot 2 is taken, slot 1 is free. Take it. All four slots are full now."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "jt[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "sl[0][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "sl[0][0]",
+       "delay": 0.15
+      },
+      {
+       "action": "set",
+       "target": "sl[0][0]",
+       "value": "J4",
+       "delay": 0.6
+      },
+      {
+       "action": "mark",
+       "target": "sl[0][0]",
+       "delay": 0.7
+      },
+      {
+       "action": "set",
+       "target": "jt[3][3]",
+       "value": "1",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "J5, profit 15, deadline 3: slots 3, 2 and 1 are all taken. Rejected."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "jt[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "sl[0][2]"
+      },
+      {
+       "action": "highlight",
+       "target": "sl[0][1]",
+       "delay": 0.15
+      },
+      {
+       "action": "highlight",
+       "target": "sl[0][0]",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "jt[4][3]",
+       "value": "rejected",
+       "delay": 0.7
+      },
+      {
+       "action": "dim",
+       "target": "jt[4]",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "J6, deadline 1, and J7, deadline 2: no room either. Rejected."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "jt[5][3]",
+       "value": "rejected"
+      },
+      {
+       "action": "dim",
+       "target": "jt[5]",
+       "delay": 0.2
+      },
+      {
+       "action": "set",
+       "target": "jt[6][3]",
+       "value": "rejected",
+       "delay": 0.4
+      },
+      {
+       "action": "dim",
+       "target": "jt[6]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The schedule runs J4, J3, J1, J2, in slots 1 to 4. Each meets its deadline. Total profit: 35 plus 30 plus 25 plus 20, 110."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "sl[0]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "schedule J4 J3 J1 J2: profit 110"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Notice that J5, worth 15, is lost even though its deadline is 3: the four slots went to jobs worth more. Checking all 128 subsets by brute force confirms that 110 is the best possible."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "jt[4]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "algo",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the algorithm. Sort the jobs by profit, largest first, and mark every slot empty."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: the algorithm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "jt"
+      },
+      {
+       "action": "hide",
+       "target": "sl"
+      },
+      {
+       "action": "show",
+       "target": "ac"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For each job, search downwards from its deadline for an empty slot, and take the first one found."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 4,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Sorting costs n log n. Each search may scan up to n slots, so the simple version is O of n squared."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 10,
+       "to": 10
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With a disjoint-set structure that jumps straight to the latest free slot, the searches become nearly constant, and sorting dominates: O of n log n."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "O(n²) simple; O(n log n) with disjoint sets"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pf",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: why is this optimal? Compare greedy's set G with an optimal set O."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: why it is optimal"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ac"
+      },
+      {
+       "action": "show",
+       "target": "pf"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If greedy took job a and O did not, a fits where O runs some less profitable job b. Swapping b for a does not lower O's profit."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pf[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "If O took a and greedy rejected it, then every slot up to a's deadline held a more profitable job, all of which O also has. There would be no room for a in O either: impossible."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pf[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Repeating the swap turns O into G without losing profit, so G is optimal too."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pf[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "This is the standard proof pattern for greedy algorithms: show that the greedy choice can always be swapped into an optimal solution, and that what remains is a smaller problem of the same kind."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pf[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "exchange argument: swap greedy's choice in"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pf"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Assign the slots, give the schedule and its profit, and test a different greedy order. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: J1, profit 20, deadline 2: slot 2. J2, profit 15, deadline 2: slot 2 is taken, so slot 1."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "J3 has deadline 1, and slot 1 is taken: rejected. J4, deadline 3: slot 3. J5, deadline 3: every slot is full: rejected."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: the schedule is J2, J1, J4, with profit 20 plus 15 plus 5: 40."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[2][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: earliest deadline first runs J3 first, then one of J1 and J2, then J4: 10 plus 20 plus 5, 35. Less than 40, so that order is not optimal."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: placing each job in the earliest free slot. Always search down from the deadline."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "search from the deadline downwards"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Greedy takes the best-looking choice and never undoes it. For job sequencing: highest profit first, latest free slot before the deadline."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It costs O of n squared simply, O of n log n with disjoint sets, and an exchange argument proves it optimal."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: greedy on graphs. Connecting every vertex as cheaply as possible with Prim's algorithm."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: Prim's minimum spanning tree"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

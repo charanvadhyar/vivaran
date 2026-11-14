@@ -1,0 +1,1206 @@
+{
+ "version": 1,
+ "title": "Dynamic programming: matrix chain multiplication",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The order of multiplication matters"
+    ],
+    [
+     2,
+     "Too many orders to try"
+    ],
+    [
+     3,
+     "The dynamic-programming recurrence"
+    ],
+    [
+     4,
+     "Filling the table: four matrices"
+    ],
+    [
+     5,
+     "Reading off the answer; the algorithm"
+    ],
+    [
+     6,
+     "What makes a problem dynamic programming"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "ord",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "A1 10×100, A2 100×5, A3 5×50",
+    "scalar multiplications"
+   ],
+   "rows": [
+    [
+     "a p×q times q×r product",
+     "p · q · r"
+    ],
+    [
+     "((A1 A2) A3)",
+     "10·100·5 + 10·5·50 = 5000 + 2500 = 7,500"
+    ],
+    [
+     "(A1 (A2 A3))",
+     "100·5·50 + 10·100·50 = 25000 + 50000 = 75,000"
+    ],
+    [
+     "same answer, ten times the work",
+     "the problem: choose the parenthesization of least cost"
+    ]
+   ]
+  },
+  {
+   "id": "cnt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "matrices n",
+    "ways to parenthesize"
+   ],
+   "rows": [
+    [
+     "3",
+     "2"
+    ],
+    [
+     "4",
+     "5"
+    ],
+    [
+     "5",
+     "14"
+    ],
+    [
+     "10",
+     "4,862"
+    ],
+    [
+     "n",
+     "Catalan number: grows like 4ⁿ / n^1.5"
+    ]
+   ]
+  },
+  {
+   "id": "rec",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "A_i \" is \" p_(i-1) times p_i; quad m[i, j] = \"least cost of computing \" A_i A_(i+1) dots A_j",
+    "\"the last multiplication splits at some \" k: quad (A_i dots A_k)(A_(k+1) dots A_j)",
+    "m[i, j] = min_(i <= k < j) { m[i, k] + m[k+1, j] + p_(i-1) p_k p_j }, quad m[i, i] = 0",
+    "s[i, j] = \"the best \" k"
+   ]
+  },
+  {
+   "id": "dims",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "matrix",
+    "A1",
+    "A2",
+    "A3",
+    "A4"
+   ],
+   "rows": [
+    [
+     "size",
+     "5 × 4",
+     "4 × 6",
+     "6 × 2",
+     "2 × 7"
+    ],
+    [
+     "p",
+     "p0 = 5, p1 = 4",
+     "p2 = 6",
+     "p3 = 2",
+     "p4 = 7"
+    ]
+   ]
+  },
+  {
+   "id": "mt",
+   "type": "table",
+   "region": "left",
+   "columns": [
+    "m",
+    "j = 1",
+    "j = 2",
+    "j = 3",
+    "j = 4"
+   ],
+   "rows": [
+    [
+     "i = 1",
+     "0",
+     "",
+     "",
+     ""
+    ],
+    [
+     "i = 2",
+     "·",
+     "0",
+     "",
+     ""
+    ],
+    [
+     "i = 3",
+     "·",
+     "·",
+     "0",
+     ""
+    ],
+    [
+     "i = 4",
+     "·",
+     "·",
+     "·",
+     "0"
+    ]
+   ]
+  },
+  {
+   "id": "stt",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "s",
+    "j = 2",
+    "j = 3",
+    "j = 4"
+   ],
+   "rows": [
+    [
+     "i = 1",
+     "",
+     "",
+     ""
+    ],
+    [
+     "i = 2",
+     "·",
+     "",
+     ""
+    ],
+    [
+     "i = 3",
+     "·",
+     "·",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "mc",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "MATRIX-CHAIN-ORDER(p, n)",
+    "    for i = 1 to n:  m[i, i] = 0",
+    "    for l = 2 to n                         // chain length",
+    "        for i = 1 to n − l + 1",
+    "            j = i + l − 1;   m[i, j] = ∞",
+    "            for k = i to j − 1",
+    "                q = m[i, k] + m[k+1, j] + p[i−1] · p[k] · p[j]",
+    "                if q < m[i, j]:  m[i, j] = q;  s[i, j] = k",
+    "    return m and s",
+    "",
+    "three nested loops: Θ(n³) time,  Θ(n²) space"
+   ]
+  },
+  {
+   "id": "dpw",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "dynamic programming",
+    ""
+   ],
+   "rows": [
+    [
+     "optimal substructure",
+     "an optimal solution contains optimal solutions to subproblems"
+    ],
+    [
+     "overlapping subproblems",
+     "plain recursion solves m[2, 3] again and again: exponential time"
+    ],
+    [
+     "DP",
+     "solve each subproblem once, store it in a table, reuse it"
+    ],
+    [
+     "bottom-up",
+     "fill the table from small chains to long ones (as here)"
+    ],
+    [
+     "top-down (memoised)",
+     "recursion that checks the table first: same Θ(n³)"
+    ],
+    [
+     "the lab's AM-chain",
+     "the + signs split it into separate product chains: optimise each, then add"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question"
+   ],
+   "rows": [
+    [
+     "dimensions p = ⟨3, 5, 2, 4, 6⟩: A1 3×5, A2 5×2, A3 2×4, A4 4×6"
+    ],
+    [
+     "a) the tables m and s"
+    ],
+    [
+     "b) the least number of scalar multiplications"
+    ],
+    [
+     "c) the optimal parenthesization"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "entry",
+    "working",
+    "value"
+   ],
+   "rows": [
+    [
+     "m[1,2], m[2,3], m[3,4]",
+     "3·5·2,  5·2·4,  2·4·6",
+     "30, 40, 48"
+    ],
+    [
+     "m[1,3]",
+     "k=1: 40 + 3·5·4 = 100;  k=2: 30 + 3·2·4 = 54",
+     "54, s = 2"
+    ],
+    [
+     "m[2,4]",
+     "k=2: 48 + 5·2·6 = 108;  k=3: 40 + 5·4·6 = 160",
+     "108, s = 2"
+    ],
+    [
+     "m[1,4]",
+     "k=1: 108 + 90 = 198;  k=2: 30 + 48 + 36 = 114;  k=3: 54 + 72 = 126",
+     "114, s = 2"
+    ],
+    [
+     "c)",
+     "split after A2: (A1 A2)(A3 A4)",
+     "((A1 A2)(A3 A4))"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "Multiplying a chain of matrices gives the same answer whichever pair you multiply first. But the work can differ by a factor of ten, or a thousand. Choosing the best order is the classic first example of dynamic programming, the main technique of this module."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Dynamic programming: matrix chain multiplication"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Why the order matters, why we cannot try every order, the recurrence, and filling the table."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then reading off the answer, what makes a problem dynamic programming, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ord",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: multiplying a p by q matrix by a q by r matrix takes p times q times r scalar multiplications."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: order matters"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "ord"
+      },
+      {
+       "action": "highlight",
+       "target": "ord[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cormen's example: A1 is 10 by 100, A2 is 100 by 5, A3 is 5 by 50. First A1 times A2, then times A3: 5000 plus 2500, 7500."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ord[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "First A2 times A3, then A1 times the result: 25 thousand plus 50 thousand, 75 thousand."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ord[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The same product, ten times the work. Our problem: given the dimensions, find the parenthesization with the fewest scalar multiplications."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ord[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "cost of p×q times q×r = p·q·r"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cnt",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: why not try every order? Three matrices have 2 parenthesizations; four have 5; five have 14."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: too many orders"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ord"
+      },
+      {
+       "action": "show",
+       "target": "cnt"
+      },
+      {
+       "action": "highlight",
+       "target": "cnt[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Ten matrices have 4862. The counts are the Catalan numbers, which grow exponentially, roughly 4 to the n."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "cnt[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "brute force is exponential"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rec",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: let matrix A i be p i minus 1 by p i. Let m of i, j be the least cost of multiplying A i through A j."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: the recurrence"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "cnt"
+      },
+      {
+       "action": "show",
+       "target": "rec"
+      },
+      {
+       "action": "highlight",
+       "target": "rec[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Whatever the best order, its very last multiplication splits the chain at some k: the product of A i to A k, times the product of A k plus 1 to A j."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rec[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "rec[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And each half must itself be computed optimally, or we could improve the whole. So m of i, j is the minimum over k of: the cost of the left part, plus the right part, plus p i minus 1 times p k times p j to multiply the two results. A single matrix costs 0."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rec[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "rec[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "We also record s of i, j, the k that won, so we can rebuild the order later."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "rec[3]"
+      },
+      {
+       "action": "highlight",
+       "target": "rec[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "m[i,j] = min over k of left + right + p(i−1)·p(k)·p(j)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tab",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: four matrices, 5 by 4, 4 by 6, 6 by 2 and 2 by 7. So p is 5, 4, 6, 2, 7."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: filling the table"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "rec"
+      },
+      {
+       "action": "show",
+       "target": "dims"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The diagonal, single matrices, costs 0. We fill the table by chain length: first all pairs, then triples, then the whole chain."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "dims"
+      },
+      {
+       "action": "show",
+       "target": "mt"
+      },
+      {
+       "action": "show",
+       "target": "stt"
+      },
+      {
+       "action": "highlight",
+       "target": "mt[0][1]"
+      },
+      {
+       "action": "highlight",
+       "target": "mt[1][2]",
+       "delay": 0.2
+      },
+      {
+       "action": "highlight",
+       "target": "mt[2][3]",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "mt[3][4]",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pairs have only one way: m 1 2 is 5 times 4 times 6, 120. m 2 3 is 4 times 6 times 2, 48. m 3 4 is 6 times 2 times 7, 84."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "mt[0][2]",
+       "value": "120"
+      },
+      {
+       "action": "set",
+       "target": "stt[0][1]",
+       "value": "1",
+       "delay": 0.1
+      },
+      {
+       "action": "set",
+       "target": "mt[1][3]",
+       "value": "48",
+       "delay": 0.35
+      },
+      {
+       "action": "set",
+       "target": "stt[1][2]",
+       "value": "2",
+       "delay": 0.45
+      },
+      {
+       "action": "set",
+       "target": "mt[2][4]",
+       "value": "84",
+       "delay": 0.7
+      },
+      {
+       "action": "set",
+       "target": "stt[2][3]",
+       "value": "3",
+       "delay": 0.8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "m 1 3: split after A1: 0 plus 48 plus 5 times 4 times 2, 40: 88. Split after A2: 120 plus 0 plus 5 times 6 times 2, 60: 180. The minimum is 88, with k equal to 1."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mt[0][3]"
+      },
+      {
+       "action": "set",
+       "target": "mt[0][3]",
+       "value": "88",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "stt[0][2]",
+       "value": "1",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "m 2 4: split after A2: 0 plus 84 plus 4 times 6 times 7, 168: 252. Split after A3: 48 plus 0 plus 4 times 2 times 7, 56: 104. So 104, with k equal to 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mt[1][4]"
+      },
+      {
+       "action": "set",
+       "target": "mt[1][4]",
+       "value": "104",
+       "delay": 0.6
+      },
+      {
+       "action": "set",
+       "target": "stt[1][3]",
+       "value": "3",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The whole chain, m 1 4, has three choices. k equal to 1: 0 plus 104 plus 5 times 4 times 7, 140: 244."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mt[0][4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "k equal to 2: 120 plus 84 plus 5 times 6 times 7, 210: 414. k equal to 3: 88 plus 0 plus 5 times 2 times 7, 70: 158."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mt[0][4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The minimum is 158, splitting after A3. Every entry used only entries already in the table, for shorter chains."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "mt[0][4]",
+       "value": "158"
+      },
+      {
+       "action": "set",
+       "target": "stt[0][3]",
+       "value": "3",
+       "delay": 0.2
+      },
+      {
+       "action": "mark",
+       "target": "mt[0][4]",
+       "delay": 0.5
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "least cost: 158"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: now read the order from s. s 1 4 is 3: the last product is A1 to A3, times A4."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: reading the answer"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "highlight",
+       "target": "stt[0][3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "s 1 3 is 1: A1 times the product A2 A3. So the order is: A2 times A3 first, then A1 times that, then times A4."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stt[0][2]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "((A1 (A2 A3)) A4): 158"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Check: A2 A3 costs 48 and gives a 4 by 2. A1 times it: 5 times 4 times 2, 40, giving 5 by 2. Times A4: 5 times 2 times 7, 70. Total 158. Plain left to right would cost 250."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "mt[0][4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Cormen's MATRIX-CHAIN-ORDER fills the table by chain length l, then by starting point i, then tries every split k."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "mt"
+      },
+      {
+       "action": "hide",
+       "target": "stt"
+      },
+      {
+       "action": "show",
+       "target": "mc"
+      },
+      {
+       "action": "mark_lines",
+       "target": "mc",
+       "from": 1,
+       "to": 8
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Three nested loops, each up to n: Theta of n cubed time, and Theta of n squared space for the tables. For Cormen's six-matrix example, the answer is 15125, found instantly, among 42 possible orders."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "mc",
+       "from": 11,
+       "to": 11
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Θ(n³) time, Θ(n²) space"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dp",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: two properties made this work. Optimal substructure: the best solution is built from best solutions to subproblems."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: what makes it DP"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "mc"
+      },
+      {
+       "action": "show",
+       "target": "dpw"
+      },
+      {
+       "action": "highlight",
+       "target": "dpw[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Overlapping subproblems: a plain recursive solution would compute m 2 3 many times over, and take exponential time."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dpw[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Dynamic programming computes each subproblem once and stores it. Divide and conquer, by contrast, splits into independent subproblems that never repeat."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dpw[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "We filled the table bottom up. The alternative, top-down memoisation, is a recursion that checks the table before computing. Same Theta of n cubed."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dpw[3..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The lab's add-multiply chain fits the same idea: the plus signs cut it into separate product chains. Optimise each chain with this table, then add the results."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "dpw[5]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "DP: optimal substructure + overlapping subproblems"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "dpw"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Fill m and s, give the least cost, and the parenthesization. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pairs: m 1 2 is 3 times 5 times 2, 30. m 2 3 is 5 times 2 times 4, 40. m 3 4 is 2 times 4 times 6, 48."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "m 1 3: k equal to 1 gives 40 plus 60, 100; k equal to 2 gives 30 plus 24, 54. So 54."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "m 2 4: k equal to 2 gives 48 plus 60, 108; k equal to 3 gives 40 plus 120, 160. So 108."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "m 1 4: k equal to 1: 108 plus 90, 198. k equal to 2: 30 plus 48 plus 36, 114. k equal to 3: 54 plus 72, 126. The minimum is 114."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[3][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "s 1 4 is 2: split after A2. So A1 A2, times A3 A4, for 114 multiplications."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: using the wrong dimensions in the last term. It is p i minus 1, p k, p j: the rows of the first matrix, the split, and the columns of the last."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "last term: p(i−1) · p(k) · p(j)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The order of a matrix chain changes the cost hugely, and there are exponentially many orders. m of i, j is the minimum over the last split k."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Filling the table by chain length takes Theta of n cubed, and s rebuilds the order. Optimal substructure plus overlapping subproblems means dynamic programming."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: dynamic programming on strings. The longest common subsequence."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: longest common subsequence"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

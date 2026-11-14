@@ -1,0 +1,1217 @@
+{
+ "version": 1,
+ "title": "Approximation: the travelling salesman",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "TSP, and the triangle inequality"
+    ],
+    [
+     2,
+     "The idea: a tree is almost a tour"
+    ],
+    [
+     3,
+     "APPROX-TSP-TOUR"
+    ],
+    [
+     4,
+     "Six cities, traced"
+    ],
+    [
+     5,
+     "Proof: at most twice the optimum"
+    ],
+    [
+     6,
+     "Without the triangle inequality; better ratios"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "pb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the travelling salesman",
+    ""
+   ],
+   "rows": [
+    [
+     "given",
+     "n cities and the cost c(u, v) of travelling between each pair"
+    ],
+    [
+     "find",
+     "the cheapest tour visiting every city once and returning home"
+    ],
+    [
+     "hard",
+     "NP-hard (HAM-CYCLE reduces to it, video 2)"
+    ],
+    [
+     "triangle inequality",
+     "c(u, w) ≤ c(u, v) + c(v, w): a detour never saves"
+    ],
+    [
+     "holds for",
+     "road and straight-line distances, travel times on sensible maps; here, city-block distance"
+    ]
+   ]
+  },
+  {
+   "id": "id",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "the idea",
+    ""
+   ],
+   "rows": [
+    [
+     "delete one edge from the best tour",
+     "a spanning tree (a path)"
+    ],
+    [
+     "so",
+     "MST weight ≤ cost of the optimal tour"
+    ],
+    [
+     "walk around the MST",
+     "every edge twice: a closed walk of cost 2 × MST"
+    ],
+    [
+     "skip cities already visited",
+     "shortcuts never cost more (triangle inequality)"
+    ]
+   ]
+  },
+  {
+   "id": "ac",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "APPROX-TSP-TOUR(G, c)",
+    "    choose a root r",
+    "    T = MST-PRIM(G, c, r)                 // video 7 of Module 3",
+    "    H = the vertices of T in preorder     // a depth-first walk, first visits only",
+    "    return the tour H, then back to r",
+    "",
+    "MST: O(V²) on a complete graph;  preorder: O(V)"
+   ]
+  },
+  {
+   "id": "g",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "a",
+     "label": "a(0,0)",
+     "at": [
+      0,
+      5
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "b",
+     "label": "b(3,0)",
+     "at": [
+      3,
+      5
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "c",
+     "label": "c(3,2)",
+     "at": [
+      3,
+      3
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "d",
+     "label": "d(0,3)",
+     "at": [
+      0,
+      2
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "e",
+     "label": "e(1,5)",
+     "at": [
+      1,
+      0
+     ],
+     "shape": "pill"
+    },
+    {
+     "id": "f",
+     "label": "f(5,4)",
+     "at": [
+      5,
+      1
+     ],
+     "shape": "pill"
+    }
+   ],
+   "edges": [
+    {
+     "from": "b",
+     "to": "a",
+     "label": "3"
+    },
+    {
+     "from": "c",
+     "to": "b",
+     "label": "2"
+    },
+    {
+     "from": "d",
+     "to": "a",
+     "label": "3"
+    },
+    {
+     "from": "e",
+     "to": "d",
+     "label": "3"
+    },
+    {
+     "from": "f",
+     "to": "c",
+     "label": "4"
+    }
+   ]
+  },
+  {
+   "id": "tt",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "step",
+    "result"
+   ],
+   "rows": [
+    [
+     "MST from a (Prim)",
+     ""
+    ],
+    [
+     "its weight",
+     ""
+    ],
+    [
+     "preorder",
+     ""
+    ],
+    [
+     "tour costs",
+     ""
+    ],
+    [
+     "tour total",
+     ""
+    ],
+    [
+     "optimal (brute force)",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "pf",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "\"delete an edge from the optimal tour \" H^*: \" a spanning tree, so \" c(T) <= c(H^*)",
+    "\"full walk around \" T: \" each edge twice: \" c(W) = 2 c(T)",
+    "\"shortcutting repeated cities never increases cost (triangle inequality):\" quad c(H) <= c(W)",
+    "c(H) <= 2 c(T) <= 2 c(H^*) quad \"a 2-approximation\"",
+    "\"here: \" 15 <= 20, quad 24 <= 30 <= 40"
+   ]
+  },
+  {
+   "id": "nt",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "beyond",
+    ""
+   ],
+   "rows": [
+    [
+     "no triangle inequality",
+     "no constant ratio at all, unless P = NP"
+    ],
+    [
+     "why",
+     "with costs 1 for G's edges and ρn + 1 otherwise, a ρ-approximation would decide HAM-CYCLE"
+    ],
+    [
+     "Christofides (1976)",
+     "MST plus a minimum matching on odd-degree vertices: ratio 1.5"
+    ],
+    [
+     "Euclidean plane",
+     "approximation schemes get within 1 + ε, for any ε > 0"
+    ],
+    [
+     "in practice",
+     "heuristics like 2-opt improve tours to within a few percent"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question: costs AB 4, AC 3, AD 8, BC 5, BD 4, CD 5"
+   ],
+   "rows": [
+    [
+     "a) the MST, built by Prim from A"
+    ],
+    [
+     "b) the APPROX-TSP-TOUR tour (children in alphabetical order) and its cost"
+    ],
+    [
+     "c) the optimal tour, and the ratio achieved"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a)",
+     "A–C 3, then A–B 4, then B–D 4",
+     "weight 11"
+    ],
+    [
+     "b)",
+     "preorder: A, B, D, C;  4 + 4 + 5 + 3",
+     "A B D C A: 16"
+    ],
+    [
+     "c)",
+     "the three tours cost 16 (ABDC), 22 (ABCD), 20 (ACBD)",
+     "optimal 16: ratio 1"
+    ],
+    [
+     "check",
+     "16 ≤ 2 × 11 = 22",
+     "within the bound"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "A delivery van must visit every customer once and return to the depot, by the shortest route. That is the travelling salesman problem, the most famous NP-hard problem of all. When distances behave like real distances, a minimum spanning tree gives a route at most twice the best."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Approximation: the travelling salesman"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The problem and the triangle inequality, the idea, the algorithm, and a trace."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the proof of the factor 2, what goes wrong without the triangle inequality, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: given n cities and the cost of travelling between each pair, find the cheapest tour that visits every city once and comes home."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the problem"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "pb"
+      },
+      {
+       "action": "highlight",
+       "target": "pb[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "It is NP-hard: Hamiltonian cycle reduces to it, as we saw in video 2."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "We assume the triangle inequality: going from u to w directly never costs more than going via v. A detour never saves."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Real distances satisfy it. Our example uses city-block distance: blocks east-west plus blocks north-south."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "metric TSP: detours never help"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "id",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: take the optimal tour and delete one edge. What remains is a path through every city: a spanning tree."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: the idea"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pb"
+      },
+      {
+       "action": "show",
+       "target": "id"
+      },
+      {
+       "action": "highlight",
+       "target": "id[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So the minimum spanning tree weighs no more than the optimal tour. That is our lower bound."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "id[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Walk around the spanning tree, like tracing its outline: every edge is used twice, once each way. That walk costs exactly twice the tree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "id[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The walk revisits cities. Skip each repeat, going straight to the next new city. By the triangle inequality, each shortcut costs no more."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "id[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "tour ≤ walk = 2 × MST ≤ 2 × optimal"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ac",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: Cormen's APPROX-TSP-TOUR. Choose a root, and build a minimum spanning tree with Prim's algorithm."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: the algorithm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "id"
+      },
+      {
+       "action": "show",
+       "target": "ac"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 1,
+       "to": 3
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "List the vertices in preorder: a depth-first walk, writing each vertex down the first time it is reached. That is exactly the shortcut walk."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 4,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The tour visits them in that order and returns to the root."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Prim on a complete graph costs O of V squared; the preorder walk is linear."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 7,
+       "to": 7
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "MST, then preorder"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: six cities on a street grid. Distances count blocks: the difference in x plus the difference in y. Here is the minimum spanning tree Prim builds from a."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: six cities"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ac"
+      },
+      {
+       "action": "show",
+       "target": "g"
+      },
+      {
+       "action": "show",
+       "target": "tt"
+      },
+      {
+       "action": "set",
+       "target": "tt[0][1]",
+       "value": "a–b 3, b–c 2, a–d 3, d–e 3, c–f 4",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "tt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Its weight: 3 plus 2 plus 3 plus 3 plus 4, 15."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[1][1]",
+       "value": "15"
+      },
+      {
+       "action": "highlight",
+       "target": "tt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Preorder from a: a first, then its first child b, then b's child c, then c's child f. Back up to a's second child, d, then d's child e."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[2][1]",
+       "value": "a, b, c, f, d, e"
+      },
+      {
+       "action": "highlight",
+       "target": "tt[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "g.a"
+      },
+      {
+       "action": "highlight",
+       "target": "g.b",
+       "delay": 0.15
+      },
+      {
+       "action": "highlight",
+       "target": "g.c",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "g.f",
+       "delay": 0.45
+      },
+      {
+       "action": "highlight",
+       "target": "g.d",
+       "delay": 0.6
+      },
+      {
+       "action": "highlight",
+       "target": "g.e",
+       "delay": 0.75
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The tour a, b, c, f, d, e, back to a. Its legs cost 3, 2, 4, 6, 3 and 6."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[3][1]",
+       "value": "3 + 2 + 4 + 6 + 3 + 6"
+      },
+      {
+       "action": "highlight",
+       "target": "tt[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "On the map: four legs are tree edges. The two shortcuts, f to d and e back to a, replace walking back along the tree."
+     },
+     "do": [
+      {
+       "action": "add_edge",
+       "target": "g",
+       "from": "f",
+       "to": "d",
+       "label": "6"
+      },
+      {
+       "action": "add_edge",
+       "target": "g",
+       "from": "e",
+       "to": "a",
+       "label": "6",
+       "delay": 0.3
+      },
+      {
+       "action": "mark",
+       "target": "g.b->a",
+       "delay": 0.5
+      },
+      {
+       "action": "mark",
+       "target": "g.c->b",
+       "delay": 0.55
+      },
+      {
+       "action": "mark",
+       "target": "g.f->c",
+       "delay": 0.6
+      },
+      {
+       "action": "mark",
+       "target": "g.f->d",
+       "delay": 0.65
+      },
+      {
+       "action": "mark",
+       "target": "g.e->d",
+       "delay": 0.7
+      },
+      {
+       "action": "mark",
+       "target": "g.e->a",
+       "delay": 0.75
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Total 24. Trying all 60 tours by brute force, the best is a, b, c, f, e, d, costing 20. Our tour is 1.2 times the optimum, well inside the factor 2."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[4][1]",
+       "value": "24"
+      },
+      {
+       "action": "set",
+       "target": "tt[5][1]",
+       "value": "a b c f e d: 20",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "tt[4..=5]"
+      },
+      {
+       "action": "mark",
+       "target": "tt[4]",
+       "delay": 0.6
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "approx 24 · optimal 20 · bound 2 × 15 = 30"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pf",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the proof. Delete any edge from an optimal tour: a spanning tree. So the MST costs at most the optimum."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: the factor 2"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "g"
+      },
+      {
+       "action": "hide",
+       "target": "tt"
+      },
+      {
+       "action": "show",
+       "target": "pf"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The full walk around the MST uses each edge twice: twice the MST."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pf[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Our tour is that walk with repeated cities skipped. Each skip replaces a detour by a direct hop, which by the triangle inequality is no longer."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pf[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Chain them: our tour is at most twice the MST, which is at most twice the optimum."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pf[3]"
+      },
+      {
+       "action": "mark",
+       "target": "pf[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In the example: MST 15 is at most 20; our tour 24 is at most the walk, 30, which is at most 40."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pf[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "c(H) ≤ 2 c(MST) ≤ 2 c(H*)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "nt",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: without the triangle inequality, no polynomial algorithm can guarantee any constant ratio, unless P equals NP."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: limits and better ratios"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pf"
+      },
+      {
+       "action": "show",
+       "target": "nt"
+      },
+      {
+       "action": "highlight",
+       "target": "nt[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The reason: give G's edges cost 1 and every other pair a huge cost. A good approximation would have to find a tour of cost n whenever one exists, which decides Hamiltonian cycle."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nt[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With the triangle inequality we can do better than 2. Christofides' algorithm adds a minimum matching on the odd-degree vertices of the MST, and achieves 1.5."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nt[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "For points in the plane, approximation schemes get within any factor above 1. And in practice, local improvement like 2-opt brings tours within a few percent of optimal."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "nt[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "metric: 2 (or 1.5) · general: no constant"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question on four cities."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "nt"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Build the MST, produce the approximate tour, and compare it with the optimum. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: from A, the cheapest edge is A, C, 3. Then A, B, 4. Then from the tree, B, D, 4. Weight 11."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: A's children are B and C; B's child is D. Preorder: A, B, D, C. The tour costs 4 plus 4 plus 5 plus 3: 16."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: four cities have only three distinct tours: 16, 22 and 20. So 16 is optimal, and here the approximation found it exactly."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[2][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "And 16 is within twice the MST, 22, as the theorem promises."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: walking the MST in level order instead of preorder. The proof needs the depth-first walk, whose shortcuts trace the doubled tree."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "preorder, not level order"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "With the triangle inequality, a minimum spanning tree costs at most the best tour, and its preorder walk, with repeats skipped, is a tour at most twice the tree."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=4]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So APPROX-TSP-TOUR is a 2-approximation; Christofides reaches 1.5; without the triangle inequality, no constant ratio is possible unless P equals NP."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "That completes Module 5, and the course: from arrays and lists, through trees, graphs and design techniques, to the limits of efficient computation."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "End of the course"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

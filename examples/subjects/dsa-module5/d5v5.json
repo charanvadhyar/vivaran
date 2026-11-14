@@ -1,0 +1,1314 @@
+{
+ "version": 1,
+ "title": "Approximation: vertex cover",
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "theme": "dark"
+ },
+ "objects": [
+  {
+   "id": "head",
+   "type": "text",
+   "region": "title",
+   "text": " "
+  },
+  {
+   "id": "takeaway",
+   "type": "text",
+   "region": "bottom",
+   "text": " "
+  },
+  {
+   "id": "stages",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "stage",
+    "what we do"
+   ],
+   "rows": [
+    [
+     1,
+     "The lab problem: monitoring a network"
+    ],
+    [
+     2,
+     "Approximation algorithms and the ratio ρ"
+    ],
+    [
+     3,
+     "APPROX-VERTEX-COVER"
+    ],
+    [
+     4,
+     "Cormen's example, edge by edge"
+    ],
+    [
+     5,
+     "Proof: never more than twice the best"
+    ],
+    [
+     6,
+     "Why not pick the busiest vertex?"
+    ],
+    [
+     7,
+     "Exam question"
+    ]
+   ]
+  },
+  {
+   "id": "pb",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "monitoring agents (lab 9)",
+    ""
+   ],
+   "rows": [
+    [
+     "network",
+     "nodes (servers, routers, switches) and links"
+    ],
+    [
+     "an agent on a node",
+     "monitors every link touching that node"
+    ],
+    [
+     "goal",
+     "every link monitored, with as few agents as possible"
+    ],
+    [
+     "that is",
+     "a minimum vertex cover: a set touching every edge"
+    ],
+    [
+     "but",
+     "VERTEX-COVER is NP-complete: no fast exact algorithm is known"
+    ]
+   ]
+  },
+  {
+   "id": "ap",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "approximation algorithm",
+    ""
+   ],
+   "rows": [
+    [
+     "runs in",
+     "polynomial time"
+    ],
+    [
+     "returns",
+     "a valid solution, not necessarily the best"
+    ],
+    [
+     "ratio ρ(n)",
+     "cost of our solution ≤ ρ × cost of the best, on every input"
+    ],
+    [
+     "2-approximation",
+     "never more than twice the optimum"
+    ],
+    [
+     "the catch",
+     "we must prove the bound without knowing the optimum"
+    ]
+   ]
+  },
+  {
+   "id": "ac",
+   "type": "code",
+   "region": "center",
+   "language": "text",
+   "lines": [
+    "APPROX-VERTEX-COVER(G)",
+    "    C = ∅;   E' = G.E",
+    "    while E' is not empty",
+    "        let (u, v) be any edge of E'",
+    "        C = C ∪ {u, v}                     // take BOTH ends",
+    "        remove from E' every edge touching u or v",
+    "    return C",
+    "",
+    "with adjacency lists: O(V + E)"
+   ]
+  },
+  {
+   "id": "g",
+   "type": "diagram",
+   "region": "left",
+   "layout": "grid",
+   "directed": false,
+   "nodes": [
+    {
+     "id": "a",
+     "label": "a",
+     "at": [
+      0,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "b",
+     "label": "b",
+     "at": [
+      1,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "c",
+     "label": "c",
+     "at": [
+      2,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "d",
+     "label": "d",
+     "at": [
+      3,
+      0
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "e",
+     "label": "e",
+     "at": [
+      1,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "f",
+     "label": "f",
+     "at": [
+      2,
+      1
+     ],
+     "shape": "circle"
+    },
+    {
+     "id": "g",
+     "label": "g",
+     "at": [
+      3,
+      1
+     ],
+     "shape": "circle"
+    }
+   ],
+   "edges": [
+    {
+     "from": "a",
+     "to": "b"
+    },
+    {
+     "from": "b",
+     "to": "c"
+    },
+    {
+     "from": "c",
+     "to": "d"
+    },
+    {
+     "from": "c",
+     "to": "e"
+    },
+    {
+     "from": "d",
+     "to": "e"
+    },
+    {
+     "from": "d",
+     "to": "f"
+    },
+    {
+     "from": "d",
+     "to": "g"
+    },
+    {
+     "from": "e",
+     "to": "f"
+    }
+   ]
+  },
+  {
+   "id": "tt",
+   "type": "table",
+   "region": "right",
+   "columns": [
+    "pick",
+    "add to C",
+    "edges removed"
+   ],
+   "rows": [
+    [
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     ""
+    ],
+    [
+     "",
+     "",
+     ""
+    ],
+    [
+     "result",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "id": "pf",
+   "type": "math",
+   "region": "center",
+   "lines": [
+    "A = \"the edges picked\": \" no two share an end (each pick removes its neighbours)\"",
+    "\"any vertex cover \" C^* \" must touch every edge of \" A: quad |C^*| >= |A|",
+    "\"our cover takes both ends of each:\" quad |C| = 2|A|",
+    "|C| = 2|A| <= 2|C^*| quad \"a 2-approximation\"",
+    "\"example: \" |A| = 3 => |C^*| >= 3; quad |C| = 6 <= 2 dot 3"
+   ]
+  },
+  {
+   "id": "gr",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "\"take the vertex of highest degree\"",
+    ""
+   ],
+   "rows": [
+    [
+     "sounds better",
+     "it often gives smaller covers in practice"
+    ],
+    [
+     "but",
+     "there are graphs where it is a factor of about log n worse than optimal"
+    ],
+    [
+     "no constant guarantee",
+     "its ratio grows with n"
+    ],
+    [
+     "the dumb-looking rule",
+     "taking both ends of any edge is guaranteed within 2"
+    ],
+    [
+     "better than 2?",
+     "no polynomial algorithm with ratio below about 1.36 unless P = NP"
+    ]
+   ]
+  },
+  {
+   "id": "q",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "exam question: the path 1–2–3–4–5–6"
+   ],
+   "rows": [
+    [
+     "a) run APPROX-VERTEX-COVER, picking the first remaining edge each time"
+    ],
+    [
+     "b) find an optimal cover"
+    ],
+    [
+     "c) what ratio did the approximation achieve here?"
+    ]
+   ]
+  },
+  {
+   "id": "qa",
+   "type": "table",
+   "region": "center",
+   "columns": [
+    "part",
+    "working",
+    "answer"
+   ],
+   "rows": [
+    [
+     "a)",
+     "pick 1–2: remove 1–2, 2–3 · pick 3–4: remove 3–4, 4–5 · pick 5–6",
+     "C = {1, 2, 3, 4, 5, 6}"
+    ],
+    [
+     "b)",
+     "{2, 4, 5}: covers 1–2, 2–3, 3–4, 4–5, 5–6; 3 picked edges force at least 3",
+     "size 3"
+    ],
+    [
+     "c)",
+     "6 / 3",
+     "exactly 2: the bound is tight"
+    ]
+   ]
+  }
+ ],
+ "scenes": [
+  {
+   "id": "intro",
+   "steps": [
+    {
+     "say": {
+      "en": "The lab asks for something that sounds simple: place monitoring agents on network nodes so that every link is watched, using as few agents as possible. That is vertex cover, which is NP-complete. So we settle for a fast answer that is provably close to the best."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "head"
+      },
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Approximation: vertex cover"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Here are the seven stages."
+     },
+     "do": [
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The lab problem, what an approximation ratio means, the algorithm, and Cormen's example."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then the proof that it is never worse than twice optimal, why a greedier rule fails, and an exam question."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[4..=6]"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pb",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 1: the network has nodes and links. An agent on a node watches every link touching it."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 1 of 7: the problem"
+      },
+      {
+       "action": "hide",
+       "target": "stages"
+      },
+      {
+       "action": "show",
+       "target": "pb"
+      },
+      {
+       "action": "highlight",
+       "target": "pb[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "We want every link watched with the fewest agents."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In graph terms: a minimum vertex cover, a smallest set of vertices touching every edge."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Putting an agent on every node always works, but wastes agents. On a star-shaped network, one agent at the hub is enough. The question is how few will do in general."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Last video showed vertex cover is NP-complete. For a network of thousands of nodes, an exact answer is out of reach."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "pb[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "vertex cover: touch every edge"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ap",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 2: an approximation algorithm runs in polynomial time, and always returns a valid solution."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 2 of 7: approximation ratio"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pb"
+      },
+      {
+       "action": "show",
+       "target": "ap"
+      },
+      {
+       "action": "highlight",
+       "target": "ap[0..=1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Its ratio rho bounds how far from the best it can be: our cost is at most rho times the optimal cost, on every input."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ap[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "A 2-approximation never uses more than twice the optimum."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ap[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Think of a quote that says: this job will cost at most twice what the best contractor in the world would charge. Not perfect, but a promise you can plan around."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ap[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The challenge: proving that bound without ever knowing the optimum. We need a lower bound on the best possible answer."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "ap[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "cost ≤ ρ × optimum, always"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ac",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 3: Cormen's APPROX-VERTEX-COVER. Start with an empty cover and all the edges."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 3 of 7: the algorithm"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ap"
+      },
+      {
+       "action": "show",
+       "target": "ac"
+      },
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 1,
+       "to": 2
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "While edges remain, pick any one, u, v."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 3,
+       "to": 4
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Put both its ends into the cover. One of them must be in any cover; we take both, because we do not know which."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 5,
+       "to": 5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Then delete every edge touching u or v: they are all covered now."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 6,
+       "to": 7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Each edge is examined a constant number of times: linear time, O of V plus E."
+     },
+     "do": [
+      {
+       "action": "mark_lines",
+       "target": "ac",
+       "from": 9,
+       "to": 9
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "take both ends of any uncovered edge"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "trace",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 4: Cormen's network of seven nodes and eight links."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 4 of 7: an example"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "ac"
+      },
+      {
+       "action": "show",
+       "target": "g"
+      },
+      {
+       "action": "show",
+       "target": "tt"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Pick edge b, c. Add b and c. Remove every edge touching them: a b, b c, c d and c e. Four links covered."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.b->c"
+      },
+      {
+       "action": "mark",
+       "target": "g.b",
+       "delay": 0.3
+      },
+      {
+       "action": "mark",
+       "target": "g.c",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tt[0][0]",
+       "value": "b–c"
+      },
+      {
+       "action": "set",
+       "target": "tt[0][1]",
+       "value": "b, c",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tt[0][2]",
+       "value": "ab, bc, cd, ce",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "tt[0]"
+      },
+      {
+       "action": "dim",
+       "target": "g.a->b",
+       "delay": 0.6
+      },
+      {
+       "action": "dim",
+       "target": "g.b->c",
+       "delay": 0.65
+      },
+      {
+       "action": "dim",
+       "target": "g.c->d",
+       "delay": 0.7
+      },
+      {
+       "action": "dim",
+       "target": "g.c->e",
+       "delay": 0.75
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Of the remaining four, pick e, f. Add e and f. Remove d e, d f and e f."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.e->f"
+      },
+      {
+       "action": "mark",
+       "target": "g.e",
+       "delay": 0.3
+      },
+      {
+       "action": "mark",
+       "target": "g.f",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tt[1][0]",
+       "value": "e–f"
+      },
+      {
+       "action": "set",
+       "target": "tt[1][1]",
+       "value": "e, f",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tt[1][2]",
+       "value": "de, df, ef",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "tt[1]"
+      },
+      {
+       "action": "dim",
+       "target": "g.d->e",
+       "delay": 0.6
+      },
+      {
+       "action": "dim",
+       "target": "g.d->f",
+       "delay": 0.65
+      },
+      {
+       "action": "dim",
+       "target": "g.e->f",
+       "delay": 0.7
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Only d, g is left. Add d and g. Nothing remains."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.d->g"
+      },
+      {
+       "action": "mark",
+       "target": "g.d",
+       "delay": 0.3
+      },
+      {
+       "action": "mark",
+       "target": "g.g",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tt[2][0]",
+       "value": "d–g"
+      },
+      {
+       "action": "set",
+       "target": "tt[2][1]",
+       "value": "d, g",
+       "delay": 0.3
+      },
+      {
+       "action": "set",
+       "target": "tt[2][2]",
+       "value": "dg",
+       "delay": 0.5
+      },
+      {
+       "action": "highlight",
+       "target": "tt[2]"
+      },
+      {
+       "action": "dim",
+       "target": "g.d->g",
+       "delay": 0.6
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The cover is b, c, d, e, f and g: six agents. Every link is watched."
+     },
+     "do": [
+      {
+       "action": "set",
+       "target": "tt[3][1]",
+       "value": "6 vertices"
+      },
+      {
+       "action": "set",
+       "target": "tt[3][2]",
+       "value": "optimal: b, d, e = 3",
+       "delay": 0.4
+      },
+      {
+       "action": "highlight",
+       "target": "tt[3]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "our cover 6, optimal 3"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The edge picked each time can be any uncovered one. Picking d, e first covers six links at once; then a, b finishes: a cover of four. Different choices give different covers, but every choice stays within twice the optimum."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.d->e"
+      },
+      {
+       "action": "highlight",
+       "target": "g.a->b",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The best cover is just b, d and e: three. Our answer is exactly twice the optimum, the worst the algorithm can ever do."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "g.b"
+      },
+      {
+       "action": "highlight",
+       "target": "g.d",
+       "delay": 0.3
+      },
+      {
+       "action": "highlight",
+       "target": "g.e",
+       "delay": 0.6
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pf",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 5: the proof. Let A be the set of edges the algorithm picked. Each pick removed every edge touching its ends, so no two picked edges share a vertex."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 5 of 7: the factor 2"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "g"
+      },
+      {
+       "action": "hide",
+       "target": "tt"
+      },
+      {
+       "action": "show",
+       "target": "pf"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Any vertex cover, including the optimal one, must touch every edge in A, and since those edges share no vertices, it needs a different vertex for each. So the optimum is at least the size of A."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pf[1]"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Our cover takes both ends of each edge in A: exactly twice the size of A."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pf[2]"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Put together: our cover is at most twice the optimum. That is the lower-bound trick: the picked edges prove the optimum cannot be small."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pf[3]"
+      },
+      {
+       "action": "mark",
+       "target": "pf[3]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "In the example: 3 picked edges, so any cover needs at least 3; we used 6."
+     },
+     "do": [
+      {
+       "action": "reveal",
+       "target": "pf[4]"
+      },
+      {
+       "action": "highlight",
+       "target": "pf[4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "|C| = 2|A| ≤ 2|C*|"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gr",
+   "steps": [
+    {
+     "say": {
+      "en": "Stage 6: wouldn't it be smarter to pick the busiest vertex, the one touching the most links?"
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Stage 6 of 7: the greedy alternative"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "pf"
+      },
+      {
+       "action": "show",
+       "target": "gr"
+      },
+      {
+       "action": "highlight",
+       "target": "gr[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Often it does better. But there are graphs where it uses about log n times the optimum."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gr[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "So it has no constant guarantee: its worst case grows with the network."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gr[2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The simple rule, taking both ends of any edge, always stays within 2. And unless P equals NP, no polynomial algorithm can guarantee better than about 1.36."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "gr[3..=4]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "a guarantee beats a good guess"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "steps": [
+    {
+     "say": {
+      "en": "Now an exam question on the path 1, 2, 3, 4, 5, 6."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Exam question"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "gr"
+      },
+      {
+       "action": "show",
+       "target": "q"
+      },
+      {
+       "action": "highlight",
+       "target": "q[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Run the algorithm, find an optimal cover, and compute the ratio. Pause and work it out."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "q[1..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "a: pick 1, 2, which also covers 2, 3. Pick 3, 4, which covers 4, 5. Pick 5, 6. The cover is all six vertices."
+     },
+     "do": [
+      {
+       "action": "hide",
+       "target": "q"
+      },
+      {
+       "action": "show",
+       "target": "qa"
+      },
+      {
+       "action": "highlight",
+       "target": "qa[0]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "b: 2, 4 and 5 cover all five edges. And the three picked edges share no vertices, so no cover can be smaller than 3."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[1]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "c: 6 against 3: a ratio of exactly 2. The bound is tight: some inputs really do reach it."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "qa[2]"
+      },
+      {
+       "action": "mark",
+       "target": "qa[2][2]",
+       "delay": 0.5
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "The usual slip: adding only one end of the chosen edge. That can leave other edges uncovered, or break the proof; take both."
+     },
+     "do": [
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "both ends, every pick"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "recap",
+   "steps": [
+    {
+     "say": {
+      "en": "Let us walk the stages again."
+     },
+     "do": [
+      {
+       "action": "replace",
+       "target": "head",
+       "text": "Recap"
+      },
+      {
+       "action": "hide",
+       "target": "takeaway"
+      },
+      {
+       "action": "hide",
+       "target": "qa"
+      },
+      {
+       "action": "show",
+       "target": "stages"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Placing monitoring agents is minimum vertex cover, which is NP-complete. An approximation runs fast and promises a ratio."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[0..=2]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Taking both ends of any uncovered edge gives a cover at most twice optimal, because the picked edges force the optimum to be at least half as large."
+     },
+     "do": [
+      {
+       "action": "highlight",
+       "target": "stages[3..=5]"
+      }
+     ]
+    },
+    {
+     "say": {
+      "en": "Next video: covering a whole universe with as few sets as possible. Set cover, and its greedy approximation."
+     },
+     "do": [
+      {
+       "action": "mark",
+       "target": "stages[0..=6]"
+      },
+      {
+       "action": "write",
+       "target": "takeaway"
+      },
+      {
+       "action": "replace",
+       "target": "takeaway",
+       "text": "Next: set cover"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
