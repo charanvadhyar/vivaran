@@ -256,6 +256,25 @@ def _split(text: str, limit: int = MAX_CHARS) -> list[str]:
     return pieces
 
 
+EMPTY_RETRIES = 5
+
+
+def _audible(wav: bytes) -> bool:
+    """False for an empty or silent clip: under 0.2 s, or no sample louder than 300."""
+    import array
+    import sys
+    try:
+        with wave.open(io.BytesIO(wav), "rb") as w:
+            frames = w.readframes(w.getnframes())
+            rate = w.getframerate() or RATE
+    except (wave.Error, EOFError):
+        return False
+    samples = array.array("h", frames[: len(frames) // 2 * 2])
+    if sys.byteorder == "big":
+        samples.byteswap()
+    return len(samples) / rate >= 0.2 and max((abs(v) for v in samples), default=0) >= 300
+
+
 def _join_wavs(parts: list[bytes]) -> bytes:
     """One WAV from the pieces, always with a fresh header: Timbre's header
     gives a streaming placeholder length (seen 9 November 2026), which made a
@@ -317,7 +336,16 @@ class Gnani:
                 "audio_config": {"sample_rate": RATE, "num_channels": 1, "sample_width": 2,
                                  "encoding": "linear_pcm", "container": "wav"},
             }
-            parts.append(self._send(TTS_URL, json.dumps(body).encode("utf-8"), "application/json"))
+            data = json.dumps(body).encode("utf-8")
+            # Timbre sometimes answers 200 with an empty or silent clip (about
+            # one request in five, Nov 2026); the same text speaks fine when
+            # asked again. Retry those before giving up.
+            for attempt in range(1, EMPTY_RETRIES + 1):
+                audio = self._send(TTS_URL, data, "application/json")
+                if _audible(audio) or attempt == EMPTY_RETRIES:
+                    break
+                self._sleep(1.5 * attempt)
+            parts.append(audio)
         return _join_wavs(parts)
 
     def transcribe(self, wav: bytes, language: str, *, keyterms: list[str] | None = None) -> str:
