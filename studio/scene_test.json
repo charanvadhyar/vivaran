@@ -1,0 +1,7 @@
+{"job":"meshtest","engine":"WORKBENCH","resolution":[960,540],"fps":30,"frames":48,
+ "world":[0.11,0.12,0.14],
+ "camera":{"dist":6.5,"elev":52,"azim":35,"orbit_deg":30},
+ "objects":[
+   {"id":"g1","part":"gear","params":{"teeth":12,"r_pitch":1.0},"location":[-1.02,0,0],"spin_dps":60,"spin_phase":0},
+   {"id":"g2","part":"gear","params":{"teeth":12,"r_pitch":1.0},"location":[1.02,0,0],"spin_dps":-60,"spin_phase":15}
+ ]}
