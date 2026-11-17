@@ -235,8 +235,8 @@ class Studio:
             finally:
                 job.finished = time.time()
 
-    def _voice(self, speaker: str | None, pace: float):
-        provider = providers.current()
+    def _voice(self, speaker: str | None, pace: float, api_key: str | None = None):
+        provider = providers.current(api_key=api_key)
         if provider.name == "sarvam":
             return provider.voice(speaker or None, pace, requests_per_minute=self.requests_per_minute)
         return provider.voice(speaker or None, pace)

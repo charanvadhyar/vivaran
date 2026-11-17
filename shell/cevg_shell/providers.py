@@ -24,15 +24,17 @@ class Gnani:
     label = "Gnani Timbre"
     pace_range = (0.85, 1.15)
 
-    def __init__(self, model: str | None = None):
+    def __init__(self, model: str | None = None, api_key: str | None = None):
         self.model = model or os.environ.get("GNANI_MODEL", "").strip() or gnani.DEFAULT_MODEL
+        # A per-caller key (bring-your-own-key) overrides the server's env key when given.
+        self._api_key = (api_key or "").strip() or None
         gnani.voices(self.model)  # an unknown model fails here, not mid-render
 
     def available(self) -> bool:
-        return bool(os.environ.get(self.key_env, "").strip())
+        return bool(self._api_key or os.environ.get(self.key_env, "").strip())
 
     def key(self) -> str:
-        key = os.environ.get(self.key_env, "").strip()
+        key = self._api_key or os.environ.get(self.key_env, "").strip()
         if not key:
             raise ValueError(
                 "GNANI_API_KEY is not set. Make a key at app.gnani.ai/voice, then run\n"
@@ -121,11 +123,15 @@ class Sarvam:
         }
 
 
-def current(name: str | None = None):
-    """The provider named, else $CEVG_TTS, else Gnani."""
+def current(name: str | None = None, api_key: str | None = None):
+    """The provider named, else $CEVG_TTS, else Gnani.
+
+    `api_key`, when given, is a per-caller key (bring-your-own-key) that overrides
+    the server's env key for this provider instance. Only Gnani uses it today.
+    """
     name = (name or os.environ.get("CEVG_TTS") or "gnani").strip().lower()
     if name == "gnani":
-        return Gnani()
+        return Gnani(api_key=api_key)
     if name == "sarvam":
         return Sarvam()
     raise ValueError(f"unknown voice service `{name}`; CEVG_TTS must be `gnani` or `sarvam`")

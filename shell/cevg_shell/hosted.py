@@ -16,8 +16,12 @@ Settings come from the environment:
     CEVG_TTS            voice service: gnani (default) or sarvam
     GNANI_API_KEY       the platform's Gnani key (or SARVAM_API_KEY for Sarvam);
                         without it videos are silent
+    CEVG_KEY_SECRET     passphrase that pgcrypto uses to encrypt each user's own
+                        Gnani key in the database (shared with the website); a
+                        user who has set their own key renders on their own Gnani
+                        credits, and the platform key is only the free-taste default
     CEVG_WATERMARK      text in the corner of every video (default "Vivaran")
-    CEVG_DAILY_VOICE_MINUTES   voiced minutes one user may render per day (default 10)
+    CEVG_DAILY_VOICE_MINUTES   free voiced minutes a keyless user may render per day (default 10)
     CEVG_MAX_MINUTES    longest single video, in minutes (default 12)
 """
 
@@ -109,9 +113,29 @@ class Platform(Studio):
         self._users[token] = (time.time(), user)
         return user
 
+    def gnani_key_for(self, user_id: str) -> str | None:
+        """A user's own Gnani key, decrypted, or None if they have not set one.
+
+        Bring-your-own-key: when set, the render runs on the user's own Gnani
+        credits instead of the platform's. Needs CEVG_KEY_SECRET (the same
+        passphrase the website encrypts with); without it, BYOK is off and
+        everyone falls back to the platform key.
+        """
+        secret = os.environ.get("CEVG_KEY_SECRET", "").strip()
+        if not secret:
+            return None
+        row = self._one(
+            "select pgp_sym_decrypt(gnani_key_enc, %s) as key from users "
+            "where id = %s and gnani_key_enc is not null", (secret, user_id))
+        key = (row or {}).get("key")
+        if isinstance(key, (bytes, bytearray, memoryview)):
+            key = bytes(key).decode("utf-8", "replace")
+        key = (key or "").strip()
+        return key or None
+
     # -- limits ----------------------------------------------------------
 
-    def _check_limits(self, user_id: str, seconds: float, voiced: bool) -> None:
+    def _check_limits(self, user_id: str, seconds: float, voiced: bool, has_own_key: bool = False) -> None:
         if seconds > self.max_seconds:
             raise Limit(f"this video would be about {seconds / 60:.1f} minutes; the longest allowed is "
                         f"{self.max_seconds / 60:.0f} minutes. Shorten the script or split the topic in two.")
@@ -119,15 +143,18 @@ class Platform(Studio):
                          (user_id,))
         if busy and busy["n"] >= 1:
             raise Limit("this account already has a video rendering; wait for it to finish (call `status`)")
-        if voiced:
+        # A user who brought their own Gnani key renders on their own credits, so the
+        # free daily voiced-minute cap does not apply to them.
+        if voiced and not has_own_key:
             used = self._one(
                 "select coalesce(sum(seconds), 0) as s from videos where user_id = %s and voiced "
                 "and status = 'done' and created_at > now() - interval '24 hours'", (user_id,))
             left = self.daily_voice_seconds - float(used["s"] if used else 0)
             if seconds > left:
-                raise Limit(f"this account has {max(left, 0) / 60:.1f} voiced minutes left today and this video "
-                            f"needs about {seconds / 60:.1f}. Render it with voice=false (silent, with captions), "
-                            "make it shorter, or try again tomorrow.")
+                raise Limit(f"you have {max(left, 0) / 60:.1f} free voiced minutes left today and this video needs "
+                            f"about {seconds / 60:.1f}. Add your own Gnani API key in Settings on {self.site_url} to "
+                            "keep rendering on your own Gnani credits (no daily cap), render with voice=false "
+                            "(silent, with captions), make it shorter, or try again tomorrow.")
 
     # -- rendering -------------------------------------------------------
 
@@ -138,13 +165,19 @@ class Platform(Studio):
         estimate = self.estimate(script, language)  # validates too
         if "problem" in estimate:
             raise ValueError(estimate["problem"])
+        # Bring-your-own-key: if this user has set their own Gnani key, the render
+        # uses it (their credits, no daily cap); otherwise the platform key is the
+        # free-taste default, bounded by the daily voiced-minute limit.
+        own_key = self.gnani_key_for(user["id"]) if voice else None
         if voice:
-            provider = providers.current()
+            provider = providers.current(api_key=own_key)
             if not provider.available():
-                raise ValueError("voice is not available on this server right now; render with voice=false")
+                raise ValueError(
+                    f"voice needs a Gnani key: this server has none and your account has none. Add your own key in "
+                    f"Settings on {self.site_url}, or render with voice=false (silent, with captions).")
             provider.check(speaker or None, language, pace)
             speaker = speaker or provider.default_speaker(language)
-        self._check_limits(user["id"], estimate["seconds"], voice)
+        self._check_limits(user["id"], estimate["seconds"], voice, has_own_key=bool(own_key))
 
         video_id = uuid.uuid4().hex[:12]
         self._execute(
@@ -155,13 +188,14 @@ class Platform(Studio):
              estimate["steps"], subject))
         folder = Path(tempfile.mkdtemp(prefix="cevg-job-"))
         path = self._write(script, folder)
-        threading.Thread(target=self._render, args=(video_id, user, path, language, voice, captions, speaker, pace),
+        threading.Thread(target=self._render,
+                         args=(video_id, user, path, language, voice, captions, speaker, pace, own_key),
                          daemon=True).start()
         return {"job": video_id, "state": "queued", "estimated_minutes": estimate["minutes"],
                 "advice": "call `status` with this job id in about 20 seconds"}
 
     def _render(self, video_id: str, user: dict[str, Any], script: Path, language: str, voice: bool, captions: bool,
-                speaker: str, pace: float) -> None:
+                speaker: str, pace: float, own_key: str | None = None) -> None:
         def progress(message: str) -> None:
             self._execute("update videos set progress = %s where id = %s", (message, video_id))
 
@@ -173,7 +207,7 @@ class Platform(Studio):
                 characters = 0
                 note = "finished"
                 if voice:
-                    voice_obj = self._voice(speaker, pace)
+                    voice_obj = self._voice(speaker, pace, api_key=own_key)
                     result = narrate(script, out, voice_obj, language=language,
                                      cache_dir=self.cache_dir, cevg=self.cevg, burn_captions=captions, watermark=mark,
                                      listen=hasattr(voice_obj, "listen"), progress=progress)

@@ -73,3 +73,40 @@ export function userByHandle(handle: string): Promise<Pick<User, "id" | "name" |
 export function regenerateToken(id: string): Promise<User | null> {
   return one<User>(`update users set connector_token = $2 where id::text = $1 returning ${COLUMNS}`, [id, newToken()]);
 }
+
+// --- Bring-your-own Gnani key ------------------------------------------------
+// The key is stored encrypted at rest with pgcrypto (pgp_sym_encrypt), using the
+// shared passphrase CEVG_KEY_SECRET. The render server decrypts it with the same
+// passphrase when that user renders, so their videos run on their own Gnani
+// credits. We never keep the plaintext and never return it to the browser.
+
+export type GnaniKeyStatus = { set: boolean; setAt: string | null };
+
+function keySecret(): string {
+  const secret = process.env.CEVG_KEY_SECRET;
+  if (!secret) throw new Error("CEVG_KEY_SECRET is not set");
+  return secret;
+}
+
+export async function setGnaniKey(id: string, key: string): Promise<void> {
+  await one(
+    `update users set gnani_key_enc = pgp_sym_encrypt($2, $3), gnani_key_set_at = now()
+       where id::text = $1 returning id`,
+    [id, key, keySecret()],
+  );
+}
+
+export async function clearGnaniKey(id: string): Promise<void> {
+  await one(
+    `update users set gnani_key_enc = null, gnani_key_set_at = null where id::text = $1 returning id`,
+    [id],
+  );
+}
+
+export async function gnaniKeyStatus(id: string): Promise<GnaniKeyStatus> {
+  const row = await one<{ has_key: boolean; set_at: Date | null }>(
+    `select (gnani_key_enc is not null) as has_key, gnani_key_set_at as set_at from users where id::text = $1`,
+    [id],
+  );
+  return { set: row?.has_key ?? false, setAt: row?.set_at ? new Date(row.set_at).toISOString() : null };
+}

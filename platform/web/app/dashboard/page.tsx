@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Stat, StatGroup } from "@/components/ui/Stat";
 import { ConnectorCard } from "@/components/video/ConnectorCard";
+import { GnaniKeyCard } from "@/components/video/GnaniKeyCard";
 import { HowTo } from "@/components/video/HowTo";
 import { VideoGrid } from "@/components/video/VideoGrid";
 import { currentUser } from "@/lib/auth";
+import { gnaniKeyStatus } from "@/lib/users";
 import { videosOf } from "@/lib/videos";
 import styles from "./page.module.css";
 
@@ -25,6 +27,7 @@ export default async function Dashboard() {
   const local = /^http:\/\/(localhost|127\.0\.0\.1)/.test(site);
   const shown = videos.filter((v) => v.is_public);
   const views = shown.reduce((sum, v) => sum + v.views, 0);
+  const keyStatus = await gnaniKeyStatus(user.id);
 
   return (
     <Container main>
@@ -35,6 +38,9 @@ export default async function Dashboard() {
         <ConnectorCard address={address} local={local} regenerate={newConnectorAddress} />
         <HowTo />
       </div>
+      <Section title="Voice & credits">
+        <GnaniKeyCard initial={keyStatus} />
+      </Section>
       <Section title="Videos">
         {videos.length ? <VideoGrid videos={videos} own /> : (
           <EmptyState title="Nothing yet" text="Videos you make through the connector are saved here, private until you publish them." />
