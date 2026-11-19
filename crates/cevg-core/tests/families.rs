@@ -190,7 +190,7 @@ fn highlight_moves_but_mark_stays() {
 #[test]
 fn actions_on_the_wrong_family_say_where_they_work() {
     one_error(r#"{ "action": "add_row", "target": "g", "values": [1] }"#, "`add_row` works on table objects, but `g` is a diagram");
-    one_error(r#"{ "action": "reveal", "target": "t[0]" }"#, "`reveal` works on math objects, but `t` is a table");
+    one_error(r#"{ "action": "reveal", "target": "t[0]" }"#, "`reveal` works on math and figure objects, but `t` is a table");
     one_error(r#"{ "action": "add_node", "target": "eq", "id": "x" }"#, "`add_node` works on diagram objects");
 }
 

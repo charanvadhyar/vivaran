@@ -81,6 +81,8 @@ class Platform(Studio):
         self.daily_voice_seconds = daily_voice_minutes * 60
         self.max_seconds = max_minutes * 60
         self._users: dict[str, tuple[float, dict[str, Any] | None]] = {}
+        self._figures_today: dict[tuple[str, str], int] = {}
+        self.draw_missing_figures = False
         # A render that was cut off by a restart can never finish; say so.
         self._execute("update videos set status = 'failed', error = 'the server restarted during this render; "
                       "render it again', finished_at = now() where status in ('queued', 'running')")
@@ -206,6 +208,7 @@ class Platform(Studio):
             try:
                 characters = 0
                 note = "finished"
+                self._draw_figures_in(script, progress)
                 if voice:
                     voice_obj = self._voice(speaker, pace, api_key=own_key)
                     result = narrate(script, out, voice_obj, language=language,
@@ -236,6 +239,19 @@ class Platform(Studio):
                 self._fail(video_id, f"{e}\n{e.advice()}")
             except Exception as e:  # a job must always end in a state the assistant can read
                 self._fail(video_id, str(e))
+
+    def figure_for(self, user: dict[str, Any], prompt: str) -> dict[str, Any]:
+        """Draw a figure on the platform's Claude API key, within a daily allowance per user."""
+        from . import figures
+        if not figures.cache_path(prompt, self.cache_dir).exists():
+            day = time.strftime("%Y-%m-%d")
+            used = self._figures_today.setdefault((user["id"], day), 0)
+            allowed = int(os.environ.get("CEVG_DAILY_FIGURES", "20"))
+            if used >= allowed:
+                raise ValueError(f"you have drawn {used} new figures today, the daily allowance; "
+                                 "reuse one, or give a figure's `svg` yourself")
+            self._figures_today[(user["id"], day)] = used + 1
+        return self.draw_figure(prompt)
 
     def _fail(self, video_id: str, error: str) -> None:
         self._execute("update videos set status = 'failed', error = %s, finished_at = now() where id = %s",
@@ -316,6 +332,16 @@ def build(platform: Platform) -> MCPServer:
         last step); `at` is how far through the step, 0 to 1; `captions` is a language code to show that
         narration under the picture."""
         return Image(data=guarded(lambda: platform.preview(script, scene, step, at, captions)), format="png")
+
+    @server.tool(title="Draw a figure")
+    def figure(ctx: Context, prompt: str) -> dict[str, Any]:
+        """Have a textbook-style figure drawn as SVG from a description, for a `figure` object: for example
+        "the ANSI/SPARC three-schema architecture: end users, external views, conceptual schema, internal
+        schema, stored database, with both mappings labelled". Say what the parts are and the order to build
+        them in. Returns the SVG and its part names; the drawing is checked and corrected before it comes back.
+        Takes up to a minute or two; the same prompt is drawn only once."""
+        user = who(ctx)
+        return guarded(lambda: platform.figure_for(user, prompt))
 
     @server.tool(title="Estimate length and contents", annotations=READ_ONLY)
     def estimate(script: dict[str, Any], language: str = "en") -> dict[str, Any]:

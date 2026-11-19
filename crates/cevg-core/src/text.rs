@@ -10,6 +10,9 @@ use cosmic_text::{
 };
 use tiny_skia::Pixmap;
 
+/// The bundled fonts, shared with SVG figures.
+pub const FONT_DATA: &[&[u8]] = FONT_FILES;
+
 const FONT_FILES: &[&[u8]] = &[
     include_bytes!("../assets/fonts/NotoSans-Regular.ttf"),
     include_bytes!("../assets/fonts/NotoSans-SemiBold.ttf"),

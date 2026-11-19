@@ -3,6 +3,7 @@
 //!   cevg validate <script.json> [--json]
 //!   cevg frame <script.json> [--scene <id>] [--step <n>] [--at <0..1>] [--captions [lang]] [--watermark <text>] [--after <n>] [-o <out.png>]
 //!   cevg render <script.json> [--speech <s1,s2,...>] [--captions [lang]] [--watermark <text>] [-o <out.mp4>]
+//!   cevg figure <picture.svg> [--width <px>] [--layers <dir>] [-o <out.png>]
 //!   cevg guide
 //!   cevg gpu
 //!
@@ -21,9 +22,15 @@ const USAGE: &str = "usage:
   cevg validate <script.json> [--json]
   cevg frame <script.json> [--scene <id>] [--step <n>] [--at <0..1>] [--captions [lang]] [--watermark <text>] [--after <n>] [-o <out.png>]
   cevg render <script.json> [--speech <s1,s2,...>] [--captions [lang]] [--watermark <text>] [-o <out.mp4>]
+  cevg figure <picture.svg> [--width <px>] [--dark] [--layers <dir>] [-o <out.png>]
   cevg guide
   cevg gpu
   cevg studio ...   (3D explainers; `cevg studio help` lists the commands)
+
+figure draws an SVG figure on its own, as a `figure` object would show it,
+and prints its parts (top-level <g id> groups) and any problems as JSON.
+--dark draws it on the dark theme's background. --layers also writes the
+base and each part as separate images.
 
 guide prints the reference for writing scene scripts.
 
@@ -86,6 +93,9 @@ fn run(args: &[String]) -> Result<ExitCode, String> {
     let mut watermark: Option<String> = None;
     let mut after: Option<usize> = None;
     let mut gpu = "auto".to_string();
+    let mut out_width: Option<u32> = None;
+    let mut layers_dir: Option<String> = None;
+    let mut dark = false;
 
     let mut it = args.iter().peekable();
     while let Some(arg) = it.next() {
@@ -125,6 +135,12 @@ fn run(args: &[String]) -> Result<ExitCode, String> {
                 }
             }
             "-o" | "--out" => out = Some(value("-o")?),
+            "--width" => {
+                let v = value("--width")?;
+                out_width = Some(v.parse::<u32>().map_err(|_| format!("--width `{v}` is not a whole number"))?);
+            }
+            "--layers" => layers_dir = Some(value("--layers")?),
+            "--dark" => dark = true,
             flag if flag.starts_with('-') => return Err(format!("unknown option `{flag}`")),
             _ => positional.push(arg.as_str()),
         }
@@ -137,6 +153,39 @@ fn run(args: &[String]) -> Result<ExitCode, String> {
     match positional.as_slice() {
         ["guide"] => {
             print!("{}", cevg_core::GUIDE);
+            Ok(ExitCode::SUCCESS)
+        }
+        ["figure", file] => {
+            let svg = read(file)?;
+            let width = out_width.unwrap_or(1600);
+            let mut pm = cevg_core::families::figure::rasterize(&svg, width)?;
+            if dark {
+                // As the student sees it: on the dark theme's background.
+                let mut bg = tiny_skia::Pixmap::new(pm.width(), pm.height()).ok_or("bad size")?;
+                bg.fill(tiny_skia::Color::from_rgba8(15, 18, 26, 255));
+                bg.draw_pixmap(0, 0, pm.as_ref(), &tiny_skia::PixmapPaint::default(), tiny_skia::Transform::identity(), None);
+                pm = bg;
+            }
+            let out = out.unwrap_or_else(|| "figure.png".to_string());
+            pm.save_png(&out).map_err(|e| format!("cannot write {out}: {e}"))?;
+            let parts = cevg_core::families::figure::part_names(&svg)?;
+            let problems: Vec<String> = cevg_core::families::figure::check(&cevg_core::families::figure::Spec {
+                svg: Some(svg.clone()),
+                prompt: None,
+                build: false,
+            })
+            .into_iter()
+            .map(|p| p.message)
+            .collect();
+            if let Some(dir) = &layers_dir {
+                std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+                for (name, b, img) in cevg_core::families::figure::layers(&svg, width)? {
+                    let path = format!("{dir}/{}.png", name.trim_matches(|c| c == '(' || c == ')'));
+                    img.save_png(&path).map_err(|e| e.to_string())?;
+                    println!("layer {name} at {:.0},{:.0} size {:.0}x{:.0}", b[0], b[1], b[2], b[3]);
+                }
+            }
+            println!("{}", serde_json::json!({ "png": out, "width": pm.width(), "height": pm.height(), "parts": parts, "problems": problems }));
             Ok(ExitCode::SUCCESS)
         }
         ["gpu"] => {

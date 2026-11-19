@@ -457,7 +457,7 @@ class McpServer(unittest.TestCase):
     def test_the_tools_are_listed_with_descriptions(self):
         import asyncio
         tools = asyncio.run(mcp_server.build(self.studio).list_tools())
-        self.assertEqual([t.name for t in tools], ["guide", "validate", "preview", "estimate", "voices", "voice_sample", "render", "status"])
+        self.assertEqual([t.name for t in tools], ["guide", "validate", "preview", "figure", "estimate", "voices", "voice_sample", "render", "status"])
         self.assertTrue(all(t.description for t in tools))
 
     def test_guide_validate_and_preview(self):
@@ -520,3 +520,50 @@ class McpServer(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Figures(unittest.TestCase):
+    """Figures drawn from a prompt: the API is replaced by a stub, the renderer is real."""
+
+    SVG = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">'
+           '<g id="a"><rect x="20" y="20" width="120" height="60" fill="#1c2230" stroke="#cfd6e4"/></g>'
+           '<g id="b"><rect x="220" y="20" width="120" height="60" fill="#1c2230" stroke="#cfd6e4"/></g></svg>')
+
+    def setUp(self):
+        from cevg_shell import figures, narrate
+        try:
+            self.cevg = narrate.find_cevg(None)
+        except Exception:
+            self.skipTest("no cevg binary")
+        self.figures = figures
+        self.tmp = Path(tempfile.mkdtemp())
+        self.calls = []
+        replies = [self.SVG, "OK"]
+
+        def fake(messages, model, key, max_tokens=16000):
+            self.calls.append(messages)
+            return replies.pop(0)
+        self._real = figures._call
+        figures._call = fake
+        os.environ["ANTHROPIC_API_KEY"] = "test-key"
+
+    def tearDown(self):
+        self.figures._call = self._real
+        os.environ.pop("ANTHROPIC_API_KEY", None)
+
+    def script(self):
+        return {"version": 1, "title": "t", "objects": [{"id": "fig", "type": "figure", "region": "center", "prompt": "two boxes"}],
+                "scenes": [{"id": "s", "steps": [{"say": {"en": "Go."}, "do": [{"action": "show", "target": "fig"}]}]}]}
+
+    def test_a_prompt_is_drawn_checked_and_cached(self):
+        out = self.figures.resolve(self.script(), self.cevg, self.tmp)
+        self.assertEqual(out["objects"][0]["svg"], self.SVG)
+        self.assertEqual(len(self.calls), 2)  # the drawing, then the review with the rendered picture
+        review = self.calls[1][-1]["content"]
+        self.assertEqual(review[0]["type"], "image")
+        self.figures.resolve(self.script(), self.cevg, self.tmp)  # cached: no more calls
+        self.assertEqual(len(self.calls), 2)
+
+    def test_the_hosted_platform_only_uses_drawn_figures(self):
+        with self.assertRaises(self.figures.FigureError):
+            self.figures.resolve(self.script(), self.cevg, self.tmp, draw_missing=False)

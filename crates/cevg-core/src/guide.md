@@ -269,6 +269,31 @@ Node ids use letters, digits and `_`. Parts: `net.h1`, `net.h1->y`.
 
 Up to about 24 nodes stay readable.
 
+### figure (drawn diagram, SVG)
+
+Textbook figures whose layout matters: the three-schema architecture, a
+three-tier system, the OSI and TCP/IP stacks, a DBMS component diagram, a
+pipeline datapath. Use `diagram` for graphs and trees that the renderer lays
+out; use `figure` when the student must recognise the standard picture.
+
+```json
+{ "id": "arch", "type": "figure", "region": "center", "build": true,
+  "prompt": "The ANSI/SPARC three-schema architecture as in a DBMS textbook: three end-user boxes on top, external views 1, 2 and n in an external-level band, the conceptual schema in a conceptual-level band, the internal schema in an internal-level band, the stored database below. Two-way arrows between levels, labelled external/conceptual mapping and conceptual/internal mapping. Parts in build order: users, external_level, conceptual_level, internal_level, stored, mappings, independence (logical and physical data independence)." }
+```
+
+| Field | Values |
+| --- | --- |
+| `prompt` | what to draw: the topic, the standard layout, every label, and the parts in the order to build them. The `figure` tool draws it as SVG and checks the drawing. |
+| `svg` | the picture itself. The `figure` tool returns it; keep `prompt` next to it. |
+| `build` | `true` starts with every part hidden, to be brought in with `reveal`. |
+
+Parts are the top-level `<g id="...">` groups of the SVG: `arch.conceptual_level`.
+`reveal` on a part shows it; `reveal` on the figure shows every part. Parts can
+be highlighted, marked and dimmed, and pointers and arrows can attach to them.
+A figure keeps its proportions, so give it the `center` region alone, or a
+wide region, and build it up over several steps: one part per step, each with
+the sentence that explains it.
+
 ### table
 
 Database tables, matrices, page tables, DP tables.

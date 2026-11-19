@@ -102,6 +102,7 @@ pub enum ObjectKind {
     Plot(families::plot::Spec),
     Timeline(families::timeline::Spec),
     Space(families::space::Spec),
+    Figure(families::figure::Spec),
     Pointer(families::connect::PointerSpec),
     Arrow(families::connect::ArrowSpec),
 }
@@ -350,7 +351,7 @@ impl ActionKind {
             ActionKind::GotoLine { .. } | ActionKind::MarkLines { .. } => "code objects",
             ActionKind::AddNode { .. } | ActionKind::AddEdge { .. } => "diagram objects",
             ActionKind::AddRow { .. } => "table objects",
-            ActionKind::Reveal { .. } => "math objects",
+            ActionKind::Reveal { .. } => "math and figure objects",
             ActionKind::Trace { .. } | ActionKind::MoveTo { .. } | ActionKind::AddPoint { .. } => "plot and space objects",
             ActionKind::AddBlock { .. } | ActionKind::AddMessage { .. } | ActionKind::Advance { .. } => "timeline objects",
             ActionKind::Orbit { .. }

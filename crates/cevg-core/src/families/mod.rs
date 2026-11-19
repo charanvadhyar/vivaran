@@ -16,6 +16,7 @@
 //! | Plot            | `plot`     | `plot`              |
 //! | Timeline        | `timeline` | `timeline`          |
 //! | Space (3D)      | `space`    | `space`             |
+//! | Figure (SVG)    | `figure`   | `figure`            |
 //!
 //! `connect` holds pointers and arrows, which attach to parts of the others.
 //!
@@ -26,6 +27,7 @@ pub mod array;
 pub mod code;
 pub mod connect;
 pub mod diagram;
+pub mod figure;
 pub mod label;
 pub mod math;
 pub mod plot;
@@ -119,6 +121,7 @@ pub enum Kind {
     Plot,
     Timeline,
     Space,
+    Figure,
     Pointer,
     Arrow,
 }
@@ -135,6 +138,7 @@ impl Kind {
             Kind::Plot => "plot",
             Kind::Timeline => "timeline",
             Kind::Space => "space",
+            Kind::Figure => "figure",
             Kind::Pointer => "pointer",
             Kind::Arrow => "arrow",
         }
@@ -166,6 +170,7 @@ impl ObjectKind {
             ObjectKind::Plot(_) => Kind::Plot,
             ObjectKind::Timeline(_) => Kind::Timeline,
             ObjectKind::Space(_) => Kind::Space,
+            ObjectKind::Figure(_) => Kind::Figure,
             ObjectKind::Pointer(_) => Kind::Pointer,
             ObjectKind::Arrow(_) => Kind::Arrow,
         }
@@ -183,6 +188,7 @@ impl ObjectKind {
             ObjectKind::Plot(s) => plot::check(s),
             ObjectKind::Timeline(s) => timeline::check(s),
             ObjectKind::Space(s) => space::check(s),
+            ObjectKind::Figure(s) => figure::check(s),
         }
     }
 }
@@ -199,6 +205,7 @@ pub enum Body {
     Plot(plot::State),
     Timeline(timeline::State),
     Space(space::State),
+    Figure(figure::State),
     Pointer(connect::Pointer),
     Arrow(connect::Arrow),
 }
@@ -215,6 +222,7 @@ impl Body {
             ObjectKind::Plot(s) => Body::Plot(plot::State::new(s)),
             ObjectKind::Timeline(s) => Body::Timeline(timeline::State::new(s)),
             ObjectKind::Space(s) => Body::Space(space::State::new(s)),
+            ObjectKind::Figure(s) => Body::Figure(figure::State::new(s)),
             ObjectKind::Pointer(s) => Body::Pointer(connect::Pointer::new(s)),
             ObjectKind::Arrow(s) => Body::Arrow(connect::Arrow::new(s)),
         }
@@ -231,6 +239,7 @@ impl Body {
             Body::Plot(_) => Kind::Plot,
             Body::Timeline(_) => Kind::Timeline,
             Body::Space(_) => Kind::Space,
+            Body::Figure(_) => Kind::Figure,
             Body::Pointer(_) => Kind::Pointer,
             Body::Arrow(_) => Kind::Arrow,
         }
@@ -249,6 +258,7 @@ impl Body {
             Body::Plot(s) => s.check_part(id, part),
             Body::Timeline(s) => s.check_part(id, part),
             Body::Space(s) => s.check_part(id, part),
+            Body::Figure(s) => s.check_part(id, part),
             Body::Text(_) | Body::Code(_) | Body::Pointer(_) | Body::Arrow(_) => Err(format!(
                 "`{id}{part}` names a part, but {} has no parts that can be named; use `{id}`",
                 self.kind().a()
@@ -266,6 +276,7 @@ impl Body {
             Body::Plot(s) => s.emphasize(part, emphasis),
             Body::Timeline(s) => s.emphasize(part, emphasis),
             Body::Space(s) => s.emphasize(part, emphasis),
+            Body::Figure(s) => s.emphasize(part, emphasis),
             _ => {}
         }
     }
@@ -285,6 +296,7 @@ impl Body {
             Body::Plot(s) => s.each_emphasis(swap),
             Body::Timeline(s) => s.each_emphasis(swap),
             Body::Space(s) => s.each_emphasis(swap),
+            Body::Figure(s) => s.each_emphasis(swap),
             _ => {}
         }
     }
@@ -301,6 +313,7 @@ impl Body {
             Body::Plot(s) => s.act(id, action),
             Body::Timeline(s) => s.act(id, action),
             Body::Space(s) => s.act(id, action),
+            Body::Figure(s) => s.act(id, action),
             Body::Pointer(_) | Body::Arrow(_) => Err(ActError::Unsupported),
         }
     }
@@ -316,6 +329,7 @@ impl Body {
             Body::Plot(s) => s.layout(slot, cx),
             Body::Timeline(s) => s.layout(slot, cx),
             Body::Space(s) => s.layout(slot, cx),
+            Body::Figure(s) => s.layout(slot, cx),
             Body::Pointer(_) | Body::Arrow(_) => return None,
         })
     }
@@ -331,6 +345,7 @@ impl Body {
             Body::Plot(s) => s.paint(placed, whole, cx),
             Body::Timeline(s) => s.paint(placed, whole, cx),
             Body::Space(s) => s.paint(placed, whole, cx),
+            Body::Figure(s) => s.paint(placed, whole, cx),
             Body::Pointer(_) | Body::Arrow(_) => {}
         }
     }

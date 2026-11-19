@@ -31,7 +31,7 @@ from mcp.server.mcpserver import Image
 from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
 
-from . import providers
+from . import figures, providers
 from .narrate import NarrateError, find_cevg, narrate
 from .voice import Cache
 
@@ -57,7 +57,10 @@ Then work in this order:
 1. Call `guide` once and read it. It is the only description of what can be
    drawn and how narration must be written. Do not guess the format.
 2. Write the whole script. Follow the teaching standard in the guide: a
-   student must be able to redo the working in an exam.
+   student must be able to redo the working in an exam. Where the exam
+   expects a standard textbook figure (an architecture, a protocol stack, a
+   datapath), call `figure` with a precise prompt and put what it returns in
+   a `figure` object, built up part by part.
 3. Call `validate`. Fix every error it reports and validate again.
 4. Call `preview` on a few steps to see the picture. Fix what looks wrong.
 5. Call `estimate`. If the length is not close to what the user chose, add
@@ -93,6 +96,9 @@ class Studio:
         self.requests_per_minute = requests_per_minute
         self.jobs: dict[str, Job] = {}
         self._one_at_a_time = threading.Lock()
+        # Draw prompt-only figures on demand. The hosted platform turns this off so that
+        # every new figure goes through the `figure` tool and its daily allowance.
+        self.draw_missing_figures = True
 
     # -- helpers ---------------------------------------------------------
 
@@ -110,6 +116,34 @@ class Studio:
         path = folder / "script.json"
         path.write_text(json.dumps(script, ensure_ascii=False), encoding="utf-8")
         return path
+
+    def with_figures(self, script: dict[str, Any] | str, log=lambda message: None) -> dict[str, Any] | str:
+        """The script with every prompt-only figure drawn (see `figures`)."""
+        if isinstance(script, str):
+            try:
+                script = json.loads(script)
+            except json.JSONDecodeError:
+                return script  # `_write` reports it
+        try:
+            return figures.resolve(script, self.cevg, self.cache_dir, log=log, draw_missing=self.draw_missing_figures)
+        except figures.FigureError as e:
+            raise ValueError(str(e)) from None
+
+    def draw_figure(self, prompt: str) -> dict[str, Any]:
+        try:
+            result = figures.cached_draw(prompt, self.cevg, self.cache_dir)
+        except figures.FigureError as e:
+            raise ValueError(str(e)) from None
+        return {"svg": result["svg"], "parts": result["parts"],
+                "next": "put this in a `figure` object as `svg` (keep `prompt` too), reveal its parts with "
+                        "`reveal` on `<id>.<part>`, and call `preview` to look at it"}
+
+    def _draw_figures_in(self, path: Path, progress) -> None:
+        """Before a render: draw the figures in the script file, in place."""
+        script = json.loads(path.read_text(encoding="utf-8"))
+        drawn = self.with_figures(script, log=progress)
+        if drawn is not script:
+            path.write_text(json.dumps(drawn, ensure_ascii=False), encoding="utf-8")
 
     def link(self, name: str) -> str | None:
         return f"{self.public_base}/videos/{name}" if self.public_base else None
@@ -161,6 +195,7 @@ class Studio:
 
     def preview(self, script: dict[str, Any] | str, scene: str | None, step: int | None, at: float,
                 captions: str | None) -> bytes:
+        script = self.with_figures(script)
         with tempfile.TemporaryDirectory(prefix="cevg-") as tmp:
             tmp = Path(tmp)
             command = ["frame", str(self._write(script, tmp)), "--at", str(at), "-o", str(tmp / "frame.png")]
@@ -207,6 +242,7 @@ class Studio:
                 job.progress = message
 
             try:
+                self._draw_figures_in(script, progress)
                 if voice:
                     result = narrate(script, out, self._voice(speaker, pace), language=language,
                                      cache_dir=self.cache_dir, cevg=self.cevg, burn_captions=captions,
@@ -316,6 +352,18 @@ def build(studio: Studio) -> MCPServer:
         try:
             return Image(data=studio.preview(script, scene, step, at, captions), format="png")
         except (ValueError, NarrateError) as e:
+            raise ToolError(str(e)) from None
+
+    @server.tool(title="Draw a figure")
+    def figure(prompt: str) -> dict[str, Any]:
+        """Have a textbook-style figure drawn as SVG from a description, for a `figure` object: for example
+        "the ANSI/SPARC three-schema architecture: end users, external views, conceptual schema, internal
+        schema, stored database, with both mappings labelled". Say what the parts are and the order to build
+        them in. Returns the SVG and its part names; the drawing is checked and corrected before it comes back.
+        Takes up to a minute or two; the same prompt is drawn only once."""
+        try:
+            return studio.draw_figure(prompt)
+        except ValueError as e:
             raise ToolError(str(e)) from None
 
     @server.tool(title="Estimate length and contents", annotations=READ_ONLY)
