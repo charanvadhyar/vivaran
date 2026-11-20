@@ -169,6 +169,10 @@ class Platform(Studio):
             **({"admin": "this is an admin account: renders are not charged"} if user.get("is_admin") else {}),
         }
 
+    def _limit_link(self, limit: str) -> str:
+        """Where a user asks for a limit to be raised (the site's contact page)."""
+        return f"{self.site_url.rstrip('/')}/contact?kind=support&topic=limit&limit={limit}"
+
     def _check_limits(self, user_id: str, seconds: float, voiced: bool, has_own_key: bool = False,
                       is_admin: bool = False) -> float:
         """Refuse what this account may not render; otherwise return the credits it will cost (admins: none)."""
@@ -178,7 +182,8 @@ class Platform(Studio):
             b = credits.balance(db, user_id)
         longest = min(float(p[t]["max_minutes"]) * 60, self.max_seconds)
         if seconds > longest:
-            more = " Pro allows longer videos." if t == "free" else ""
+            more = (" Pro allows longer videos." if t == "free" else
+                    f" To ask for longer videos: {self._limit_link('length')}")
             raise Limit(f"this video would be about {seconds / 60:.1f} minutes; the longest allowed on this plan is "
                         f"{longest / 60:.0f} minutes. Shorten the script or split the topic in two.{more}")
         busy = self._one("select count(*) as n from videos where user_id = %s and status in ('queued', 'running')",
@@ -191,7 +196,9 @@ class Platform(Studio):
         if price > b["total"] + 1e-9:
             raise Limit(f"this video costs {price:g} credit(s) and the account has {b['total']:g}. Credits refill each "
                         f"month, and more can be earned or bought at {self.site_url}/dashboard. A silent video "
-                        f"(voice=false), or one voiced on the user's own Gnani key, costs a quarter as much.")
+                        f"(voice=false), or one voiced on the user's own Gnani key, costs a quarter as much. If the "
+                        f"account's free credits are on hold, or the user needs more, they can ask at "
+                        f"{self._limit_link('credits')}")
         return price
 
     def start(self, user: dict[str, Any], script: dict[str, Any], language: str, voice: bool, captions: bool,
@@ -298,7 +305,8 @@ class Platform(Studio):
             allowed = int(p[t].get("figures_per_month", 5))
             if used >= allowed:
                 raise ValueError(f"this account has drawn {used} new figures this month, the {t} plan's allowance; "
-                                 "reuse a figure already drawn, or give a figure's `svg` yourself")
+                                 "reuse a figure already drawn, or give a figure's `svg` yourself. The user can ask "
+                                 f"for more at {self._limit_link('figures')}")
             result = self.draw_figure(prompt)
             with self._connect() as db:
                 credits.event(db, "figure", user["id"], prompt=prompt[:300])

@@ -256,6 +256,7 @@ create table if not exists contact_messages (
   phone           text,
   message         text not null,
   about_url       text,                                 -- grievance: the video or page it concerns
+  limit_name      text,                                 -- support: which limit they want raised (held, length, downloads, ...)
   user_id         uuid references users(id) on delete set null,
   network         text,
   status          text not null default 'new' check (status in ('new', 'acknowledged', 'resolved', 'closed')),
@@ -264,5 +265,6 @@ create table if not exists contact_messages (
   acknowledged_at timestamptz,
   resolved_at     timestamptz
 );
+alter table contact_messages add column if not exists limit_name text;  -- for a table made before the column
 create index if not exists contact_messages_status on contact_messages (status, created_at);
 create index if not exists contact_messages_network on contact_messages (network, created_at);

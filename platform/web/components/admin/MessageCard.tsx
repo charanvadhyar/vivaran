@@ -1,5 +1,5 @@
 import type { Message } from "@/lib/contact";
-import { GRIEVANCE_ACK_HOURS, GRIEVANCE_RESOLVE_DAYS, KINDS, ticket } from "@/lib/contactKinds";
+import { GRIEVANCE_ACK_HOURS, GRIEVANCE_RESOLVE_DAYS, KINDS, LIMITS, isLimit, ticket } from "@/lib/contactKinds";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import styles from "./MessageCard.module.css";
@@ -31,6 +31,12 @@ export function MessageCard({ m, update }: { m: Message; update: (f: FormData) =
           <Badge tone={open ? "neutral" : "positive"}>{m.status}</Badge>
         </div>
       </div>
+      {m.limit_name ? (
+        <p className={styles.muted}>
+          Asks about: <strong>{isLimit(m.limit_name) ? LIMITS[m.limit_name] : m.limit_name}</strong> ·{" "}
+          <a href={`/admin?tab=users&q=${encodeURIComponent(m.handle ?? m.email)}`}>open the account</a>
+        </p>
+      ) : null}
       {m.about_url ? <p className={styles.muted}>About: <a href={m.about_url} target="_blank" rel="noreferrer">{m.about_url}</a></p> : null}
       <p className={styles.message}>{m.message}</p>
       <form action={update} className={styles.form}>

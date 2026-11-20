@@ -135,7 +135,7 @@ export async function writeSeo(videoId: string): Promise<SeoDraft | { error: str
   const used = await db.query(`select count(*)::int as n from events where type = 'seo_ai' and user_id::text = $1
                                  and created_at >= date_trunc('month', now() at time zone 'Asia/Kolkata') at time zone 'Asia/Kolkata'`, [user.id]);
   if (Number(used.rows[0]?.n ?? 0) >= allowance) {
-    return { error: `You have used this month's ${allowance} drafts. Write this one yourself, or try again next month.` };
+    return { error: `You have used this month's ${allowance} drafts. Write this one yourself, try again next month, or ask for more on the contact page (Help → A limit on my account).` };
   }
   try {
     const { renderServer } = await import("@/lib/render");
@@ -184,7 +184,7 @@ export type ContactResult = { ok: true; ticket: string; kind: string } | { ok: f
 
 /** A message from the contact page. Works without an account; signed in, it is linked to the account. */
 export async function sendContact(_previous: ContactResult, form: FormData): Promise<ContactResult> {
-  const { KINDS, isKind, save, sentToday, MESSAGES_PER_NETWORK_PER_DAY } = await import("@/lib/contact");
+  const { KINDS, LIMIT_TOPIC, isKind, isLimit, save, sentToday, MESSAGES_PER_NETWORK_PER_DAY } = await import("@/lib/contact");
   const { clientIp, networkOf } = await import("@/lib/credits");
   const { headers } = await import("next/headers");
   // A field people cannot see. Anything in it is a bot filling every box.
@@ -195,6 +195,8 @@ export async function sendContact(_previous: ContactResult, form: FormData): Pro
   const topics: readonly string[] = KINDS[kind].topics;
   const topic = text("topic", 80) || null;
   if (topics.length && (!topic || !topics.includes(topic))) return { ok: false, error: "Choose a topic." };
+  const limit = text("limit", 20);
+  if (topic === LIMIT_TOPIC && !isLimit(limit)) return { ok: false, error: "Choose which limit." };
   const name = text("name", 100);
   const email = text("email", 254);
   const message = String(form.get("message") ?? "").trim();
@@ -216,6 +218,7 @@ export async function sendContact(_previous: ContactResult, form: FormData): Pro
   try {
     const ticket = await save({
       kind, topic, name, email, organisation: text("organisation", 120) || null, phone, message, aboutUrl,
+      limitName: topic === LIMIT_TOPIC ? limit : null,
       userId: user?.id ?? null, network,
     });
     return { ok: true, ticket, kind };

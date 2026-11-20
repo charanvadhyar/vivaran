@@ -14,7 +14,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const resuming = !!request.headers.get("range");
   if (!resuming) {
     if ((await downloadsLeft(user.id)) <= 0) {
-      return new Response("You have reached today's download limit. Try again tomorrow.", { status: 429 });
+      const site = (process.env.SITE_URL ?? new URL(request.url).origin).replace(/\/$/, "");
+      return new Response(
+        `You have reached today's download limit. Try again tomorrow, or ask for more at ${site}/contact?kind=support&topic=limit&limit=downloads`,
+        { status: 429, headers: { "content-type": "text/plain; charset=utf-8" } });
     }
     await logEvent("download", user.id, id);
   }

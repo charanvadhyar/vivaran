@@ -1,5 +1,25 @@
 /** The contact page's choices, shared by the form (in the browser) and the server. */
 
+/** The support topic for asking us to lift or raise a limit on an account. */
+export const LIMIT_TOPIC = "A limit on my account";
+
+/** The limits someone can ask about, by the name used in links (`?topic=limit&limit=downloads`). */
+export const LIMITS = {
+  held: "My free credits are on hold",
+  credits: "More credits",
+  length: "Longer videos",
+  downloads: "More downloads a day",
+  figures: "More figures a month",
+  seo: "More “Write it for me” drafts",
+  other: "Another limit",
+} as const;
+
+export type LimitName = keyof typeof LIMITS;
+export const isLimit = (l: string): l is LimitName => l in LIMITS;
+
+/** Where to ask for a limit to be raised, for messages that tell people they hit one. */
+export const limitLink = (site: string, limit: LimitName) => `${site.replace(/\/$/, "")}/contact?kind=support&topic=limit&limit=${limit}`;
+
 /** What someone can write to us about, and the topics under each. */
 export const KINDS = {
   sales: {
@@ -12,7 +32,7 @@ export const KINDS = {
   },
   support: {
     label: "Help with my account or a video",
-    topics: ["Signing in", "Credits or Pro", "Making a video", "The YouTube channel", "Something else"],
+    topics: [LIMIT_TOPIC, "Signing in", "Credits or Pro", "Making a video", "The YouTube channel", "Something else"],
   },
   other: { label: "Something else", topics: [] as string[] },
 } as const;

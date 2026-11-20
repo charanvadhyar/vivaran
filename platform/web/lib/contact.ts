@@ -1,11 +1,11 @@
 import { many, one } from "./db";
 import { GRIEVANCE_ACK_HOURS, GRIEVANCE_RESOLVE_DAYS, ticket as ticketOf, type Kind } from "./contactKinds";
 
-export { GRIEVANCE_ACK_HOURS, GRIEVANCE_RESOLVE_DAYS, KINDS, MESSAGES_PER_NETWORK_PER_DAY, isKind, ticket, type Kind } from "./contactKinds";
+export { GRIEVANCE_ACK_HOURS, GRIEVANCE_RESOLVE_DAYS, KINDS, LIMITS, LIMIT_TOPIC, MESSAGES_PER_NETWORK_PER_DAY, isKind, isLimit, ticket, type Kind } from "./contactKinds";
 
 export type NewMessage = {
   kind: Kind; topic: string | null; name: string; email: string; organisation: string | null; phone: string | null;
-  message: string; aboutUrl: string | null; userId: string | null; network: string | null;
+  message: string; aboutUrl: string | null; limitName: string | null; userId: string | null; network: string | null;
 };
 
 export async function sentToday(network: string): Promise<number> {
@@ -16,22 +16,22 @@ export async function sentToday(network: string): Promise<number> {
 
 export async function save(m: NewMessage): Promise<string> {
   const row = await one<{ id: string }>(
-    `insert into contact_messages (kind, topic, name, email, organisation, phone, message, about_url, user_id, network)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9::uuid, $10) returning id::text`,
-    [m.kind, m.topic, m.name, m.email, m.organisation, m.phone, m.message, m.aboutUrl, m.userId, m.network]);
+    `insert into contact_messages (kind, topic, name, email, organisation, phone, message, about_url, limit_name, user_id, network)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::uuid, $11) returning id::text`,
+    [m.kind, m.topic, m.name, m.email, m.organisation, m.phone, m.message, m.aboutUrl, m.limitName, m.userId, m.network]);
   return ticketOf(row!.id);
 }
 
 export type Message = {
   id: string; kind: Kind; topic: string | null; name: string; email: string; organisation: string | null; phone: string | null;
-  message: string; about_url: string | null; handle: string | null; status: "new" | "acknowledged" | "resolved" | "closed";
+  message: string; about_url: string | null; limit_name: string | null; handle: string | null; status: "new" | "acknowledged" | "resolved" | "closed";
   admin_note: string | null; created_at: Date; acknowledged_at: Date | null; resolved_at: Date | null; age_hours: number;
 };
 
 /** Messages for the admin page: open ones first, oldest first; or the latest of all. */
 export function messages(show: "open" | "all", kind: Kind | null) {
   return many<Message>(`
-    select m.id::text, m.kind, m.topic, m.name, m.email, m.organisation, m.phone, m.message, m.about_url, u.handle,
+    select m.id::text, m.kind, m.topic, m.name, m.email, m.organisation, m.phone, m.message, m.about_url, m.limit_name, u.handle,
            m.status, m.admin_note, m.created_at, m.acknowledged_at, m.resolved_at,
            extract(epoch from now() - m.created_at)::float / 3600 as age_hours
       from contact_messages m left join users u on u.id = m.user_id

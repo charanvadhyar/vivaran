@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { sendContact, type ContactResult } from "@/app/actions";
-import { GRIEVANCE_ACK_HOURS, GRIEVANCE_RESOLVE_DAYS, KINDS, type Kind } from "@/lib/contactKinds";
+import { GRIEVANCE_ACK_HOURS, GRIEVANCE_RESOLVE_DAYS, KINDS, LIMITS, LIMIT_TOPIC, type Kind, type LimitName } from "@/lib/contactKinds";
 import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
 import { Input } from "../ui/Input";
@@ -13,10 +13,12 @@ import styles from "./ContactForm.module.css";
 const KIND_OPTIONS = (Object.keys(KINDS) as Kind[]).map((k) => ({ value: k, label: KINDS[k].label }));
 
 /** Write to us: sales, a grievance, help, or anything else. */
-export function ContactForm({ kind: initial, name = "", email = "", about = "" }: { kind: Kind; name?: string; email?: string; about?: string }) {
+export function ContactForm({ kind: initial, topic: initialTopic = "", limit = "", signedIn = false, name = "", email = "", about = "" }:
+  { kind: Kind; topic?: string; limit?: LimitName | ""; signedIn?: boolean; name?: string; email?: string; about?: string }) {
   const [result, act, pending] = useActionState<ContactResult, FormData>(sendContact, null);
   const [kind, setKind] = useState<Kind>(initial);
   const topics: readonly string[] = KINDS[kind].topics;
+  const [topic, setTopic] = useState(topics.includes(initialTopic) ? initialTopic : "");
 
   if (result?.ok) {
     return (
@@ -39,12 +41,24 @@ export function ContactForm({ kind: initial, name = "", email = "", about = "" }
       {/* Not shown to people; a bot that fills every field fills this one. */}
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className={styles.trap} />
       <label className={styles.label} htmlFor="contact-kind">What is it about?</label>
-      <Select id="contact-kind" name="kind" options={KIND_OPTIONS} value={kind} onChange={(e) => setKind(e.target.value as Kind)} />
+      <Select id="contact-kind" name="kind" options={KIND_OPTIONS} value={kind} onChange={(e) => { setKind(e.target.value as Kind); setTopic(""); }} />
       {topics.length ? (
         <>
           <label className={styles.label} htmlFor="contact-topic">Topic</label>
-          <Select key={kind} id="contact-topic" name="topic" required placeholder="Choose one…" defaultValue=""
+          <Select id="contact-topic" name="topic" required placeholder="Choose one…" value={topic} onChange={(e) => setTopic(e.target.value)}
             options={topics.map((t) => ({ value: t, label: t }))} />
+        </>
+      ) : null}
+      {topic === LIMIT_TOPIC ? (
+        <>
+          <label className={styles.label} htmlFor="contact-limit">Which limit?</label>
+          <Select id="contact-limit" name="limit" required placeholder="Choose one…" defaultValue={limit}
+            options={(Object.keys(LIMITS) as LimitName[]).map((l) => ({ value: l, label: LIMITS[l] }))} />
+          <p className={styles.fine}>
+            {signedIn
+              ? "We look at your account, and reply with what we can do. Say what you are making and how much more you need."
+              : "Sign in first if you can, so we know which account it is; otherwise use the email address on your account."}
+          </p>
         </>
       ) : null}
       <div className={styles.pair}>
@@ -64,7 +78,8 @@ export function ContactForm({ kind: initial, name = "", email = "", about = "" }
       ) : null}
       <label className={styles.label} htmlFor="contact-message">Message</label>
       <textarea id="contact-message" name="message" required minLength={20} maxLength={5000} rows={7} className={styles.message}
-        placeholder={kind === "sales" ? "How many students or creators, which subjects, and what you have in mind."
+        placeholder={topic === LIMIT_TOPIC ? "What you are making, and how much more you need (for example: a 15-minute video, or 20 downloads for a class)."
+          : kind === "sales" ? "How many students or creators, which subjects, and what you have in mind."
           : kind === "grievance" ? "What is wrong, and what you would like us to do. For a video, say which step or time."
           : "What happened, and what you expected."} />
       {result && !result.ok ? <p className={styles.error} role="alert">{result.error}</p> : null}

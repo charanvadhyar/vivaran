@@ -27,7 +27,7 @@ export function CreditsCard({ account, plans, ownKey }: { account: Account; plan
       </ul>
       {account.held ? (
         <p className={styles.note}>
-          Your free credits are on hold: several accounts were made from the same network today. <Link href="/contact?kind=support">Write
+          Your free credits are on hold: several accounts were made from the same network today. <Link href="/contact?kind=support&topic=limit&limit=held">Write
           to us</Link> and we will release them. Credits from a pack or Pro work as usual.
         </p>
       ) : null}
