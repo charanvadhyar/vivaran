@@ -3,7 +3,7 @@ import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import styles from "./UserRow.module.css";
 
-const day = (d: Date | null) => (d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit" }) : "never");
+const day = (d: Date | null) => (d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit", timeZone: "Asia/Kolkata" }) : "never");
 
 /** One account in the admin list, with its tools folded under it. */
 export function UserRow({ u, grant, setPro, toggleAdmin }:
@@ -42,11 +42,15 @@ export function UserRow({ u, grant, setPro, toggleAdmin }:
           <Button type="submit" size="sm">Set Pro</Button>
           <span className={styles.muted}>Leave the date empty to end Pro.</span>
         </form>
-        <form action={toggleAdmin} className={styles.form}>
-          <input type="hidden" name="user" value={u.id} />
-          <input type="hidden" name="admin" value={u.is_admin ? "0" : "1"} />
-          <Button type="submit" size="sm" variant={u.is_admin ? "danger" : "ghost"}>{u.is_admin ? "Remove admin" : "Make admin"}</Button>
-        </form>
+        {u.fixed_admin ? (
+          <p className={styles.muted}>Admin through ADMIN_HANDLES on the server; remove the handle there to change it.</p>
+        ) : (
+          <form action={toggleAdmin} className={styles.form}>
+            <input type="hidden" name="user" value={u.id} />
+            <input type="hidden" name="admin" value={u.is_admin ? "0" : "1"} />
+            <Button type="submit" size="sm" variant={u.is_admin ? "danger" : "ghost"}>{u.is_admin ? "Remove admin" : "Make admin"}</Button>
+          </form>
+        )}
       </div>
     </details>
   );

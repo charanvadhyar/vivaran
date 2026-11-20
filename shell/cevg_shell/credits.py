@@ -18,7 +18,7 @@ from typing import Any
 
 DEFAULT_PLANS: dict[str, Any] = {
     "free": {"monthly_credits": 3, "max_minutes": 10, "watermark": True, "figures_per_month": 5},
-    "pro": {"monthly_credits": 6, "max_minutes": 20, "watermark": False, "figures_per_month": 60, "price_inr": 299},
+    "pro": {"monthly_credits": 6, "max_minutes": 20, "watermark": False, "figures_per_month": 60, "price_inr": 299, "seo_per_month": 30},
     "cost": {"minutes_per_credit": 10, "voiced": 1, "silent_or_own_key": 0.25},
     "rewards": {"creator_join": 2, "first_publish": 1, "subscribe": 1, "referral": 1, "views_1k": 2, "views_10k": 5},
     "packs": [], "downloads_per_day": 10, "youtube_channel_url": "",

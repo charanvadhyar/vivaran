@@ -122,8 +122,8 @@ class Platform(Studio):
         kept = self._users.get(token)
         if kept and time.time() - kept[0] < 60:
             return kept[1]
-        user = self._one("update users set last_seen_at = now() where connector_token = %s "
-                         "returning id::text as id, name, handle", (token,))
+        user = self._one("update users set last_seen_at = now(), connector_used_at = now() where connector_token = %s "
+                         "returning id::text as id, name, handle, is_admin", (token,))
         if len(self._users) > 10_000:
             self._users.clear()
         self._users[token] = (time.time(), user)
@@ -166,10 +166,12 @@ class Platform(Studio):
                      f"voice; {c['silent_or_own_key']:g} per started {c['minutes_per_credit']:g} minutes silent or "
                      f"voiced on the user's own Gnani key"),
             "more_credits": f"{self.site_url}/dashboard",
+            **({"admin": "this is an admin account: renders are not charged"} if user.get("is_admin") else {}),
         }
 
-    def _check_limits(self, user_id: str, seconds: float, voiced: bool, has_own_key: bool = False) -> float:
-        """Refuse what this account may not render; otherwise return the credits it will cost."""
+    def _check_limits(self, user_id: str, seconds: float, voiced: bool, has_own_key: bool = False,
+                      is_admin: bool = False) -> float:
+        """Refuse what this account may not render; otherwise return the credits it will cost (admins: none)."""
         with self._connect() as db:
             p = credits.plans(db)
             t = credits.tier(db, user_id)
@@ -183,6 +185,8 @@ class Platform(Studio):
                          (user_id,))
         if busy and busy["n"] >= 1:
             raise Limit("this account already has a video rendering; wait for it to finish (call `status`)")
+        if is_admin:
+            return 0.0
         price = credits.cost(p, seconds, voiced and not has_own_key)
         if price > b["total"] + 1e-9:
             raise Limit(f"this video costs {price:g} credit(s) and the account has {b['total']:g}. Credits refill each "
@@ -209,19 +213,20 @@ class Platform(Studio):
                     f"Settings on {self.site_url}, or render with voice=false (silent, with captions).")
             provider.check(speaker or None, language, pace)
             speaker = speaker or provider.default_speaker(language)
-        price = self._check_limits(user["id"], estimate["seconds"], voice, has_own_key=bool(own_key))
+        price = self._check_limits(user["id"], estimate["seconds"], voice, has_own_key=bool(own_key),
+                                   is_admin=bool(user.get("is_admin")))
         with self._connect() as db:
-            watermark_on = bool(credits.plans(db)[credits.tier(db, user["id"])]["watermark"])
+            watermark_on = bool(credits.plans(db)[credits.tier(db, user["id"])]["watermark"]) and bool(self.watermark)
 
         video_id = uuid.uuid4().hex[:12]
         self._execute(
             "insert into videos (id, user_id, title, language, speaker, voiced, captions, status, progress, script, "
-            "outline, steps, subject) values (%s, %s, %s, %s, %s, %s, %s, 'queued', %s, %s, %s, %s, %s)",
+            "outline, steps, subject, watermarked) values (%s, %s, %s, %s, %s, %s, %s, 'queued', %s, %s, %s, %s, %s, %s)",
             (video_id, user["id"], str(script.get("title") or "Untitled")[:200], language, speaker if voice else None,
              voice, captions, "waiting for an earlier render to finish", Jsonb(script), Jsonb(estimate["outline"]),
-             estimate["steps"], subject))
+             estimate["steps"], subject, watermark_on))
         with self._connect() as db:
-            if not credits.spend(db, user["id"], price, video_id):
+            if price > 0 and not credits.spend(db, user["id"], price, video_id):
                 db.execute("delete from videos where id = %s", (video_id,))
                 raise Limit("not enough credits for this video; the dashboard on the site shows the balance")
             credits.event(db, "render_started", user["id"], video_id, credits=price, voiced=voice,
@@ -348,7 +353,7 @@ def build(platform: Platform) -> MCPServer:
     def who(ctx: Context) -> dict[str, Any]:
         """The account this call belongs to, set by the gate in front of the server."""
         user_id = (ctx.headers or {}).get(USER_HEADER)
-        user = platform._one("select id::text as id, name, handle from users where id::text = %s", (user_id,)) \
+        user = platform._one("select id::text as id, name, handle, is_admin from users where id::text = %s", (user_id,)) \
             if user_id else None
         if user is None:
             raise ToolError("this connector address is not linked to an account; copy a fresh address from the site")

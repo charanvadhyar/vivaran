@@ -39,7 +39,8 @@ export default async function Watch({ params }: { params: Promise<{ id: string }
   let upload: UploadState = null;
   let isPro = false;
   if (own && video.status === "done") {
-    const { rows } = await db.query(`select status, youtube_id, review_note, yt_views::int as yt_views from youtube_uploads where video_id = $1`, [id]);
+    const { rows } = await db.query(`select status, youtube_id, review_note, coalesce(yt_views, 0)::int as yt_views, title, description, tags
+         from youtube_uploads where video_id = $1`, [id]);
     upload = (rows[0] as UploadState) ?? null;
     isPro = (await account(video.user_id)).tier === "pro";
   }

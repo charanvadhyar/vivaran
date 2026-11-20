@@ -3,5 +3,6 @@
   flex: 1; min-width: 0; display: flex; align-items: center; padding: 0 var(--space-3); height: var(--control-h);
   border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--bg-canvas);
   font-family: var(--font-mono); font-size: var(--text-sm); color: var(--accent); overflow-x: auto; white-space: nowrap;
+  contain: inline-size; /* a long address scrolls inside the field instead of widening the page */ 
 }
 @media (max-width: 520px) { .field { flex-direction: column; } }

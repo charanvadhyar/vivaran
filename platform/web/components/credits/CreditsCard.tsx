@@ -10,7 +10,7 @@ export function CreditsCard({ account, plans, ownKey }: { account: Account; plan
   const plan = plans[account.tier];
   const c = plans.cost;
   return (
-    <Card title="Your plan" aside={<Badge tone={account.tier === "pro" ? "accent" : "neutral"}>{account.tier === "pro" ? "Pro" : "Free"}</Badge>}>
+    <Card title="Your plan" aside={<Badge tone={account.tier === "pro" ? "accent" : "neutral"}>{account.isAdmin ? "Admin" : account.tier === "pro" ? "Pro" : "Free"}</Badge>}>
       <div className={styles.balance}>
         <span className={styles.big}>{fmt(account.total)}</span>
         <span className={styles.unit}>{account.total === 1 ? "video credit" : "video credits"}</span>
@@ -24,8 +24,10 @@ export function CreditsCard({ account, plans, ownKey }: { account: Account; plan
         <li>A failed render gives its credits back.</li>
         <li>Your plan allows videos of up to {plan.max_minutes} minutes{plan.watermark ? ", with the Vivaran mark" : ", without the Vivaran mark"}.</li>
       </ul>
-      {account.tier === "pro" && account.proUntil ? (
-        <p className={styles.note}>Pro until {new Date(account.proUntil).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}.</p>
+      {account.isAdmin ? (
+        <p className={styles.note}>An admin account: your renders do not use credits, and Pro&apos;s limits apply.</p>
+      ) : account.tier === "pro" && account.proUntil ? (
+        <p className={styles.note}>Pro until {new Date(account.proUntil).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" })}.</p>
       ) : (
         <div className={styles.pro}>
           <strong>Pro · ₹{plans.pro.price_inr}/month</strong>

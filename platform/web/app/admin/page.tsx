@@ -24,9 +24,11 @@ import styles from "./page.module.css";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin" };
 
-const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
+const inr = (n: number) => `₹${(Math.round(n) || 0).toLocaleString("en-IN")}`; // `|| 0` turns -0 into 0
 const int = (n: number) => Math.round(n).toLocaleString("en-IN");
 const one1 = (n: number) => (Math.round(n * 10) / 10).toLocaleString("en-IN");
+/** Credits come in quarters, so up to two decimals. */
+const cr = (n: number) => ((Math.round(n * 100) / 100) || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
 export default async function Admin({ searchParams }: { searchParams: Promise<{ tab?: string; days?: string; q?: string; yt?: string }> }) {
   const viewer = await currentUser();
@@ -66,7 +68,7 @@ async function Overview({ days }: { days: number }) {
           { label: "Video minutes", value: one1(k.minutes), sub: `${one1(k.render_s_per_min)} s render per minute` },
           { label: "Estimated cost", value: inr(k.cost_inr), sub: `${inr(per(k.cost_inr))} per video minute` },
           { label: "Money received", value: inr(k.revenue_inr), sub: `margin ${inr(margin)}`, tone: k.revenue_inr > 0 ? (margin >= 0 ? "good" : "bad") : undefined },
-          { label: "Credits given", value: one1(k.credits_given), sub: `${one1(k.credits_spent)} spent on renders` },
+          { label: "Credits given", value: cr(k.credits_given), sub: `${cr(k.credits_spent)} spent on renders` },
           { label: "Views on the site", value: int(k.site_views), sub: `${int(k.site_views_total)} all time · ${int(k.public_videos)} public videos` },
           { label: "On YouTube", value: int(k.yt_published), sub: `${int(k.yt_views)} views · ${int(k.yt_pending)} waiting` },
           { label: "Channel subscribers", value: ch?.subscribers != null ? int(ch.subscribers) : "–", sub: ch?.title ?? "sync on the YouTube tab" },
@@ -82,7 +84,7 @@ async function Overview({ days }: { days: number }) {
           <BarChart title="Estimated cost" data={o.series} value="cost" format={inr} />
           <BarChart title="Creators who rendered" data={o.series} value="active" total={int(k.users_rendering)} />
           <BarChart title="Site views" data={o.series} value="views" />
-          <BarChart title="Credits spent" data={o.series} value="credits_spent" format={one1} />
+          <BarChart title="Credits spent" data={o.series} value="credits_spent" format={cr} />
           <BarChart title="Downloads" data={o.series} value="downloads" />
         </div>
       </Section>
@@ -158,7 +160,7 @@ async function YouTube({ flash }: { flash?: string }) {
             <>
               <div>
                 <strong>{channel?.value.title ?? "Connected"}</strong>
-                {channel ? <p className={styles.muted}>{int(channel.value.subscribers ?? 0)} subscribers · {int(channel.value.views ?? 0)} views · {int(channel.value.videos ?? 0)} videos · as of {new Date(channel.updated_at).toLocaleString("en-IN")}</p> : <p className={styles.muted}>Sync to see its numbers.</p>}
+                {channel ? <p className={styles.muted}>{int(channel.value.subscribers ?? 0)} subscribers · {int(channel.value.views ?? 0)} views · {int(channel.value.videos ?? 0)} videos · as of {new Date(channel.updated_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" })}</p> : <p className={styles.muted}>Sync to see its numbers.</p>}
                 {syncError ? <p className={styles.error}>{syncError.value}</p> : null}
               </div>
               <div className={styles.row}>

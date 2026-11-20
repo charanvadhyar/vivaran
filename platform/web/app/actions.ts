@@ -45,6 +45,11 @@ export async function setPublic(form: FormData) {
      where id = $1 and user_id::text = $2 and status = 'done'`,
     [id, user.id, makePublic, subject || null],
   );
+  if (!makePublic) {
+    // A private video leaves the channel's review queue (one already on YouTube stays there).
+    await db.query(`delete from youtube_uploads where video_id = $1 and user_id::text = $2 and status in ('pending', 'failed', 'rejected')`,
+      [id, user.id]);
+  }
   revalidatePath(`/v/${id}`);
   revalidatePath("/dashboard");
   revalidatePath("/");
@@ -120,10 +125,18 @@ export type SeoDraft = { title: string; description: string; tags: string[] };
 /** Pro only: title, description and tags for the channel, written by the Claude API. */
 export async function writeSeo(videoId: string): Promise<SeoDraft | { error: string }> {
   const user = await requireUser();
-  const { account } = await import("@/lib/credits");
-  if ((await account(user.id)).tier !== "pro") return { error: "Writing the SEO for you is part of Pro." };
+  const { account, getPlans } = await import("@/lib/credits");
+  const [acc, plans] = await Promise.all([account(user.id), getPlans()]);
+  if (acc.tier !== "pro") return { error: "Writing the SEO for you is part of Pro." };
   const own = await db.query(`select 1 from videos where id = $1 and user_id::text = $2 and status = 'done'`, [videoId, user.id]);
   if (!own.rowCount) return { error: "No such video." };
+  // Each draft is a Claude API call, so Pro gets a monthly allowance (plans.pro.seo_per_month).
+  const allowance = Number(plans.pro.seo_per_month ?? 30);
+  const used = await db.query(`select count(*)::int as n from events where type = 'seo_ai' and user_id::text = $1
+                                 and created_at >= date_trunc('month', now() at time zone 'Asia/Kolkata') at time zone 'Asia/Kolkata'`, [user.id]);
+  if (Number(used.rows[0]?.n ?? 0) >= allowance) {
+    return { error: `You have used this month's ${allowance} drafts. Write this one yourself, or try again next month.` };
+  }
   try {
     const { renderServer } = await import("@/lib/render");
     return await renderServer<SeoDraft>("seo", { video_id: videoId });
@@ -148,8 +161,9 @@ export async function submitToYouTube(form: FormData): Promise<{ ok: boolean; me
   const video = await db.query(`select 1 from videos where id = $1 and user_id::text = $2 and status = 'done' and is_public`, [id, user.id]);
   if (!video.rowCount) return { ok: false, message: "Make the video public on Vivaran first." };
   const site = (process.env.SITE_URL ?? "").replace(/\/$/, "");
-  const credit = `Made by ${user.name} (@${user.handle})`;
-  const full = description.includes(`@${user.handle}`) ? description : `${description}\n\n${credit} with Vivaran: ${site}/v/${id}`;
+  const { creditLine } = await import("@/lib/credits");
+  const credit = creditLine(user.name, user.handle, `${site}/v/${id}`);
+  const full = description.includes(`${site}/v/${id}`) ? description : `${description}\n\n${credit}`;
   const { rowCount } = await db.query(
     `insert into youtube_uploads (video_id, user_id, title, description, tags, seo_by_ai)
      values ($1, $2::uuid, $3, $4, $5, $6)

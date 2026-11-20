@@ -4,7 +4,7 @@ import { many, one } from "./db";
 
 export type Plans = {
   free: { monthly_credits: number; max_minutes: number; watermark: boolean; figures_per_month: number };
-  pro: { monthly_credits: number; max_minutes: number; watermark: boolean; figures_per_month: number; price_inr: number };
+  pro: { monthly_credits: number; max_minutes: number; watermark: boolean; figures_per_month: number; price_inr: number; seo_per_month?: number };
   cost: { minutes_per_credit: number; voiced: number; silent_or_own_key: number };
   rewards: { creator_join: number; first_publish: number; subscribe: number; referral: number; views_1k: number; views_10k: number };
   packs: { credits: number; price_inr: number }[];
@@ -12,6 +12,11 @@ export type Plans = {
   youtube_channel_url: string;
   cost_model: { gnani_inr_per_1k_chars: number; server_inr_per_video_minute: number; inr_per_usd: number };
 };
+
+/** The line every channel description ends with (the render server writes the same one). */
+export function creditLine(name: string, handle: string, url: string): string {
+  return name.trim().toLowerCase() === "vivaran" ? `Made with Vivaran: ${url}` : `Made by ${name} (@${handle}) with Vivaran: ${url}`;
+}
 
 export async function getPlans(): Promise<Plans> {
   const row = await one<{ value: Plans }>(`select value from settings where key = 'plans'`);
@@ -21,6 +26,7 @@ export async function getPlans(): Promise<Plans> {
 
 export type Account = {
   tier: "free" | "pro";
+  isAdmin: boolean;
   proUntil: Date | null;
   monthly: number;
   bonus: number;
@@ -32,8 +38,8 @@ export type Account = {
 
 export async function account(userId: string): Promise<Account> {
   await one(`select vivaran_ensure_monthly($1::uuid)`, [userId]);
-  const row = await one<{ tier: "free" | "pro"; pro_until: Date | null; creator_since: Date | null; monthly: string; bonus: string }>(
-    `select vivaran_tier(u.id) as tier, u.pro_until, u.creator_since, b.monthly, b.bonus
+  const row = await one<{ tier: "free" | "pro"; is_admin: boolean; pro_until: Date | null; creator_since: Date | null; monthly: string; bonus: string }>(
+    `select vivaran_tier(u.id) as tier, u.is_admin, u.pro_until, u.creator_since, b.monthly, b.bonus
        from users u, vivaran_balance(u.id) b where u.id::text = $1`, [userId]);
   const kinds = await many<{ kind: string }>(
     `select distinct kind from credit_ledger where user_id::text = $1 and kind in ('creator_join', 'subscribe', 'first_publish')`, [userId]);
@@ -43,7 +49,7 @@ export async function account(userId: string): Promise<Account> {
   const monthly = Number(row?.monthly ?? 0);
   const bonus = Number(row?.bonus ?? 0);
   return {
-    tier: row?.tier ?? "free", proUntil: row?.pro_until ?? null, monthly, bonus, total: monthly + bonus,
+    tier: row?.tier ?? "free", isAdmin: !!row?.is_admin, proUntil: row?.pro_until ?? null, monthly, bonus, total: monthly + bonus,
     creatorSince: row?.creator_since ?? null,
     claimed: { creator_join: has("creator_join"), subscribe: has("subscribe"), first_publish: has("first_publish") },
     refillsOn: next.toLocaleDateString("en-IN", { day: "numeric", month: "short" }),
@@ -103,6 +109,12 @@ export async function downloadsLeft(userId: string): Promise<number> {
 export async function onSignIn(userId: string, refHandle: string | null) {
   const fresh = await one<{ fresh: boolean }>(
     `select created_at > now() - interval '10 minutes' as fresh from users where id::text = $1`, [userId]);
+  // Accounts named in ADMIN_HANDLES are flagged in the database too, for the render server and the accounts list.
+  const handles = (process.env.ADMIN_HANDLES ?? "").split(",").map((h) => h.trim()).filter(Boolean);
+  if (handles.length) {
+    await one(`update users set is_admin = true where id::text = $1 and handle = any($2::text[]) and not is_admin returning id`,
+      [userId, handles]);
+  }
   if (!fresh?.fresh) {
     await one(`update users set last_seen_at = now() where id::text = $1 returning id`, [userId]);
     return;

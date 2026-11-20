@@ -3,10 +3,18 @@ import { many, one } from "./db";
 import type { User } from "./users";
 
 /** An admin is marked in the database, or named by handle in ADMIN_HANDLES (comma-separated). */
+/** Handles named in ADMIN_HANDLES: always admins, whatever the database says. */
+export function adminHandles(): string[] {
+  return (process.env.ADMIN_HANDLES ?? "").split(",").map((h) => h.trim()).filter(Boolean);
+}
+
 export async function isAdmin(user: User | null): Promise<boolean> {
   if (!user) return false;
-  const handles = (process.env.ADMIN_HANDLES ?? "").split(",").map((h) => h.trim()).filter(Boolean);
-  if (handles.includes(user.handle)) return true;
+  if (adminHandles().includes(user.handle)) {
+    // Keep the database flag in step, so the render server (which has no ADMIN_HANDLES) and the accounts list agree.
+    await one(`update users set is_admin = true where id::text = $1 and not is_admin returning id`, [user.id]);
+    return true;
+  }
   const row = await one<{ is_admin: boolean }>(`select is_admin from users where id::text = $1`, [user.id]);
   return !!row?.is_admin;
 }
@@ -80,7 +88,7 @@ export async function overview(days: number) {
 
   const funnel = await one<Record<string, string>>(`
     select count(*)::text as signed_up,
-      count(*) filter (where last_seen_at is not null or exists (select 1 from videos v where v.user_id = u.id))::text as connected,
+      count(*) filter (where connector_used_at is not null or exists (select 1 from videos v where v.user_id = u.id))::text as connected,
       count(*) filter (where exists (select 1 from videos v where v.user_id = u.id and v.status = 'done'))::text as rendered,
       count(*) filter (where exists (select 1 from videos v where v.user_id = u.id and v.is_public))::text as published,
       count(*) filter (where exists (select 1 from youtube_uploads y where y.user_id = u.id))::text as submitted,
@@ -111,13 +119,14 @@ export async function overview(days: number) {
 export type AdminUser = {
   id: string; name: string; handle: string; email: string; tier: string; pro_until: Date | null; is_admin: boolean;
   creator_since: Date | null; credits: string; videos: string; minutes: string; last_seen_at: Date | null; created_at: Date;
-  referred_by: string | null;
+  referred_by: string | null; fixed_admin: boolean;
 };
 
 export function users(q: string, limit = 100) {
   const like = `%${q.replace(/[\\%_]/g, "\\$&")}%`;
   return many<AdminUser>(`
-    select u.id::text, u.name, u.handle, u.email, vivaran_tier(u.id) as tier, u.pro_until, u.is_admin, u.creator_since,
+    select u.id::text, u.name, u.handle, u.email, vivaran_tier(u.id) as tier, u.pro_until,
+           (u.is_admin or u.handle = any($4::text[])) as is_admin, u.handle = any($4::text[]) as fixed_admin, u.creator_since,
            (b.monthly + b.bonus)::text as credits,
            (select count(*) from videos v where v.user_id = u.id and v.status = 'done')::text as videos,
            (select round(coalesce(sum(seconds), 0)::numeric / 60, 1) from videos v where v.user_id = u.id and v.status = 'done')::text as minutes,
@@ -125,13 +134,31 @@ export function users(q: string, limit = 100) {
            (select handle from users r where r.id = u.referred_by) as referred_by
       from users u, vivaran_balance(u.id) b
      where $1 = '' or u.name ilike $2 or u.handle ilike $2 or u.email ilike $2
-     order by u.created_at desc limit $3`, [q, like, limit]);
+     order by u.created_at desc limit $3`, [q, like, limit, adminHandles()]);
 }
 
 export async function grant(adminId: string, userId: string, amount: number, kind: "admin_grant" | "pack" | "admin_take", note: string, amountInr: number | null) {
-  await one(`insert into credit_ledger (user_id, bucket, delta, kind, note, amount_inr, granted_by)
-             values ($1::uuid, 'bonus', $2, $3, $4, $5, $6::uuid) returning id`,
-    [userId, kind === "admin_take" ? -Math.abs(amount) : Math.abs(amount), kind, note || null, amountInr, adminId]);
+  if (kind !== "admin_take") {
+    await one(`insert into credit_ledger (user_id, bucket, delta, kind, note, amount_inr, granted_by)
+               values ($1::uuid, 'bonus', $2, $3, $4, $5, $6::uuid) returning id`,
+      [userId, Math.abs(amount), kind, note || null, amountInr, adminId]);
+    return;
+  }
+  // Taking credits never goes below zero: bonus credits first, then this month's.
+  const b = await one<{ monthly: string; bonus: string }>(`select monthly::text, bonus::text from vivaran_balance($1::uuid)`, [userId]);
+  const bonus = Math.max(0, Number(b?.bonus ?? 0));
+  const monthly = Math.max(0, Number(b?.monthly ?? 0));
+  const fromBonus = Math.min(bonus, Math.abs(amount));
+  const fromMonthly = Math.min(monthly, Math.abs(amount) - fromBonus);
+  if (fromBonus > 0) {
+    await one(`insert into credit_ledger (user_id, bucket, delta, kind, note, granted_by)
+               values ($1::uuid, 'bonus', $2, 'admin_take', $3, $4::uuid) returning id`, [userId, -fromBonus, note || null, adminId]);
+  }
+  if (fromMonthly > 0) {
+    await one(`insert into credit_ledger (user_id, bucket, period, delta, kind, note, granted_by)
+               values ($1::uuid, 'monthly', to_char(now() at time zone 'Asia/Kolkata', 'YYYY-MM'), $2, 'admin_take', $3, $4::uuid)
+               returning id`, [userId, -fromMonthly, note || null, adminId]);
+  }
 }
 
 export async function setPro(adminId: string, userId: string, until: Date | null, amountInr: number | null) {

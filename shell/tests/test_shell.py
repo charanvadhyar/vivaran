@@ -588,3 +588,14 @@ class CreditsAndChannel(unittest.TestCase):
                                               {"scene": "c", "seconds": 100, "opens_with": "The end."}]}
         self.assertEqual(youtube._chapters(video), ["0:00 Start here", "3:20 The middle", "6:40 The end"])
         self.assertEqual(youtube._chapters({"seconds": 60, "outline": video["outline"][:2]}), [])
+
+    def test_the_credit_line_names_the_creator_but_not_vivaran_twice(self):
+        from cevg_shell import youtube
+        self.assertEqual(youtube.credit_line("Asha Rao", "asha-rao", "https://vivaran.tech/v/1"),
+                         "Made by Asha Rao (@asha-rao) with Vivaran: https://vivaran.tech/v/1")
+        self.assertEqual(youtube.credit_line("Vivaran", "vivaran", "https://vivaran.tech/v/1"),
+                         "Made with Vivaran: https://vivaran.tech/v/1")
+
+    def test_thumbnails_go_to_the_upload_host(self):
+        from cevg_shell import youtube
+        self.assertTrue(youtube.THUMBNAIL.startswith("https://www.googleapis.com/upload/youtube/v3/"))

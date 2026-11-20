@@ -38,6 +38,15 @@ export function Button(props: AsButton | AsLink) {
   );
   if ("href" in rest && rest.href !== undefined) {
     const { href, ...linkRest } = rest as AsLink;
+    // Routes under /api are files and redirects, not pages: a plain link, so Next.js never prefetches them
+    // (a prefetch would run the route: count a download, or start the YouTube sign-in).
+    if (href.startsWith("/api/")) {
+      return (
+        <a href={href} className={classes} {...linkRest}>
+          {inner}
+        </a>
+      );
+    }
     return (
       <Link href={href} className={classes} {...linkRest}>
         {inner}

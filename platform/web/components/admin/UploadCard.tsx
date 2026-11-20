@@ -11,7 +11,7 @@ export function UploadCard({ u, approve, reject }: { u: Upload; approve: (f: For
       <div className={styles.head}>
         <div>
           <a href={`/v/${u.video_id}`} target="_blank" rel="noreferrer" className={styles.link}>{u.video_title}</a>
-          <div className={styles.muted}>@{u.handle} · {u.minutes} min · {u.tier} · sent {new Date(u.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}{u.seo_by_ai ? " · SEO by AI" : ""}</div>
+          <div className={styles.muted}>@{u.handle} · {u.minutes} min · {u.tier} · sent {new Date(u.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" })}{u.seo_by_ai ? " · SEO by AI" : ""}</div>
         </div>
         <Badge tone={u.status === "published" ? "positive" : u.status === "failed" || u.status === "rejected" ? "negative" : "neutral"}>{u.status}</Badge>
       </div>

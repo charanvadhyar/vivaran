@@ -66,6 +66,10 @@ alter table users add column if not exists is_admin      boolean not null defaul
 alter table users add column if not exists creator_since timestamptz;          -- joined the creator program
 alter table users add column if not exists referred_by   uuid references users(id) on delete set null;
 alter table users add column if not exists last_seen_at  timestamptz;          -- last use of the site or connector
+alter table users add column if not exists connector_used_at timestamptz;        -- last call through the connector
+
+-- Whether the render carries the Vivaran mark (null: made before this was recorded; those all carry it).
+alter table videos add column if not exists watermarked boolean;
 
 -- Plans, prices and rewards, editable from the admin page. Both the site and the
 -- render server read them from here, so there is one source of truth.
@@ -76,7 +80,7 @@ create table if not exists settings (
 );
 insert into settings (key, value) values ('plans', '{
   "free": {"monthly_credits": 3, "max_minutes": 10, "watermark": true,  "figures_per_month": 5},
-  "pro":  {"monthly_credits": 6, "max_minutes": 20, "watermark": false, "figures_per_month": 60, "price_inr": 299},
+  "pro":  {"monthly_credits": 6, "max_minutes": 20, "watermark": false, "figures_per_month": 60, "price_inr": 299, "seo_per_month": 30},
   "cost": {"minutes_per_credit": 10, "voiced": 1, "silent_or_own_key": 0.25},
   "rewards": {"creator_join": 2, "first_publish": 1, "subscribe": 1, "referral": 1, "views_1k": 2, "views_10k": 5},
   "packs": [{"credits": 3, "price_inr": 199}, {"credits": 7, "price_inr": 449}, {"credits": 15, "price_inr": 799}],
@@ -152,7 +156,9 @@ create index if not exists youtube_uploads_status on youtube_uploads (status, cr
 
 -- The account's tier today: Pro while pro_until is in the future.
 create or replace function vivaran_tier(uid uuid) returns text language sql stable as $$
-  select case when pro_until is not null and pro_until > now() then 'pro' else 'free' end from users where id = uid
+  -- Admins get Pro's limits; the render server also leaves their renders uncharged.
+  select case when is_admin or (pro_until is not null and pro_until > now()) then 'pro' else 'free' end
+    from users where id = uid
 $$;
 
 -- Give this month's allowance if it has not been given yet; a Pro upgrade mid-month tops it up.

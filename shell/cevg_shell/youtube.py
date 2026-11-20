@@ -27,6 +27,8 @@ from . import credits, figures
 
 API = "https://www.googleapis.com/youtube/v3"
 UPLOAD = "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status"
+# Thumbnails are media, so they go to the upload host too; the plain API host answers 400 "mediaBodyRequired".
+THUMBNAIL = "https://www.googleapis.com/upload/youtube/v3/thumbnails/set"
 SUBJECT_NAMES = {"dsa": "Data structures and algorithms", "ml": "Machine learning", "dbms": "Databases",
                  "os": "Operating systems", "coa": "Computer architecture", "networks": "Computer networks",
                  "maths": "Mathematics", "other": "Computer science"}
@@ -84,9 +86,15 @@ def _chapters(video: dict[str, Any]) -> list[str]:
     return out if len(out) >= 3 else []
 
 
+def credit_line(name: str, handle: str, url: str) -> str:
+    """The line every channel description ends with (the site writes the same one)."""
+    who = f"{name} (@{handle})" if name.strip().lower() != "vivaran" else None
+    return f"Made by {who} with Vivaran: {url}" if who else f"Made with Vivaran: {url}"
+
+
 def seo(db, video_id: str, model: str | None = None) -> dict[str, Any]:
     """Title, description and tags for a video, written by the Claude API."""
-    v = db.execute("select v.id, v.title, v.language, v.subject, v.seconds, v.outline, v.script, u.name, u.handle "
+    v = db.execute("select v.id, v.user_id, v.title, v.language, v.subject, v.seconds, v.outline, v.script, u.name, u.handle "
                    "from videos v join users u on u.id = v.user_id where v.id = %s", (video_id,)).fetchone()
     if v is None:
         raise YouTubeError("no such video")
@@ -96,10 +104,12 @@ def seo(db, video_id: str, model: str | None = None) -> dict[str, Any]:
              for scene in script.get("scenes", []) for step in scene.get("steps", [])]
     narration = " ".join(lines)[:12000]
     site = os.environ.get("SITE_URL", "https://vivaran.tech").rstrip("/")
-    credit = f"Made by {v['name']} (@{v['handle']}) with Vivaran: {site}/v/{v['id']}"
+    credit = credit_line(v["name"], v["handle"], f"{site}/v/{v['id']}")
     prompt = (f"Video title from the creator: {v['title']}\nSubject: {SUBJECT_NAMES.get(v['subject'] or '', 'Computer science')}\n"
               f"Narration language: {LANGUAGES.get(lang, lang)}\nLength: {round((v['seconds'] or 0) / 60, 1)} minutes\n"
               f"Chapters:\n" + "\n".join(_chapters(v)) + f"\nCredit line: {credit}\n\nFull narration:\n{narration}")
+    if not os.environ.get("ANTHROPIC_API_KEY", "").strip():
+        raise YouTubeError("the Claude API key (ANTHROPIC_API_KEY) is not set on the render server")
     key = figures._api_key()
     reply = figures._call([{"role": "user", "content": prompt}],
                           model or os.environ.get("CEVG_SEO_MODEL", os.environ.get("CEVG_FIGURE_MODEL", figures.DEFAULT_MODEL)),
@@ -118,7 +128,7 @@ def seo(db, video_id: str, model: str | None = None) -> dict[str, Any]:
         if t and used + len(t) + 1 <= 480:
             tags.append(t)
             used += len(t) + 1
-    credits.event(db, "seo_ai", None, video_id)
+    credits.event(db, "seo_ai", str(v["user_id"]), video_id)
     return {"title": title, "description": description, "tags": tags}
 
 
@@ -139,20 +149,26 @@ def _with_watermark(src: Path, text: str, font: str | None) -> Path:
 
 def upload(db, upload_id: int, token: str, out_dir: Path, watermark: str | None = "Vivaran") -> dict[str, Any]:
     """Upload one approved video to the channel, then give the rewards it earns."""
-    row = db.execute("select y.*, v.subject, v.language, u.handle, vivaran_tier(v.user_id) as tier "
+    row = db.execute("select y.*, v.subject, v.language, v.is_public, v.status as video_status, v.watermarked, u.handle "
                      "from youtube_uploads y join videos v on v.id = y.video_id join users u on u.id = y.user_id "
                      "where y.id = %s", (upload_id,)).fetchone()
     if row is None:
         raise YouTubeError("no such upload")
     if row["status"] not in ("approved", "failed"):
         raise YouTubeError(f"upload is {row['status']}, not approved")
+    if not row["is_public"] or row["video_status"] != "done":
+        db.execute("update youtube_uploads set status = 'rejected', review_note = %s where id = %s",
+                   ("The video was made private, so it was not uploaded.", upload_id))
+        raise YouTubeError("the video is private now, so it was not uploaded")
     db.execute("update youtube_uploads set status = 'uploading', error = null where id = %s", (upload_id,))
     try:
         src = out_dir / f"{row['video_id']}.mp4"
         if not src.is_file():
             raise YouTubeError("the video file is missing on the render server")
         path = src
-        if row["tier"] == "pro" and watermark:  # Pro renders carry no mark; the channel copy does
+        # The channel copy always carries the mark. Renders made without it (Pro, admins) get it added here;
+        # watermarked is null for videos made before this was recorded, and those all carry it already.
+        if watermark and row["watermarked"] is False:
             font = os.environ.get("CEVG_FONT_FILE") or next(
                 (str(p) for p in (Path("/app/fonts/NotoSans-SemiBold.ttf"),) if p.is_file()), None)
             path = _with_watermark(src, f"{watermark} · {row['handle']}", font)
@@ -174,7 +190,7 @@ def upload(db, upload_id: int, token: str, out_dir: Path, watermark: str | None 
         notes = []
         if thumb.is_file():
             try:
-                _google("POST", f"{API}/thumbnails/set?videoId={yt_id}", token, data=thumb.read_bytes(),
+                _google("POST", f"{THUMBNAIL}?videoId={yt_id}&uploadType=media", token, data=thumb.read_bytes(),
                         headers={"Content-Type": "image/png"})
             except YouTubeError as e:
                 notes.append(f"thumbnail not set ({e})")

@@ -52,9 +52,18 @@ export async function approveUpload(form: FormData): Promise<void> {
   const title = String(form.get("title") ?? "").trim().slice(0, 100);
   const description = String(form.get("description") ?? "").trim().slice(0, 4900);
   const tags = String(form.get("tags") ?? "").split(",").map((t) => t.trim()).filter(Boolean).slice(0, 25);
-  await db.query(`update youtube_uploads set status = 'approved', title = coalesce(nullif($2, ''), title),
-                   description = coalesce(nullif($3, ''), description), tags = $4, reviewed_at = now(), error = null
-                   where id = $1::bigint and status in ('pending', 'failed')`, [id, title, description, tags]);
+  const { rowCount } = await db.query(`update youtube_uploads y set status = 'approved', title = coalesce(nullif($2, ''), y.title),
+                   description = coalesce(nullif($3, ''), y.description), tags = $4, reviewed_at = now(), error = null
+                   where y.id = $1::bigint and y.status in ('pending', 'failed')
+                     and exists (select 1 from videos v where v.id = y.video_id and v.is_public and v.status = 'done')`,
+    [id, title, description, tags]);
+  if (!rowCount) {
+    // Only a public video goes on the channel; one made private since it was sent is turned down.
+    await db.query(`update youtube_uploads set status = 'rejected', review_note = 'The video was made private, so it was not uploaded.'
+                    where id = $1::bigint and status in ('pending', 'failed')`, [id]);
+    back();
+    return;
+  }
   await logEvent("youtube_approved", admin.id, null, { upload: id });
   try {
     await renderServer("youtube-upload", { upload_id: Number(id), access_token: await accessToken() });
