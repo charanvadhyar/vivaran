@@ -12,14 +12,14 @@ export function EarnCard({ account, plans, referralLink, join, claimSubscribed, 
   const r = plans.rewards;
   const done = <Badge tone="positive">Done</Badge>;
   return (
-    <Card title="Earn more credits" subtitle="Bonus credits never expire.">
+    <Card title="Earn more credits" subtitle={account.held ? "Joining and subscribing give credits once your free credits are released." : "Bonus credits never expire."}>
       <ol className={styles.list}>
         <li className={styles.item}>
           <div>
             <strong>Join the creator program · +{r.creator_join}</strong>
             <p>Publish your videos on the Vivaran YouTube channel, with your name on them.{termsHref ? <> See the <Link href={termsHref}>creator terms</Link>.</> : null}</p>
           </div>
-          {account.claimed.creator_join ? done : <form action={join}><Button type="submit" variant="primary">Join</Button></form>}
+          {account.claimed.creator_join ? done : <form action={join}><Button type="submit" variant="primary" disabled={account.held}>Join</Button></form>}
         </li>
         <li className={styles.item}>
           <div>
@@ -27,7 +27,7 @@ export function EarnCard({ account, plans, referralLink, join, claimSubscribed, 
             <p>{plans.youtube_channel_url ? <a href={plans.youtube_channel_url} target="_blank" rel="noreferrer">Open the channel</a> : "The channel link is coming soon"}, subscribe, then claim. Once per account.</p>
           </div>
           {account.claimed.subscribe ? done : (
-            <form action={claimSubscribed}><Button type="submit" disabled={!plans.youtube_channel_url}>I&apos;ve subscribed</Button></form>
+            <form action={claimSubscribed}><Button type="submit" disabled={!plans.youtube_channel_url || account.held}>I&apos;ve subscribed</Button></form>
           )}
         </li>
         <li className={styles.item}>

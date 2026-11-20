@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
-import { grant, isAdmin, setAdmin, setPro } from "@/lib/admin";
+import { grant, isAdmin, setAdmin, setHeld, setPro } from "@/lib/admin";
 import { currentUser } from "@/lib/auth";
 import { logEvent } from "@/lib/credits";
 import { db, one } from "@/lib/db";
@@ -42,6 +42,12 @@ export async function toggleAdmin(form: FormData) {
   const target = String(form.get("user"));
   if (target === admin.id) return; // never lock yourself out
   await setAdmin(target, form.get("admin") === "1");
+  back();
+}
+
+export async function toggleHeld(form: FormData) {
+  const admin = await requireAdmin();
+  await setHeld(admin.id, String(form.get("user")), form.get("held") === "1");
   back();
 }
 

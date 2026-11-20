@@ -16,7 +16,7 @@ export function CreditsCard({ account, plans, ownKey }: { account: Account; plan
         <span className={styles.unit}>{account.total === 1 ? "video credit" : "video credits"}</span>
       </div>
       <p className={styles.split}>
-        {fmt(account.monthly)} this month (refills to {plan.monthly_credits} on {account.refillsOn}) · {fmt(account.bonus)} bonus (never expire)
+        {fmt(account.monthly)} this month {account.held ? "(free credits on hold)" : `(refills to ${plan.monthly_credits} on ${account.refillsOn})`} · {fmt(account.bonus)} bonus (never expire)
       </p>
       <ul className={styles.rules}>
         <li>A video of up to {c.minutes_per_credit} minutes with Vivaran&apos;s voice costs {fmt(c.voiced)} credit.</li>
@@ -24,6 +24,12 @@ export function CreditsCard({ account, plans, ownKey }: { account: Account; plan
         <li>A failed render gives its credits back.</li>
         <li>Your plan allows videos of up to {plan.max_minutes} minutes{plan.watermark ? ", with the Vivaran mark" : ", without the Vivaran mark"}.</li>
       </ul>
+      {account.held ? (
+        <p className={styles.note}>
+          Your free credits are on hold: several accounts were made from the same network today. Write to us and we will
+          release them. Credits from a pack or Pro work as usual.
+        </p>
+      ) : null}
       {account.isAdmin ? (
         <p className={styles.note}>An admin account: your renders do not use credits, and Pro&apos;s limits apply.</p>
       ) : account.tier === "pro" && account.proUntil ? (

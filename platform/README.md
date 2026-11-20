@@ -88,6 +88,15 @@ program (joining, subscribing to the channel, the first video on the channel,
 invited friends, view milestones on YouTube) and never expire. One render at a
 time per account, and never longer than `CEVG_MAX_MINUTES`.
 
+Sign-ups are counted per network. The site keeps a keyed hash of the IP address
+each account signed up from (never the address; the key is `AUTH_SECRET`). Once a
+network has made `signups_per_network_per_day` accounts in a day (plans, default
+3; 0 turns it off), later accounts from it still work but get no free credits:
+no monthly credits and no rewards for joining or subscribing. They show as "on
+hold" on /admin, which releases them (or holds any other account). A college or
+mobile network puts many real people behind one address, which is why accounts
+are held rather than refused.
+
 The rules are SQL functions in `schema.sql` (`vivaran_spend`, `vivaran_refund`,
 `vivaran_balance`, ...), shared by the site and the render server; the numbers
 are the `plans` row of the `settings` table, edited on `/admin`. Until online

@@ -1,8 +1,8 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import { cookies } from "next/headers";
-import { onSignIn } from "./credits";
+import { cookies, headers } from "next/headers";
+import { clientIp, onSignIn } from "./credits";
 import { WAITLIST } from "./mode";
 import { upsertUser, userById, type User } from "./users";
 
@@ -53,7 +53,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         } catch {
           ref = null;
         }
-        await onSignIn(token.uid as string, ref).catch((e) => console.error("sign-in bookkeeping failed:", e));
+        let ip: string | null = null;
+        try {
+          const h = await headers();
+          ip = clientIp((name) => h.get(name));
+        } catch {
+          ip = null;
+        }
+        await onSignIn(token.uid as string, ref, ip).catch((e) => console.error("sign-in bookkeeping failed:", e));
       }
       return token;
     },

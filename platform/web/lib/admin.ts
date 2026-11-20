@@ -35,6 +35,7 @@ export async function overview(days: number) {
       (select count(distinct user_id) from videos where created_at > ${since}) as users_rendering,
       (select count(*) from users where last_seen_at > ${since}) as users_seen,
       (select count(*) from users where creator_since is not null) as creators,
+      (select count(*) from users where free_held) as held,
       (select count(*) from users where pro_until > now()) as pro,
       (select count(*) from videos where status = 'done' and created_at > ${since}) as videos_done,
       (select count(*) from videos where status = 'failed' and created_at > ${since}) as videos_failed,
@@ -119,7 +120,7 @@ export async function overview(days: number) {
 export type AdminUser = {
   id: string; name: string; handle: string; email: string; tier: string; pro_until: Date | null; is_admin: boolean;
   creator_since: Date | null; credits: string; videos: string; minutes: string; last_seen_at: Date | null; created_at: Date;
-  referred_by: string | null; fixed_admin: boolean;
+  referred_by: string | null; fixed_admin: boolean; free_held: boolean; same_network: number;
 };
 
 export function users(q: string, limit = 100) {
@@ -127,6 +128,7 @@ export function users(q: string, limit = 100) {
   return many<AdminUser>(`
     select u.id::text, u.name, u.handle, u.email, vivaran_tier(u.id) as tier, u.pro_until,
            (u.is_admin or u.handle = any($4::text[])) as is_admin, u.handle = any($4::text[]) as fixed_admin, u.creator_since,
+           u.free_held, (select count(*)::int from users o where o.signup_ip_hash = u.signup_ip_hash and o.id <> u.id) as same_network,
            (b.monthly + b.bonus)::text as credits,
            (select count(*) from videos v where v.user_id = u.id and v.status = 'done')::text as videos,
            (select round(coalesce(sum(seconds), 0)::numeric / 60, 1) from videos v where v.user_id = u.id and v.status = 'done')::text as minutes,
@@ -168,6 +170,16 @@ export async function setPro(adminId: string, userId: string, until: Date | null
              values ($1::uuid, 'bonus', 0, 'pro_change', $2, $3, $4::uuid) returning id`,
     [userId, until ? `Pro until ${until.toISOString().slice(0, 10)}` : "Pro ended", amountInr, adminId]);
   if (until && until > new Date()) await one(`select vivaran_ensure_monthly($1::uuid)`, [userId]);
+}
+
+/** Hold or release an account's free credits (monthly, joining, subscribing). */
+export async function setHeld(adminId: string, userId: string, held: boolean) {
+  await one(`update users set free_held = $2 where id::text = $1 returning id`, [userId, held]);
+  await one(`insert into credit_ledger (user_id, bucket, delta, kind, note, granted_by)
+             values ($1::uuid, 'bonus', 0, 'admin_grant', $2, $3::uuid) returning id`,
+    [userId, held ? "Free credits put on hold" : "Free credits released", adminId]);
+  // Released this month: the month's free credits arrive now, not at the next refill.
+  if (!held) await one(`select vivaran_ensure_monthly($1::uuid)`, [userId]);
 }
 
 export async function setAdmin(userId: string, admin: boolean) {

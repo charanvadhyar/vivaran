@@ -6,8 +6,9 @@ import styles from "./UserRow.module.css";
 const day = (d: Date | null) => (d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit", timeZone: "Asia/Kolkata" }) : "never");
 
 /** One account in the admin list, with its tools folded under it. */
-export function UserRow({ u, grant, setPro, toggleAdmin }:
-  { u: AdminUser; grant: (f: FormData) => Promise<void>; setPro: (f: FormData) => Promise<void>; toggleAdmin: (f: FormData) => Promise<void> }) {
+export function UserRow({ u, grant, setPro, toggleAdmin, toggleHeld }:
+  { u: AdminUser; grant: (f: FormData) => Promise<void>; setPro: (f: FormData) => Promise<void>; toggleAdmin: (f: FormData) => Promise<void>;
+    toggleHeld: (f: FormData) => Promise<void> }) {
   return (
     <details className={styles.row}>
       <summary className={styles.summary}>
@@ -16,13 +17,20 @@ export function UserRow({ u, grant, setPro, toggleAdmin }:
           <Badge tone={u.tier === "pro" ? "accent" : "neutral"}>{u.tier}</Badge>
           {u.creator_since ? <Badge tone="info">creator</Badge> : null}
           {u.is_admin ? <Badge tone="solid">admin</Badge> : null}
+          {u.free_held ? <Badge tone="negative">on hold</Badge> : null}
         </span>
         <span className={styles.num}>{Number(u.credits).toString()} cr</span>
         <span className={styles.num}>{u.videos} videos · {u.minutes} min</span>
         <span className={styles.muted}>seen {day(u.last_seen_at)}</span>
       </summary>
       <div className={styles.tools}>
-        <p className={styles.muted}>Joined {day(u.created_at)}{u.referred_by ? ` · invited by @${u.referred_by}` : ""}{u.pro_until ? ` · Pro until ${day(u.pro_until)}` : ""}</p>
+        <p className={styles.muted}>Joined {day(u.created_at)}{u.referred_by ? ` · invited by @${u.referred_by}` : ""}{u.pro_until ? ` · Pro until ${day(u.pro_until)}` : ""}{u.same_network ? ` · ${u.same_network} other account${u.same_network === 1 ? "" : "s"} signed up from the same network` : ""}</p>
+        <form action={toggleHeld} className={styles.form}>
+          <input type="hidden" name="user" value={u.id} />
+          <input type="hidden" name="held" value={u.free_held ? "0" : "1"} />
+          <Button type="submit" size="sm" variant={u.free_held ? "primary" : "ghost"}>{u.free_held ? "Release free credits" : "Hold free credits"}</Button>
+          <span className={styles.muted}>{u.free_held ? "Made after too many sign-ups from one network: no monthly credits or joining and subscribing rewards until released." : "Stops this account's monthly credits and the joining and subscribing rewards."}</span>
+        </form>
         <form action={grant} className={styles.form}>
           <input type="hidden" name="user" value={u.id} />
           <select name="kind" defaultValue="admin_grant" aria-label="What">

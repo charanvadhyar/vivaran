@@ -67,6 +67,12 @@ alter table users add column if not exists creator_since timestamptz;          -
 alter table users add column if not exists referred_by   uuid references users(id) on delete set null;
 alter table users add column if not exists last_seen_at  timestamptz;          -- last use of the site or connector
 alter table users add column if not exists connector_used_at timestamptz;        -- last call through the connector
+-- Sign-ups from one network: the network is kept only as a keyed hash of the IP address.
+-- An account made after too many from the same network in a day gets no free credits
+-- (monthly, joining, subscribing) until an admin releases it.
+alter table users add column if not exists signup_ip_hash text;
+alter table users add column if not exists free_held boolean not null default false;
+create index if not exists users_signup_ip on users (signup_ip_hash, created_at) where signup_ip_hash is not null;
 
 -- Whether the render carries the Vivaran mark (null: made before this was recorded; those all carry it).
 alter table videos add column if not exists watermarked boolean;
@@ -81,6 +87,7 @@ create table if not exists settings (
 insert into settings (key, value) values ('plans', '{
   "free": {"monthly_credits": 3, "max_minutes": 10, "watermark": true,  "figures_per_month": 5},
   "pro":  {"monthly_credits": 6, "max_minutes": 20, "watermark": false, "figures_per_month": 60, "price_inr": 299, "seo_per_month": 30},
+  "signups_per_network_per_day": 3,
   "cost": {"minutes_per_credit": 10, "voiced": 1, "silent_or_own_key": 0.25},
   "rewards": {"creator_join": 2, "first_publish": 1, "subscribe": 1, "referral": 1, "views_1k": 2, "views_10k": 5},
   "packs": [{"credits": 3, "price_inr": 199}, {"credits": 7, "price_inr": 449}, {"credits": 15, "price_inr": 799}],
@@ -166,7 +173,9 @@ create or replace function vivaran_ensure_monthly(uid uuid) returns void languag
 declare
   p text := to_char(now() at time zone 'Asia/Kolkata', 'YYYY-MM');
   plans jsonb := (select value from settings where key = 'plans');
-  want numeric := (plans -> vivaran_tier(uid) ->> 'monthly_credits')::numeric;
+  -- An account whose free credits are held gets none until it is released (or goes Pro).
+  want numeric := case when vivaran_tier(uid) = 'free' and (select free_held from users where id = uid) then 0
+                       else (plans -> vivaran_tier(uid) ->> 'monthly_credits')::numeric end;
   given numeric;
 begin
   insert into credit_ledger (user_id, bucket, period, delta, kind, note)
@@ -176,7 +185,7 @@ begin
     where user_id = uid and bucket = 'monthly' and period = p and kind in ('monthly', 'monthly_topup');
   if given < want then
     insert into credit_ledger (user_id, bucket, period, delta, kind, note)
-      values (uid, 'monthly', p, want - given, 'monthly_topup', 'pro');
+      values (uid, 'monthly', p, want - given, 'monthly_topup', vivaran_tier(uid));
   end if;
 end $$;
 

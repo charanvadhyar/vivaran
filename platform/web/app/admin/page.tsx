@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { approveUpload, disconnectYouTube, grantCredits, rejectUpload, savePlans, savePlaylists, setProUntil, syncYouTube, toggleAdmin } from "./actions";
+import { approveUpload, disconnectYouTube, grantCredits, rejectUpload, savePlans, savePlaylists, setProUntil, syncYouTube, toggleAdmin, toggleHeld } from "./actions";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { BarChart } from "@/components/admin/BarChart";
 import { DataTable } from "@/components/admin/DataTable";
@@ -63,7 +63,7 @@ async function Overview({ days }: { days: number }) {
           { label: "Accounts", value: int(k.users_total), sub: `${int(k.users_new)} new` },
           { label: "Active creators", value: int(k.users_rendering), sub: `rendered in the period` },
           { label: "Pro", value: int(k.pro), sub: `MRR ${inr(k.mrr_inr)}` },
-          { label: "Creator program", value: int(k.creators) },
+          { label: "Creator program", value: int(k.creators), sub: k.held ? `${int(k.held)} sign-ups on hold` : undefined, tone: k.held ? "bad" : undefined },
           { label: "Videos made", value: int(k.videos_done), sub: `${one1(failRate)}% failed`, tone: failRate > 10 ? "bad" : undefined },
           { label: "Video minutes", value: one1(k.minutes), sub: `${one1(k.render_s_per_min)} s render per minute` },
           { label: "Estimated cost", value: inr(k.cost_inr), sub: `${inr(per(k.cost_inr))} per video minute` },
@@ -138,7 +138,7 @@ async function Users({ q }: { q: string }) {
         <Button type="submit" size="sm">Search</Button>
       </form>
       <div className={styles.list}>
-        {list.map((u) => <UserRow key={u.id} u={u} grant={grantCredits} setPro={setProUntil} toggleAdmin={toggleAdmin} />)}
+        {list.map((u) => <UserRow key={u.id} u={u} grant={grantCredits} setPro={setProUntil} toggleAdmin={toggleAdmin} toggleHeld={toggleHeld} />)}
       </div>
       <p className={styles.footnote}>Until online payment is set up: when someone pays you, give the credits with “Pack bought” or set Pro, and enter the amount received so it shows in the analytics.</p>
     </Section>
