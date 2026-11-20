@@ -1,5 +1,6 @@
 target/
-platform/
+platform/*
+!platform/schema.sql
 .git/
 **/node_modules/
 **/__pycache__/

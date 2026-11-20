@@ -31,7 +31,7 @@ export function PublishPanel({ video, setPublic, deleteVideo }:
             {video.is_public ? "Make private" : "Make public"}
           </Button>
         </form>
-        <Button href={`/api/videos/${video.id}/file`} download={`${video.title}.mp4`} icon={<Icon name="download" />}>Download</Button>
+        <Button href={`/api/videos/${video.id}/download`} icon={<Icon name="download" />}>Download</Button>
         <DeleteButton id={video.id} title={video.title} action={deleteVideo} />
       </div>
     </Card>

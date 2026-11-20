@@ -1,0 +1,8 @@
+.funnel { padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); background: var(--bg-surface); display: grid; gap: var(--space-2); }
+.title { font-size: var(--text-sm); font-weight: 600; margin-bottom: var(--space-1); }
+.row { display: grid; grid-template-columns: 170px 1fr 90px; align-items: center; gap: var(--space-3); font-size: var(--text-sm); }
+.label { color: var(--fg-muted); }
+.track { height: 10px; background: var(--bg-raised); border-radius: var(--radius-pill); overflow: hidden; }
+.fill { display: block; height: 100%; background: var(--accent); border-radius: var(--radius-pill); }
+.value { text-align: right; font-variant-numeric: tabular-nums; }
+.value small { color: var(--fg-subtle); margin-left: var(--space-1); }

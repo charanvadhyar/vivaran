@@ -1,0 +1,16 @@
+.row { border-top: 1px solid var(--border-subtle); }
+.row:first-child { border-top: 0; }
+.summary { display: grid; grid-template-columns: minmax(0, 2.5fr) auto 70px 150px 110px; gap: var(--space-3); align-items: center; padding: var(--space-3) var(--space-4); cursor: pointer; font-size: var(--text-sm); list-style: none; }
+.summary::-webkit-details-marker { display: none; }
+.summary:hover { background: var(--bg-raised); }
+.who { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who a { color: var(--fg-link); }
+.email { color: var(--fg-subtle); margin-left: var(--space-2); }
+.badges { display: flex; gap: var(--space-1); }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.muted { color: var(--fg-muted); font-size: var(--text-sm); }
+.tools { padding: 0 var(--space-4) var(--space-4); display: grid; gap: var(--space-3); }
+.form { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.form input, .form select { padding: var(--space-1) var(--space-2); border: 1px solid var(--border-default); border-radius: var(--radius-sm); background: var(--bg-surface); font-size: var(--text-sm); }
+.form input[name="note"] { min-width: 240px; flex: 1; }
+@media (max-width: 900px) { .summary { grid-template-columns: 1fr auto; } .num, .muted { text-align: left; } }

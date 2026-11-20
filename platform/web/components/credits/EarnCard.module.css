@@ -1,0 +1,6 @@
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-4); }
+.item { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-4); padding-bottom: var(--space-4); border-bottom: 1px solid var(--border-subtle); }
+.item:last-child { border-bottom: 0; padding-bottom: 0; }
+.item p { color: var(--fg-muted); font-size: var(--text-sm); margin: var(--space-1) 0 var(--space-2); }
+.item a { color: var(--fg-link); }
+.item > div { flex: 1; min-width: 0; }

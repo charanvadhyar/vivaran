@@ -62,7 +62,7 @@ export function GnaniKeyCard({ initial }: { initial: Status }) {
       const res = await fetch("/api/settings/gnani-key", { method: "DELETE" });
       const data = (await res.json()) as Status;
       setStatus({ set: data.set, setAt: data.setAt });
-      setNote({ ok: true, text: "Removed. Renders fall back to the free daily voice allowance." });
+      setNote({ ok: true, text: "Removed. Voiced videos now use Vivaran's voice and cost the full credit." });
     } catch {
       setNote({ ok: false, text: "Network error — please try again." });
     } finally {
@@ -75,8 +75,8 @@ export function GnaniKeyCard({ initial }: { initial: Status }) {
       <div>
         <strong style={{ fontSize: "1.05rem" }}>Your Gnani API key</strong>
         <p style={{ color: "var(--fg-muted)", margin: "0.35rem 0 0", lineHeight: "var(--leading-normal)" }}>
-          Add your own Gnani key and your videos render on <strong>your own credits</strong>, with no daily voice
-          limit. Without one, you get a free daily voice allowance on us.{" "}
+          Add your own Gnani key and your videos are voiced on <strong>your own Gnani credits</strong>, so each video
+          costs only a quarter of a Vivaran credit. Without one, Vivaran&apos;s voice is used.{" "}
           <a href="https://app.gnani.ai/voice" target="_blank" rel="noreferrer" style={{ color: "var(--fg-link)" }}>
             Get a key →
           </a>

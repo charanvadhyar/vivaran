@@ -540,7 +540,7 @@ class Figures(unittest.TestCase):
         self.calls = []
         replies = [self.SVG, "OK"]
 
-        def fake(messages, model, key, max_tokens=16000):
+        def fake(messages, model, key, max_tokens=16000, system=None):
             self.calls.append(messages)
             return replies.pop(0)
         self._real = figures._call
@@ -567,3 +567,24 @@ class Figures(unittest.TestCase):
     def test_the_hosted_platform_only_uses_drawn_figures(self):
         with self.assertRaises(self.figures.FigureError):
             self.figures.resolve(self.script(), self.cevg, self.tmp, draw_missing=False)
+
+
+class CreditsAndChannel(unittest.TestCase):
+    """What a render costs, and the chapters the YouTube description gets."""
+
+    def test_a_credit_covers_ten_minutes_and_silent_is_a_quarter(self):
+        from cevg_shell import credits
+        p = credits.DEFAULT_PLANS
+        self.assertEqual(credits.cost(p, 7 * 60, True), 1)
+        self.assertEqual(credits.cost(p, 10 * 60, True), 1)
+        self.assertEqual(credits.cost(p, 10 * 60 + 5, True), 2)
+        self.assertEqual(credits.cost(p, 7 * 60, False), 0.25)
+        self.assertEqual(credits.cost(p, 15, True), 1)  # never free
+
+    def test_chapters_follow_the_outline_scaled_to_the_real_length(self):
+        from cevg_shell import youtube
+        video = {"seconds": 600, "outline": [{"scene": "a", "seconds": 100, "opens_with": "Start here. More."},
+                                              {"scene": "b", "seconds": 100, "opens_with": "The middle"},
+                                              {"scene": "c", "seconds": 100, "opens_with": "The end."}]}
+        self.assertEqual(youtube._chapters(video), ["0:00 Start here", "3:20 The middle", "6:40 The end"])
+        self.assertEqual(youtube._chapters({"seconds": 60, "outline": video["outline"][:2]}), [])

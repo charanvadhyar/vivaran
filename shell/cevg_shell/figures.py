@@ -91,8 +91,8 @@ def _api_key() -> str:
     return key
 
 
-def _call(messages: list[dict[str, Any]], model: str, key: str, max_tokens: int = 16000) -> str:
-    body = json.dumps({"model": model, "max_tokens": max_tokens, "system": STYLE, "messages": messages}).encode()
+def _call(messages: list[dict[str, Any]], model: str, key: str, max_tokens: int = 16000, system: str | None = None) -> str:
+    body = json.dumps({"model": model, "max_tokens": max_tokens, "system": system or STYLE, "messages": messages}).encode()
     request = urllib.request.Request(API_URL, data=body, method="POST", headers={
         "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"})
     for attempt in range(4):

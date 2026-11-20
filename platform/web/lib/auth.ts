@@ -1,6 +1,8 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
+import { cookies } from "next/headers";
+import { onSignIn } from "./credits";
 import { WAITLIST } from "./mode";
 import { upsertUser, userById, type User } from "./users";
 
@@ -42,6 +44,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.uid = saved.id;
       } else if (account?.provider === "dev" && user?.id) {
         token.uid = user.id;
+      }
+      if (account && token.uid) {
+        // A sign-up through an invitation link remembers who invited.
+        let ref: string | null = null;
+        try {
+          ref = (await cookies()).get("vivaran_ref")?.value ?? null;
+        } catch {
+          ref = null;
+        }
+        await onSignIn(token.uid as string, ref).catch((e) => console.error("sign-in bookkeeping failed:", e));
       }
       return token;
     },

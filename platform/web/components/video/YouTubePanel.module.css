@@ -1,0 +1,8 @@
+.form { display: grid; gap: var(--space-3); }
+.head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.muted { color: var(--fg-muted); font-size: var(--text-sm); }
+.muted a { color: var(--fg-link); }
+.label { font-size: var(--text-sm); font-weight: 500; }
+.textarea { width: 100%; padding: var(--space-3); border: 1px solid var(--border-default); border-radius: var(--radius-md); background: var(--bg-surface); resize: vertical; line-height: var(--leading-normal); }
+.textarea:focus { outline: none; box-shadow: var(--focus-ring); }
+.hint { color: var(--fg-subtle); font-size: var(--text-xs); margin-top: calc(-1 * var(--space-2)); }

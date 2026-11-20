@@ -1,0 +1,9 @@
+.card { padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); background: var(--bg-surface); display: grid; gap: var(--space-3); }
+.head { display: flex; justify-content: space-between; gap: var(--space-3); align-items: flex-start; }
+.link { color: var(--fg-link); font-weight: 600; }
+.muted { color: var(--fg-muted); font-size: var(--text-sm); }
+.error { color: var(--negative); font-size: var(--text-sm); }
+.form { display: grid; gap: var(--space-2); }
+.reject { display: flex; gap: var(--space-2); }
+.reject .input { flex: 1; }
+.input { width: 100%; padding: var(--space-2); border: 1px solid var(--border-default); border-radius: var(--radius-sm); background: var(--bg-canvas); font-size: var(--text-sm); }

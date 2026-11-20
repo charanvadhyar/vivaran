@@ -10,7 +10,7 @@ export const WAITLIST = process.env.WAITLIST === "1";
 export const CREATOR_PAY = process.env.CREATOR_PAY === "1";
 
 /** Paths that need an account or the render server; closed in waitlist mode. */
-export const CLOSED_IN_WAITLIST = ["/login", "/dashboard", "/design", "/api/auth"];
+export const CLOSED_IN_WAITLIST = ["/login", "/dashboard", "/design", "/api/auth", "/admin", "/api/admin", "/r"];
 
 export function closedInWaitlist(pathname: string): boolean {
   return WAITLIST && CLOSED_IN_WAITLIST.some((p) => pathname === p || pathname.startsWith(`${p}/`));

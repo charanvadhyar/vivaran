@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { deleteVideo, setPublic } from "../../actions";
+import { deleteVideo, setPublic, submitToYouTube, writeSeo } from "../../actions";
 import { Container } from "@/components/layout/Container";
 import { Badge } from "@/components/ui/Badge";
 import { Player } from "@/components/video/Player";
@@ -8,6 +8,8 @@ import { PublishPanel } from "@/components/video/PublishPanel";
 import { RenderStatus } from "@/components/video/RenderStatus";
 import { SharePanel } from "@/components/video/SharePanel";
 import { StepsPanel } from "@/components/video/StepsPanel";
+import { YouTubePanel, type UploadState } from "@/components/video/YouTubePanel";
+import { account } from "@/lib/credits";
 import { currentUser } from "@/lib/auth";
 import { subjectName } from "@/lib/brand";
 import { db } from "@/lib/db";
@@ -30,7 +32,17 @@ export default async function Watch({ params }: { params: Promise<{ id: string }
   const own = viewer?.id === video.user_id;
   // A private video does not exist as far as anyone else can tell.
   if (!own && !(video.is_public && video.status === "done")) notFound();
-  if (!own) await db.query("update videos set views = views + 1 where id = $1", [id]);
+  if (!own) {
+    await db.query("update videos set views = views + 1 where id = $1", [id]);
+    await db.query("insert into events (type, user_id, video_id) values ('view', $1::uuid, $2)", [viewer?.id ?? null, id]);
+  }
+  let upload: UploadState = null;
+  let isPro = false;
+  if (own && video.status === "done") {
+    const { rows } = await db.query(`select status, youtube_id, review_note, yt_views::int as yt_views from youtube_uploads where video_id = $1`, [id]);
+    upload = (rows[0] as UploadState) ?? null;
+    isPro = (await account(video.user_id)).tier === "pro";
+  }
 
   let at = 0;
   const parts = (video.outline ?? []).map((part) => {
@@ -58,6 +70,10 @@ export default async function Watch({ params }: { params: Promise<{ id: string }
           </p>
           {video.is_public && video.status === "done" ? <SharePanel url={`${SITE}/v/${id}`} title={video.title} /> : null}
           {own && video.status === "done" ? <PublishPanel video={video} setPublic={setPublic} deleteVideo={deleteVideo} /> : null}
+          {own && video.status === "done" ? (
+            <YouTubePanel videoId={id} title={video.title} isPro={isPro} isPublic={video.is_public} upload={upload}
+              submit={submitToYouTube} writeSeo={writeSeo} />
+          ) : null}
         </div>
         {parts.length && video.status === "done" ? <aside><StepsPanel parts={parts} /></aside> : null}
       </div>

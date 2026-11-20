@@ -21,8 +21,12 @@ Settings come from the environment:
                         user who has set their own key renders on their own Gnani
                         credits, and the platform key is only the free-taste default
     CEVG_WATERMARK      text in the corner of every video (default "Vivaran")
-    CEVG_DAILY_VOICE_MINUTES   free voiced minutes a keyless user may render per day (default 10)
-    CEVG_MAX_MINUTES    longest single video, in minutes (default 12)
+    CEVG_MAX_MINUTES    longest single video for anyone, in minutes (default 20); each
+                        tier's own limit is in the `settings` table
+    ANTHROPIC_API_KEY   for figures and YouTube SEO drawn by the Claude API
+
+Credits, tiers and rewards: see credits.py and platform/schema.sql. The schema is
+applied when the server starts, so the database is always up to date.
 """
 
 from __future__ import annotations
@@ -43,7 +47,7 @@ from mcp.server.mcpserver.exceptions import ToolError
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
-from . import providers
+from . import credits, providers
 from .narrate import NarrateError, narrate
 from .server import INSTRUCTIONS, MAKES_FILES, READ_ONLY, Studio, _voice_line
 
@@ -80,12 +84,21 @@ class Platform(Studio):
         self.watermark = watermark
         self.daily_voice_seconds = daily_voice_minutes * 60
         self.max_seconds = max_minutes * 60
+        try:
+            credits.apply_schema(database_url, os.environ.get("CEVG_PLATFORM_DIR"))
+        except Exception as e:  # the site can apply it too; never stop the server for this
+            print(f"could not apply the schema: {e}", flush=True)
         self._users: dict[str, tuple[float, dict[str, Any] | None]] = {}
-        self._figures_today: dict[tuple[str, str], int] = {}
         self.draw_missing_figures = False
         # A render that was cut off by a restart can never finish; say so.
-        self._execute("update videos set status = 'failed', error = 'the server restarted during this render; "
-                      "render it again', finished_at = now() where status in ('queued', 'running')")
+        cut_off = self._all("update videos set status = 'failed', error = 'the server restarted during this render; "
+                            "render it again', finished_at = now() where status in ('queued', 'running') returning id")
+        for row in cut_off:
+            try:
+                with self._connect() as db:
+                    credits.refund(db, row["id"])
+            except Exception as e:
+                print(f"could not refund {row['id']}: {e}", flush=True)
 
     # -- database --------------------------------------------------------
 
@@ -109,7 +122,8 @@ class Platform(Studio):
         kept = self._users.get(token)
         if kept and time.time() - kept[0] < 60:
             return kept[1]
-        user = self._one("select id::text as id, name, handle from users where connector_token = %s", (token,))
+        user = self._one("update users set last_seen_at = now() where connector_token = %s "
+                         "returning id::text as id, name, handle", (token,))
         if len(self._users) > 10_000:
             self._users.clear()
         self._users[token] = (time.time(), user)
@@ -137,28 +151,44 @@ class Platform(Studio):
 
     # -- limits ----------------------------------------------------------
 
-    def _check_limits(self, user_id: str, seconds: float, voiced: bool, has_own_key: bool = False) -> None:
-        if seconds > self.max_seconds:
-            raise Limit(f"this video would be about {seconds / 60:.1f} minutes; the longest allowed is "
-                        f"{self.max_seconds / 60:.0f} minutes. Shorten the script or split the topic in two.")
+    def account(self, user: dict[str, Any]) -> dict[str, Any]:
+        """Tier, credits and what things cost, for the assistant to tell the user."""
+        with self._connect() as db:
+            p = credits.plans(db)
+            t = credits.tier(db, user["id"])
+            b = credits.balance(db, user["id"])
+        own = bool(self.gnani_key_for(user["id"]))
+        c = p["cost"]
+        return {
+            "tier": t, "credits": b["total"], "monthly_credits_left": b["monthly"], "bonus_credits": b["bonus"],
+            "longest_video_minutes": min(float(p[t]["max_minutes"]), self.max_seconds / 60), "own_gnani_key": own,
+            "cost": (f"{c['voiced']:g} credit per started {c['minutes_per_credit']:g} minutes voiced with Vivaran's "
+                     f"voice; {c['silent_or_own_key']:g} per started {c['minutes_per_credit']:g} minutes silent or "
+                     f"voiced on the user's own Gnani key"),
+            "more_credits": f"{self.site_url}/dashboard",
+        }
+
+    def _check_limits(self, user_id: str, seconds: float, voiced: bool, has_own_key: bool = False) -> float:
+        """Refuse what this account may not render; otherwise return the credits it will cost."""
+        with self._connect() as db:
+            p = credits.plans(db)
+            t = credits.tier(db, user_id)
+            b = credits.balance(db, user_id)
+        longest = min(float(p[t]["max_minutes"]) * 60, self.max_seconds)
+        if seconds > longest:
+            more = " Pro allows longer videos." if t == "free" else ""
+            raise Limit(f"this video would be about {seconds / 60:.1f} minutes; the longest allowed on this plan is "
+                        f"{longest / 60:.0f} minutes. Shorten the script or split the topic in two.{more}")
         busy = self._one("select count(*) as n from videos where user_id = %s and status in ('queued', 'running')",
                          (user_id,))
         if busy and busy["n"] >= 1:
             raise Limit("this account already has a video rendering; wait for it to finish (call `status`)")
-        # A user who brought their own Gnani key renders on their own credits, so the
-        # free daily voiced-minute cap does not apply to them.
-        if voiced and not has_own_key:
-            used = self._one(
-                "select coalesce(sum(seconds), 0) as s from videos where user_id = %s and voiced "
-                "and status = 'done' and created_at > now() - interval '24 hours'", (user_id,))
-            left = self.daily_voice_seconds - float(used["s"] if used else 0)
-            if seconds > left:
-                raise Limit(f"you have {max(left, 0) / 60:.1f} free voiced minutes left today and this video needs "
-                            f"about {seconds / 60:.1f}. Add your own Gnani API key in Settings on {self.site_url} to "
-                            "keep rendering on your own Gnani credits (no daily cap), render with voice=false "
-                            "(silent, with captions), make it shorter, or try again tomorrow.")
-
-    # -- rendering -------------------------------------------------------
+        price = credits.cost(p, seconds, voiced and not has_own_key)
+        if price > b["total"] + 1e-9:
+            raise Limit(f"this video costs {price:g} credit(s) and the account has {b['total']:g}. Credits refill each "
+                        f"month, and more can be earned or bought at {self.site_url}/dashboard. A silent video "
+                        f"(voice=false), or one voiced on the user's own Gnani key, costs a quarter as much.")
+        return price
 
     def start(self, user: dict[str, Any], script: dict[str, Any], language: str, voice: bool, captions: bool,
               speaker: str, pace: float, subject: str | None = None) -> dict[str, Any]:
@@ -179,7 +209,9 @@ class Platform(Studio):
                     f"Settings on {self.site_url}, or render with voice=false (silent, with captions).")
             provider.check(speaker or None, language, pace)
             speaker = speaker or provider.default_speaker(language)
-        self._check_limits(user["id"], estimate["seconds"], voice, has_own_key=bool(own_key))
+        price = self._check_limits(user["id"], estimate["seconds"], voice, has_own_key=bool(own_key))
+        with self._connect() as db:
+            watermark_on = bool(credits.plans(db)[credits.tier(db, user["id"])]["watermark"])
 
         video_id = uuid.uuid4().hex[:12]
         self._execute(
@@ -188,23 +220,29 @@ class Platform(Studio):
             (video_id, user["id"], str(script.get("title") or "Untitled")[:200], language, speaker if voice else None,
              voice, captions, "waiting for an earlier render to finish", Jsonb(script), Jsonb(estimate["outline"]),
              estimate["steps"], subject))
+        with self._connect() as db:
+            if not credits.spend(db, user["id"], price, video_id):
+                db.execute("delete from videos where id = %s", (video_id,))
+                raise Limit("not enough credits for this video; the dashboard on the site shows the balance")
+            credits.event(db, "render_started", user["id"], video_id, credits=price, voiced=voice,
+                          own_key=bool(own_key), language=language)
         folder = Path(tempfile.mkdtemp(prefix="cevg-job-"))
         path = self._write(script, folder)
         threading.Thread(target=self._render,
-                         args=(video_id, user, path, language, voice, captions, speaker, pace, own_key),
+                         args=(video_id, user, path, language, voice, captions, speaker, pace, own_key, watermark_on),
                          daemon=True).start()
-        return {"job": video_id, "state": "queued", "estimated_minutes": estimate["minutes"],
+        return {"job": video_id, "state": "queued", "estimated_minutes": estimate["minutes"], "credits": price,
                 "advice": "call `status` with this job id in about 20 seconds"}
 
     def _render(self, video_id: str, user: dict[str, Any], script: Path, language: str, voice: bool, captions: bool,
-                speaker: str, pace: float, own_key: str | None = None) -> None:
+                speaker: str, pace: float, own_key: str | None = None, watermark_on: bool = True) -> None:
         def progress(message: str) -> None:
             self._execute("update videos set progress = %s where id = %s", (message, video_id))
 
         with self._one_at_a_time:
             self._execute("update videos set status = 'running', progress = 'starting' where id = %s", (video_id,))
             out = self.out_dir / f"{video_id}.mp4"
-            mark = f"{self.watermark} · {user['handle']}" if self.watermark else None
+            mark = f"{self.watermark} · {user['handle']}" if self.watermark and watermark_on else None
             try:
                 characters = 0
                 note = "finished"
@@ -235,27 +273,40 @@ class Platform(Studio):
                 self._run("frame", str(script), "-o", str(self.out_dir / f"{video_id}.png"))
                 self._execute("update videos set status = 'done', progress = %s, seconds = %s, "
                               "characters = %s, finished_at = now() where id = %s", (note, seconds, characters, video_id))
+                with self._connect() as db:
+                    credits.event(db, "render_done", user["id"], video_id, seconds=seconds, characters=characters,
+                                  voiced=voice, own_key=bool(own_key), language=language)
             except providers.VoiceError as e:
                 self._fail(video_id, f"{e}\n{e.advice()}")
             except Exception as e:  # a job must always end in a state the assistant can read
                 self._fail(video_id, str(e))
 
     def figure_for(self, user: dict[str, Any], prompt: str) -> dict[str, Any]:
-        """Draw a figure on the platform's Claude API key, within a daily allowance per user."""
+        """Draw a figure on the platform's Claude API key, within the plan's monthly allowance."""
         from . import figures
         if not figures.cache_path(prompt, self.cache_dir).exists():
-            day = time.strftime("%Y-%m-%d")
-            used = self._figures_today.setdefault((user["id"], day), 0)
-            allowed = int(os.environ.get("CEVG_DAILY_FIGURES", "20"))
+            with self._connect() as db:
+                p = credits.plans(db)
+                t = credits.tier(db, user["id"])
+                used = db.execute("select count(*) as n from events where type = 'figure' and user_id = %s::uuid "
+                                  "and created_at > date_trunc('month', now())", (user["id"],)).fetchone()["n"]
+            allowed = int(p[t].get("figures_per_month", 5))
             if used >= allowed:
-                raise ValueError(f"you have drawn {used} new figures today, the daily allowance; "
-                                 "reuse one, or give a figure's `svg` yourself")
-            self._figures_today[(user["id"], day)] = used + 1
+                raise ValueError(f"this account has drawn {used} new figures this month, the {t} plan's allowance; "
+                                 "reuse a figure already drawn, or give a figure's `svg` yourself")
+            result = self.draw_figure(prompt)
+            with self._connect() as db:
+                credits.event(db, "figure", user["id"], prompt=prompt[:300])
+            return result
         return self.draw_figure(prompt)
 
     def _fail(self, video_id: str, error: str) -> None:
-        self._execute("update videos set status = 'failed', error = %s, finished_at = now() where id = %s",
-                      (error[:2000], video_id))
+        """A render failed: say why, and give back the credits it took."""
+        with self._connect() as db:
+            row = db.execute("update videos set status = 'failed', error = %s, finished_at = now() where id = %s "
+                             "returning user_id::text as uid", (error[:2000], video_id)).fetchone()
+            back = credits.refund(db, video_id)
+            credits.event(db, "render_failed", row["uid"] if row else None, video_id, error=error[:300], refunded=back)
 
     def job(self, user: dict[str, Any], video_id: str) -> dict[str, Any]:
         row = self._one("select id, title, status, progress, error, seconds, steps, is_public, "
@@ -372,10 +423,17 @@ def build(platform: Platform) -> MCPServer:
         (computer architecture), networks, maths or other.
         The video is saved, private, in the user's account. `language` picks which narration in each
         step's `say` is spoken; every step must have it. `voice=false` makes a silent video timed from the
-        text. `captions=true` shows the narration under the picture. Each account has a daily allowance of
-        voiced minutes, so validate, preview and estimate first."""
+        text. `captions=true` shows the narration under the picture. A render costs credits (see `account`):
+        one credit per started 10 minutes with Vivaran's voice, a quarter of that silent or on the user's own
+        Gnani key. A failed render gives its credits back. Validate, preview and estimate first."""
         user = who(ctx)
         return guarded(lambda: platform.start(user, script, language, voice, captions, speaker, pace, subject))
+
+    @server.tool(title="Credits and plan", annotations=READ_ONLY)
+    def account(ctx: Context) -> dict[str, Any]:
+        """The user's plan, credits left and what a video costs. Check it before `render` and tell the user
+        what the video will cost."""
+        return platform.account(who(ctx))
 
     @server.tool(title="Ask how a render is going", annotations=READ_ONLY)
     def status(ctx: Context, job: str) -> dict[str, Any]:
@@ -412,6 +470,8 @@ def gate(app, platform: Platform):
             return await refuse(send, 200, "ok")
         if len(parts) == 3 and parts[0] == "files":
             return await files(scope, receive, send, parts[1], parts[2])
+        if len(parts) == 2 and parts[0] == "internal" and scope["method"] == "POST":
+            return await internal(scope, receive, send, parts[1])
         if len(parts) != 3 or parts[0] != "u" or parts[2] != "mcp":
             return await refuse(send, 404, "not found")
         import anyio
@@ -437,6 +497,49 @@ def gate(app, platform: Platform):
         if Path(name).name != name or path.suffix not in types or not path.is_file():
             return await refuse(send, 404, "not found")
         return await FileResponse(path, media_type=types[path.suffix])(scope, receive, send)
+
+    async def internal(scope, receive, send, name: str):
+        """Calls from the website only: YouTube SEO, uploads and statistics."""
+        import hmac
+        import anyio
+        from starlette.requests import Request
+        from starlette.responses import JSONResponse
+        from . import youtube
+        token = os.environ.get("CEVG_INTERNAL_TOKEN", "")
+        given = dict(scope["headers"]).get(b"x-cevg-internal", b"").decode("latin-1")
+        if not token or not hmac.compare_digest(token, given):
+            return await refuse(send, 404, "not found")
+        try:
+            body = await Request(scope, receive).json()
+        except Exception:
+            return await JSONResponse({"error": "the body must be JSON"}, status_code=400)(scope, receive, send)
+
+        def run():
+            with platform._connect() as db:
+                if name == "seo":
+                    return youtube.seo(db, str(body["video_id"]))
+                if name == "youtube-sync":
+                    return youtube.sync_stats(db, str(body["access_token"]))
+                if name == "youtube-upload":
+                    upload_id, access = int(body["upload_id"]), str(body["access_token"])
+
+                    def work():
+                        try:
+                            with platform._connect() as conn:
+                                youtube.upload(conn, upload_id, access, platform.out_dir, platform.watermark or None)
+                        except Exception as e:
+                            print(f"youtube upload {upload_id} failed: {e}", flush=True)
+                    threading.Thread(target=work, daemon=True).start()
+                    return {"started": True}
+            raise KeyError(name)
+
+        try:
+            result = await anyio.to_thread.run_sync(run)
+        except KeyError:
+            return await refuse(send, 404, "not found")
+        except Exception as e:
+            return await JSONResponse({"error": str(e)[:500]}, status_code=502)(scope, receive, send)
+        return await JSONResponse(result)(scope, receive, send)
 
     return gated
 
@@ -474,7 +577,7 @@ def serve(host: str = "127.0.0.1", port: int = 8765) -> None:
         cevg=os.environ.get("CEVG_BIN"),
         watermark=os.environ.get("CEVG_WATERMARK", "Vivaran"),
         daily_voice_minutes=float(os.environ.get("CEVG_DAILY_VOICE_MINUTES", "10")),
-        max_minutes=float(os.environ.get("CEVG_MAX_MINUTES", "12")),
+        max_minutes=float(os.environ.get("CEVG_MAX_MINUTES", "20")),
     )
     # The gate checks the token on every request, and the server sits behind the
     # site's proxy or a tunnel, so any host name is accepted here.

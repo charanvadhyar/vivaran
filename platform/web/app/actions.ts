@@ -96,3 +96,70 @@ export async function joinWaitlist(_previous: WaitlistResult, form: FormData): P
     return { ok: false, error: "Something went wrong on our side. Try again in a minute." };
   }
 }
+
+// --- Credits and the creator program --------------------------------------------
+
+export async function joinCreator() {
+  const user = await requireUser();
+  const { joinCreatorProgram } = await import("@/lib/credits");
+  await joinCreatorProgram(user.id);
+  revalidatePath("/dashboard");
+}
+
+export async function claimSubscribed() {
+  const user = await requireUser();
+  const { claimSubscribe } = await import("@/lib/credits");
+  await claimSubscribe(user.id);
+  revalidatePath("/dashboard");
+}
+
+// --- The Vivaran YouTube channel ----------------------------------------------------
+
+export type SeoDraft = { title: string; description: string; tags: string[] };
+
+/** Pro only: title, description and tags for the channel, written by the Claude API. */
+export async function writeSeo(videoId: string): Promise<SeoDraft | { error: string }> {
+  const user = await requireUser();
+  const { account } = await import("@/lib/credits");
+  if ((await account(user.id)).tier !== "pro") return { error: "Writing the SEO for you is part of Pro." };
+  const own = await db.query(`select 1 from videos where id = $1 and user_id::text = $2 and status = 'done'`, [videoId, user.id]);
+  if (!own.rowCount) return { error: "No such video." };
+  try {
+    const { renderServer } = await import("@/lib/render");
+    return await renderServer<SeoDraft>("seo", { video_id: videoId });
+  } catch (e) {
+    return { error: `Could not write it just now: ${(e as Error).message}` };
+  }
+}
+
+/** Send a public video to the channel's review queue. */
+export async function submitToYouTube(form: FormData): Promise<{ ok: boolean; message: string }> {
+  const user = await requireUser();
+  const id = String(form.get("id") ?? "");
+  const title = String(form.get("title") ?? "").trim();
+  const description = String(form.get("description") ?? "").trim();
+  const tags = String(form.get("tags") ?? "").split(",").map((t) => t.trim()).filter(Boolean).slice(0, 25);
+  const byAi = form.get("seo_by_ai") === "1";
+  if (!/^[a-f0-9]{12}$/.test(id)) return { ok: false, message: "No such video." };
+  if (title.length < 10 || title.length > 100) return { ok: false, message: "The title must be 10 to 100 characters." };
+  if (description.length < 100 || description.length > 4900) return { ok: false, message: "The description must be 100 to 4,900 characters." };
+  if (tags.join(",").length > 480) return { ok: false, message: "The tags are too long together (480 characters at most)." };
+  if (/[<>]/.test(title + description)) return { ok: false, message: "YouTube does not allow < or > in titles and descriptions." };
+  const video = await db.query(`select 1 from videos where id = $1 and user_id::text = $2 and status = 'done' and is_public`, [id, user.id]);
+  if (!video.rowCount) return { ok: false, message: "Make the video public on Vivaran first." };
+  const site = (process.env.SITE_URL ?? "").replace(/\/$/, "");
+  const credit = `Made by ${user.name} (@${user.handle})`;
+  const full = description.includes(`@${user.handle}`) ? description : `${description}\n\n${credit} with Vivaran: ${site}/v/${id}`;
+  const { rowCount } = await db.query(
+    `insert into youtube_uploads (video_id, user_id, title, description, tags, seo_by_ai)
+     values ($1, $2::uuid, $3, $4, $5, $6)
+     on conflict (video_id) do update set title = excluded.title, description = excluded.description, tags = excluded.tags,
+       seo_by_ai = excluded.seo_by_ai, status = 'pending', review_note = null, error = null, created_at = now()
+     where youtube_uploads.status in ('pending', 'rejected', 'failed')`,
+    [id, user.id, title, full, tags, byAi]);
+  if (!rowCount) return { ok: false, message: "This video is already approved or on the channel." };
+  const { logEvent } = await import("@/lib/credits");
+  await logEvent("youtube_submitted", user.id, id, { by_ai: byAi });
+  revalidatePath(`/v/${id}`);
+  return { ok: true, message: "Sent for review. It goes on the channel once it is approved." };
+}

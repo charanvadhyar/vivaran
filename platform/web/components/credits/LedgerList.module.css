@@ -1,0 +1,8 @@
+.table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.table td { padding: var(--space-2) var(--space-2); border-top: 1px solid var(--border-subtle); }
+.table tr:first-child td { border-top: 0; }
+.when { color: var(--fg-muted); white-space: nowrap; width: 1%; }
+.video { color: var(--fg-link); }
+.plus { color: var(--positive); text-align: right; font-variant-numeric: tabular-nums; width: 1%; }
+.minus { color: var(--fg-muted); text-align: right; font-variant-numeric: tabular-nums; width: 1%; }
+.empty { padding: var(--space-2) 0; color: var(--fg-muted); }

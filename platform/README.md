@@ -77,16 +77,28 @@ Put the https address it prints in `.env` as both `SITE_URL` and
 programs. Connector addresses on the dashboard then start with that
 address.
 
-## Limits
+## Credits, plans and the channel
 
-Voice runs on the platform's Sarvam key (`SARVAM_API_KEY`), so each account
-has a daily allowance: `CEVG_DAILY_VOICE_MINUTES` (default 10) voiced
-minutes in any 24 hours, one render at a time, and no video longer than
-`CEVG_MAX_MINUTES` (default 12). Silent videos with captions are not
-counted. Without a key every video is silent.
+A render costs credits, counted in videos: one credit is one video of up to
+ten minutes voiced with the platform's voice; a silent video, or one voiced on
+the creator's own Gnani key, costs a quarter. A failed render gives its credits
+back. Free accounts get 3 credits each month (refilled, not piled up); Pro gets
+more, longer videos and no watermark. Bonus credits come from the creator
+program (joining, subscribing to the channel, the first video on the channel,
+invited friends, view milestones on YouTube) and never expire. One render at a
+time per account, and never longer than `CEVG_MAX_MINUTES`.
 
-Every video carries `CEVG_WATERMARK` (default "Vivaran") and the creator's handle in the top
-right corner.
+The rules are SQL functions in `schema.sql` (`vivaran_spend`, `vivaran_refund`,
+`vivaran_balance`, ...), shared by the site and the render server; the numbers
+are the `plans` row of the `settings` table, edited on `/admin`. Until online
+payment is set up, credits packs and Pro are granted by hand on `/admin`.
+
+Creators send public videos to the Vivaran YouTube channel from the video's
+page (Pro gets the title, description and tags written by the Claude API); an
+admin approves each one, and the render server uploads it.
+
+Every free video carries `CEVG_WATERMARK` (default "Vivaran") and the creator's
+handle; the channel copy of a Pro video gets it added at upload.
 
 ## Name and design
 
