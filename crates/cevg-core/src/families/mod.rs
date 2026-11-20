@@ -371,6 +371,11 @@ impl Body {
                 union(&rects)
             }
             (Part::Name(name), Geometry::Nodes(nodes)) => nodes.iter().find(|(id, _)| id == name).map(|(_, r)| *r),
+            (Part::Edge { from, to }, Geometry::Nodes(nodes)) if from == to => {
+                let Body::Diagram(diagram) = self else { return None };
+                let (x, y) = diagram.self_loop(from, nodes)?.top();
+                Some(Rect { x: x - 4.0, y: y - 4.0, w: 8.0, h: 8.0 })
+            }
             (Part::Edge { from, to }, Geometry::Nodes(nodes)) => {
                 let find = |n: &String| nodes.iter().find(|(id, _)| id == n).map(|(_, r)| *r);
                 let (a, b) = (find(from)?, find(to)?);

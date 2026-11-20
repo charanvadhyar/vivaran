@@ -255,10 +255,12 @@ Trees, graphs, neural networks, state machines, block diagrams, pipelines.
 | `shape` | `box` (default), `circle`, `pill`; a node may set its own. |
 | `directed` | `true` (default) draws arrowheads. |
 | node | `id`, optional `label` (defaults to the id), `shape`, `layer` (pins it, layers only), `at` (grid only) |
-| edge | `from`, `to`, optional `label` |
+| edge | `from`, `to`, optional `label`. `from` and `to` may be the same node: a self-loop, drawn on the side of the node with the most room (a DFA state that stays put on a symbol). |
 | `groups` | labelled frames around sets of nodes |
 
-Node ids use letters, digits and `_`. Parts: `net.h1`, `net.h1->y`.
+Node ids use letters, digits and `_`. Parts: `net.h1`, `net.h1->y`, and a self-loop `net.q0->q0`.
+For a state machine, use `"layout": "ring"` and `"shape": "circle"`, and give each loop
+every symbol it reads as one label (`"0, 1"`).
 
 | Action | Fields |
 | --- | --- |

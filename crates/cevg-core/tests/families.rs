@@ -100,13 +100,41 @@ fn diagram_actions() {
     one_error(r#"{ "action": "add_node", "target": "g", "id": "a" }"#, "duplicate node id `a`");
     one_error(r#"{ "action": "add_edge", "target": "g", "from": "a", "to": "z" }"#, "no node `z`");
     one_error(r#"{ "action": "add_edge", "target": "g", "from": "a", "to": "b" }"#, "already an edge");
-    one_error(r#"{ "action": "add_edge", "target": "g", "from": "a", "to": "a" }"#, "to itself");
     // Removing a node takes its edges with it and strands the pointer on it.
     one_error(r#"{ "action": "remove", "target": "g.b" }"#, "leaves pointer `p` on g.b");
 
     let world = world_after(r#"{ "action": "point", "target": "p", "to": "g.a" }, { "action": "remove", "target": "g.b" }"#);
     let Body::Diagram(g) = &world.get("g").unwrap().body else { panic!() };
     assert_eq!((g.nodes.len(), g.edges.len()), (2, 0));
+}
+
+#[test]
+fn diagram_self_loops() {
+    // An edge from a node to itself is an ordinary edge: it can be added, lit,
+    // labelled, pointed at and removed, but only once.
+    ok(r#"{ "action": "add_edge", "target": "g", "from": "a", "to": "a", "label": "0" },
+          { "action": "highlight", "target": "g.a->a" },
+          { "action": "set", "target": "g.a->a", "value": "0, 1" },
+          { "action": "point", "target": "p", "to": "g.a->a" }"#);
+    one_error(
+        r#"{ "action": "add_edge", "target": "g", "from": "b", "to": "b" }, { "action": "add_edge", "target": "g", "from": "b", "to": "b" }"#,
+        "already an edge from `b` to `b`",
+    );
+
+    // The loop sits outside its node, away from the node's other edges.
+    let world = world_after(r#"{ "action": "add_edge", "target": "g", "from": "a", "to": "a" }"#);
+    let Body::Diagram(g) = &world.get("g").unwrap().body else { panic!() };
+    let rect = |x: f32| cevg_core::render::Rect { x, y: 0.0, w: 200.0, h: 100.0 };
+    let rects = vec![("a".to_string(), rect(0.0)), ("b".to_string(), rect(400.0)), ("c".to_string(), rect(800.0))];
+    let l = g.self_loop("a", &rects).expect("a loop");
+    assert!(l.dir.0 < 0.5, "the loop should not point at b: {:?}", l.dir);
+    assert!(l.points.len() > 10);
+    for (x, y) in &l.points {
+        assert!(!(*x > 0.0 && *x < 200.0 && *y > 0.0 && *y < 100.0), "({x}, {y}) is inside the node");
+    }
+    let png = frame_png(&script(r#"{ "action": "add_edge", "target": "g", "from": "c", "to": "c", "label": "x" }"#), None, None, None, None)
+        .unwrap_or_else(|r| panic!("{:#?}", r.diagnostics));
+    assert!(png.len() > 10_000);
 }
 
 #[test]

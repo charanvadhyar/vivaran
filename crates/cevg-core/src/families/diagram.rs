@@ -14,6 +14,11 @@
 //!
 //! Parts: `g.node` and `g.from->to`. Actions: `set` a label, `remove` a node
 //! or edge, `add_node`, `add_edge`.
+//!
+//! An edge from a node to itself (`{"from": "q0", "to": "q0"}`) is drawn as a
+//! loop on the side of the node with the most room: away from its other edges
+//! and, all else equal, away from the middle of the diagram. Automata use
+//! these for a state that stays put on a symbol.
 
 use super::{at, ActError, ActResult, Changed, Emphasis, Geometry, Placed, Problem};
 use crate::render::{edge_point, Cx, Rect};
@@ -232,9 +237,6 @@ impl State {
                 return Some((field, format!("no node `{id}` in this diagram; its nodes are: {}", self.node_list())));
             }
         }
-        if edge.from == edge.to {
-            return Some(("", format!("an edge from `{}` to itself is not supported yet", edge.from)));
-        }
         if self.edge(&edge.from, &edge.to).is_some() {
             return Some(("", format!("there is already an edge from `{}` to `{}`", edge.from, edge.to)));
         }
@@ -345,8 +347,75 @@ impl State {
 
     // ------------------------------------------------------------ layout
 
+    /// Edges between two different nodes, as node indices. Loops play no part
+    /// in placing nodes.
     fn edge_indices(&self) -> Vec<(usize, usize)> {
-        self.edges.iter().filter_map(|e| Some((self.node(&e.spec.from)?, self.node(&e.spec.to)?))).collect()
+        self.edges
+            .iter()
+            .filter(|e| e.spec.from != e.spec.to)
+            .filter_map(|e| Some((self.node(&e.spec.from)?, self.node(&e.spec.to)?)))
+            .collect()
+    }
+
+    /// Where the loop of an edge from `id` to itself goes, given where the
+    /// nodes were placed.
+    pub fn self_loop(&self, id: &str, rects: &[(String, Rect)]) -> Option<Loop> {
+        let rect_of = |n: &str| rects.iter().find(|(k, _)| k == n).map(|(_, r)| *r);
+        let rect = rect_of(id)?;
+        let round = self.node(id).is_some_and(|i| self.shape_of(&self.nodes[i]) == Shape::Circle);
+        let (cx, cy) = (rect.cx(), rect.cy());
+        // Directions of this node's other edges, and of the middle of the diagram.
+        let others: Vec<f32> = self
+            .edges
+            .iter()
+            .filter(|e| e.spec.from != e.spec.to && (e.spec.from == id || e.spec.to == id))
+            .filter_map(|e| rect_of(if e.spec.from == id { &e.spec.to } else { &e.spec.from }))
+            .map(|r| (r.cy() - cy).atan2(r.cx() - cx))
+            .collect();
+        let all = rects.iter().map(|(_, r)| *r).reduce(|a, b| a.union(&b)).unwrap_or(rect);
+        let inward = (all.cy() - cy).atan2(all.cx() - cx);
+        let apart = |a: f32, b: f32| {
+            let d = (a - b).rem_euclid(std::f32::consts::TAU);
+            d.min(std::f32::consts::TAU - d)
+        };
+        // Up first, so that ties (a lone node, a symmetric diagram) put the loop on top.
+        let candidates = (0..8).map(|k| -std::f32::consts::FRAC_PI_2 + k as f32 * std::f32::consts::FRAC_PI_4);
+        // Room from the other edges counts up to about 100 degrees; past that the
+        // side facing out of the diagram wins, and straight up, down, left or
+        // right is preferred to a diagonal, as textbooks draw them.
+        let score = |a: f32| {
+            let clear = others.iter().map(|&o| apart(a, o)).fold(std::f32::consts::PI, f32::min).min(1.75);
+            let outward = if (all.w - rect.w).abs() < 1.0 && (all.h - rect.h).abs() < 1.0 { 0.0 } else { apart(a, inward) };
+            let square = if (a / std::f32::consts::FRAC_PI_2).fract().abs() < 1e-3 { 0.3 } else { 0.0 };
+            clear + 0.35 * outward + square
+        };
+        let angle = candidates.fold((f32::NEG_INFINITY, 0.0f32), |best, a| {
+            let s = score(a);
+            if s > best.0 + 1e-3 { (s, a) } else { best }
+        }).1;
+        let dir = (angle.cos(), angle.sin());
+
+        // A circle that overlaps the node's edge; the part outside the node is the loop.
+        let m = rect.w.min(rect.h);
+        let radius = 0.36 * m;
+        let gap = 0.07 * m;
+        let border = leave(rect, round, (cx + dir.0 * 1e4, cy + dir.1 * 1e4), 0.0);
+        let centre = (border.0 + dir.0 * radius * 0.5, border.1 + dir.1 * radius * 0.5);
+        let outside = |p: (f32, f32)| {
+            if round {
+                ((p.0 - cx).powi(2) + (p.1 - cy).powi(2)).sqrt() > rect.w / 2.0 + gap
+            } else {
+                !(p.0 > rect.x - gap && p.0 < rect.x + rect.w + gap && p.1 > rect.y - gap && p.1 < rect.y + rect.h + gap)
+            }
+        };
+        // Walk the circle from the point facing the node, one way round.
+        let back = angle + std::f32::consts::PI;
+        let at = |t: f32| (centre.0 + radius * (back + t).cos(), centre.1 + radius * (back + t).sin());
+        let steps = 96;
+        let ts: Vec<f32> = (1..steps).map(|k| std::f32::consts::TAU * k as f32 / steps as f32).filter(|&t| outside(at(t))).collect();
+        let (first, last) = (*ts.first()?, *ts.last()?);
+        let points = (0..=40).map(|k| at(first + (last - first) * k as f32 / 40.0)).collect();
+        Some(Loop { points, centre, radius, dir })
     }
 
     /// Layered layout: (layer, place in layer) per node, plus the number of
@@ -547,13 +616,40 @@ impl State {
     pub fn layout(&self, slot: Rect, cx: &mut Cx) -> Placed {
         let u = cx.u;
         // Leave room for group frames and their labels.
-        let inner = if self.groups.is_empty() { slot } else { Rect { y: slot.y + 30.0 * u, h: slot.h - 30.0 * u, ..slot }.inset(26.0 * u) };
+        let mut inner = if self.groups.is_empty() { slot } else { Rect { y: slot.y + 30.0 * u, h: slot.h - 30.0 * u, ..slot }.inset(26.0 * u) };
+        // Loops (and their labels) stick out of their nodes: if they would leave
+        // the slot, place the nodes again in a smaller area. Twice is enough.
+        let mut tries = 0;
+        loop {
+            let (nodes, box_h) = self.place(inner, u);
+            let mut bounds = nodes.iter().map(|(_, r)| *r).reduce(|a, b| a.union(&b)).unwrap_or(slot);
+            for edge in self.edges.iter().filter(|e| e.spec.from == e.spec.to) {
+                if let Some(l) = self.self_loop(&edge.spec.from, &nodes) {
+                    let room = if edge.spec.label.is_some() { 40.0 * u } else { 0.0 };
+                    let e = l.extent();
+                    let label = Rect { x: e.x + l.dir.0 * room, y: e.y + l.dir.1 * room, ..e };
+                    bounds = bounds.union(&e).union(&label);
+                }
+            }
+            // How far past each side of the slot: left, right, top, bottom.
+            let [l, r, t, b] = [slot.x - bounds.x, bounds.x + bounds.w - (slot.x + slot.w), slot.y - bounds.y, bounds.bottom() - slot.bottom()]
+                .map(|d| d.max(0.0));
+            tries += 1;
+            if l + r + t + b <= 0.5 || tries > 2 || inner.w < 2.0 * (l + r) || inner.h < 2.0 * (t + b) {
+                return Placed { bounds, skirt: 8.0 * u, scale: box_h / (104.0 * u), geometry: Geometry::Nodes(nodes) };
+            }
+            // Give up only the room the loops need, on the sides where they need it.
+            inner = Rect { x: inner.x + l, y: inner.y + t, w: inner.w - l - r, h: inner.h - t - b };
+        }
+    }
+
+    /// Node rectangles in `inner`, and the height of a box node.
+    fn place(&self, inner: Rect, u: f32) -> (Vec<(String, Rect)>, f32) {
         let (centres, cell_w, cell_h) = self.centres(inner, u);
         let box_w = (cell_w * 0.64).min(250.0 * u);
         let box_h = (cell_h * 0.56).min(104.0 * u);
         let round = (cell_w * 0.62).min(cell_h * 0.62).min(120.0 * u);
-
-        let nodes: Vec<(String, Rect)> = self
+        let nodes = self
             .nodes
             .iter()
             .zip(&centres)
@@ -562,8 +658,7 @@ impl State {
                 (node.spec.id.clone(), Rect { x: x - w / 2.0, y: y - h / 2.0, w, h })
             })
             .collect();
-        let bounds = nodes.iter().map(|(_, r)| *r).reduce(|a, b| a.union(&b)).unwrap_or(slot);
-        Placed { bounds, skirt: 8.0 * u, scale: box_h / (104.0 * u), geometry: Geometry::Nodes(nodes) }
+        (nodes, box_h)
     }
 
     pub fn paint(&self, placed: &Placed, whole: Emphasis, cx: &mut Cx) {
@@ -590,6 +685,37 @@ impl State {
             let tone = cx.tone(edge.emphasis, whole);
             let color = if tone.heavy { tone.border } else { pal.muted };
             let width = if tone.heavy { 5.5 * u } else { 3.5 * u };
+            if edge.spec.from == edge.spec.to {
+                let Some(l) = self.self_loop(&edge.spec.from, rects) else { continue };
+                let clip = l.extent().inset(-20.0 * u);
+                if self.directed {
+                    // The arc, then a straight last stretch long enough for a full arrowhead.
+                    let head = width * 4.0 / 0.6 + 2.0 * u;
+                    let mut cut = l.points.len() - 1;
+                    let end = l.points[cut];
+                    while cut > 1 {
+                        let p = l.points[cut - 1];
+                        cut -= 1;
+                        if ((p.0 - end.0).powi(2) + (p.1 - end.1).powi(2)).sqrt() >= head {
+                            break;
+                        }
+                    }
+                    cx.path(&l.points[..=cut], clip, color, width, tone.ink_opacity);
+                    cx.arrow(l.points[cut], end, color, width, tone.ink_opacity);
+                } else {
+                    cx.path(&l.points, clip, color, width, tone.ink_opacity);
+                }
+                if let Some(label) = &edge.spec.label {
+                    let size = 26.0 * u;
+                    let (w, h) = cx.fonts.measure(label, size, Face::Sans, None);
+                    // Beyond the top of the loop, far enough that the text clears it either way.
+                    let reach = l.radius + 10.0 * u + (l.dir.0.abs() * w / 2.0).max(l.dir.1.abs() * h / 2.0);
+                    let ink = if tone.heavy { tone.border } else { pal.text };
+                    let (x, y) = (l.centre.0 + l.dir.0 * reach, l.centre.1 + l.dir.1 * reach);
+                    cx.text(label, size, Face::Sans, ink, tone.ink_opacity, x, y, HAlign::Center, None);
+                }
+                continue;
+            }
             let round = |id: &str| self.node(id).is_some_and(|i| self.shape_of(&self.nodes[i]) == Shape::Circle);
             let mut start = leave(a, round(&edge.spec.from), (b.cx(), b.cy()), 7.0 * u);
             let mut end = leave(b, round(&edge.spec.to), (a.cx(), a.cy()), 7.0 * u);
@@ -642,6 +768,29 @@ impl State {
             let size = cx.fit(label, (rect.h * 0.4).min(36.0 * u), Face::SansBold, rect.w * 0.82);
             cx.text(label, size, Face::SansBold, tone.ink, tone.ink_opacity, rect.cx(), rect.cy(), HAlign::Center, None);
         }
+    }
+}
+
+/// A loop drawn for an edge from a node to itself.
+#[derive(Debug, Clone)]
+pub struct Loop {
+    /// The visible arc, from where it leaves the node to where it comes back.
+    pub points: Vec<(f32, f32)>,
+    pub centre: (f32, f32),
+    pub radius: f32,
+    /// Unit vector from the node toward the loop.
+    pub dir: (f32, f32),
+}
+
+impl Loop {
+    pub fn extent(&self) -> Rect {
+        let r = self.radius;
+        Rect { x: self.centre.0 - r, y: self.centre.1 - r, w: 2.0 * r, h: 2.0 * r }
+    }
+
+    /// The far side of the loop, where a pointer or a mark should go.
+    pub fn top(&self) -> (f32, f32) {
+        (self.centre.0 + self.dir.0 * self.radius, self.centre.1 + self.dir.1 * self.radius)
     }
 }
 
