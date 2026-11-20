@@ -177,3 +177,50 @@ export async function submitToYouTube(form: FormData): Promise<{ ok: boolean; me
   revalidatePath(`/v/${id}`);
   return { ok: true, message: "Sent for review. It goes on the channel once it is approved." };
 }
+
+// --- Contact: sales, grievances, support ----------------------------------------------
+
+export type ContactResult = { ok: true; ticket: string; kind: string } | { ok: false; error: string } | null;
+
+/** A message from the contact page. Works without an account; signed in, it is linked to the account. */
+export async function sendContact(_previous: ContactResult, form: FormData): Promise<ContactResult> {
+  const { KINDS, isKind, save, sentToday, MESSAGES_PER_NETWORK_PER_DAY } = await import("@/lib/contact");
+  const { clientIp, networkOf } = await import("@/lib/credits");
+  const { headers } = await import("next/headers");
+  // A field people cannot see. Anything in it is a bot filling every box.
+  if (String(form.get("website") ?? "")) return { ok: true, ticket: "VIV-00000", kind: "other" };
+  const text = (name: string, max: number) => String(form.get(name) ?? "").trim().slice(0, max);
+  const kind = text("kind", 20);
+  if (!isKind(kind)) return { ok: false, error: "Choose what you are writing about." };
+  const topics: readonly string[] = KINDS[kind].topics;
+  const topic = text("topic", 80) || null;
+  if (topics.length && (!topic || !topics.includes(topic))) return { ok: false, error: "Choose a topic." };
+  const name = text("name", 100);
+  const email = text("email", 254);
+  const message = String(form.get("message") ?? "").trim();
+  if (name.length < 2) return { ok: false, error: "Tell us your name." };
+  if (!validEmail(email)) return { ok: false, error: "That does not look like an email address; we reply there." };
+  if (message.length < 20) return { ok: false, error: "Tell us a little more (at least 20 characters)." };
+  if (message.length > 5000) return { ok: false, error: "Keep the message under 5,000 characters." };
+  const aboutUrl = text("about_url", 500) || null;
+  if (aboutUrl && !/^https?:\/\/\S+$/.test(aboutUrl)) return { ok: false, error: "The link should start with https://" };
+  const phone = text("phone", 20) || null;
+  if (phone && !/^[+\d][\d\s-]{6,18}$/.test(phone)) return { ok: false, error: "That does not look like a phone number." };
+
+  const h = await headers();
+  const network = networkOf(clientIp((n) => h.get(n)));
+  if (network && (await sentToday(network)) >= MESSAGES_PER_NETWORK_PER_DAY) {
+    return { ok: false, error: "Too many messages from your network today. Try again tomorrow, or email us." };
+  }
+  const user = await currentUser();
+  try {
+    const ticket = await save({
+      kind, topic, name, email, organisation: text("organisation", 120) || null, phone, message, aboutUrl,
+      userId: user?.id ?? null, network,
+    });
+    return { ok: true, ticket, kind };
+  } catch (error) {
+    console.error("contact:", error);
+    return { ok: false, error: "Something went wrong on our side. Try again in a minute, or email us." };
+  }
+}

@@ -88,6 +88,13 @@ program (joining, subscribing to the channel, the first video on the channel,
 invited friends, view milestones on YouTube) and never expire. One render at a
 time per account, and never longer than `CEVG_MAX_MINUTES`.
 
+The contact page (`/contact`) takes sales enquiries, grievances, support requests
+and anything else. Each message is saved in `contact_messages` with a reference
+(`VIV-00012`) and shows on /admin under Messages, where you reply by email and set
+its status. Grievances are promised an acknowledgement within 24 hours and a
+resolution within 15 days; the overview counts any that are late. Public video
+pages link to it to report a video, and one network may send 5 messages a day.
+
 Sign-ups are counted per network. The site keeps a keyed hash of the IP address
 each account signed up from (never the address; the key is `AUTH_SECRET`). Once a
 network has made `signups_per_network_per_day` accounts in a day (plans, default

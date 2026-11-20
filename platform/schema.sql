@@ -241,3 +241,28 @@ create table if not exists secrets (
   value      bytea not null,
   updated_at timestamptz not null default now()
 );
+
+-- ---------------------------------------------------------------- contact (Nov 2026)
+-- Messages from the contact page: sales enquiries, grievances, support and the rest.
+-- The reference people see is VIV-<id>. `network` is the keyed hash of the sender's
+-- IP address, kept only to limit how many messages one network sends in a day.
+create table if not exists contact_messages (
+  id              bigserial primary key,
+  kind            text not null check (kind in ('sales', 'grievance', 'support', 'other')),
+  topic           text,                                 -- what it is about, from the form's list
+  name            text not null,
+  email           text not null,
+  organisation    text,                                 -- sales: college, coaching centre, company
+  phone           text,
+  message         text not null,
+  about_url       text,                                 -- grievance: the video or page it concerns
+  user_id         uuid references users(id) on delete set null,
+  network         text,
+  status          text not null default 'new' check (status in ('new', 'acknowledged', 'resolved', 'closed')),
+  admin_note      text,
+  created_at      timestamptz not null default now(),
+  acknowledged_at timestamptz,
+  resolved_at     timestamptz
+);
+create index if not exists contact_messages_status on contact_messages (status, created_at);
+create index if not exists contact_messages_network on contact_messages (network, created_at);

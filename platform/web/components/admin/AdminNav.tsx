@@ -1,7 +1,7 @@
 import Link from "next/link";
 import styles from "./AdminNav.module.css";
 
-const TABS = [["overview", "Analytics"], ["users", "Users & credits"], ["youtube", "YouTube"], ["settings", "Plans & settings"]];
+const TABS = [["overview", "Analytics"], ["users", "Users & credits"], ["messages", "Messages"], ["youtube", "YouTube"], ["settings", "Plans & settings"]];
 
 /** The admin page's sections, and the period the analytics cover. */
 export function AdminNav({ tab, days }: { tab: string; days: number }) {

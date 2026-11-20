@@ -13,6 +13,8 @@ export function Footer() {
           <nav className={styles.links} aria-label="Footer">
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
+            <Link href="/contact">Contact</Link>
+            <Link href="/contact?kind=grievance">Grievances</Link>
             {CREATOR_PAY ? <Link href="/creator-terms">Creator terms</Link> : null}
             {WAITLIST ? null : <Link href="/design">Design</Link>}
           </nav>

@@ -9,7 +9,7 @@ const mail = <a href={`mailto:${BRAND.contact}`}>{BRAND.contact}</a>;
 
 export default function Terms() {
   return (
-    <Legal title="Terms of use" updated="11 November 2026"
+    <Legal title="Terms of use" updated="20 November 2026"
       lead={`These terms are the agreement between you and ${BRAND.name} when you watch videos or make them here. Please read them; by using the site you accept them.`}>
       <Section title="The service">
         <p>{BRAND.name} turns an explanation, written by an AI assistant you connect, into an animated, narrated video. Watching public videos is free and needs no account. Making videos needs an account, which you create by signing in with Google. {BRAND.name} is run by {BRAND.owner} in India; write to {mail} with any question.</p>
@@ -54,6 +54,15 @@ export default function Terms() {
 
       <Section title="Ending your account">
         <p>You can stop at any time and ask us to delete your account by writing to {mail}. We may close an account that seriously or repeatedly breaks these terms.</p>
+      </Section>
+
+      <Section title="Complaints and grievances">
+        <p>
+          To complain about a video (that it is wrong, uses your work or your likeness, or is unlawful), about your account, or about how
+          we handle your data, use the <Link href="/contact?kind=grievance">contact form</Link> and choose “A grievance or complaint”,
+          or write to our grievance officer, {BRAND.owner}, at {mail}. You get a reference number. We acknowledge a grievance within
+          24 hours and aim to resolve it within 15 days. Every public video page also has a link to report it.
+        </p>
       </Section>
 
       <Section title="Changes and law">

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Account, Plans } from "@/lib/credits";
 import { Badge } from "../ui/Badge";
 import { Card } from "../ui/Card";
@@ -26,8 +27,8 @@ export function CreditsCard({ account, plans, ownKey }: { account: Account; plan
       </ul>
       {account.held ? (
         <p className={styles.note}>
-          Your free credits are on hold: several accounts were made from the same network today. Write to us and we will
-          release them. Credits from a pack or Pro work as usual.
+          Your free credits are on hold: several accounts were made from the same network today. <Link href="/contact?kind=support">Write
+          to us</Link> and we will release them. Credits from a pack or Pro work as usual.
         </p>
       ) : null}
       {account.isAdmin ? (
@@ -39,7 +40,7 @@ export function CreditsCard({ account, plans, ownKey }: { account: Account; plan
           <strong>Pro · ₹{plans.pro.price_inr}/month</strong>
           <span>{plans.pro.monthly_credits} credits a month, videos up to {plans.pro.max_minutes} minutes, no watermark on your copy, and the YouTube title and description written for you.</span>
           {plans.packs.length ? <span>Or a one-time pack: {plans.packs.map((p) => `${p.credits} credits for ₹${p.price_inr}`).join(" · ")}.</span> : null}
-          <span className={styles.soon}>Online payment is coming. For now, write to us to get Pro or a pack.</span>
+          <span className={styles.soon}>Online payment is coming. For now, <Link href="/contact?kind=sales">write to us</Link> to get Pro or a pack.</span>
         </div>
       )}
     </Card>

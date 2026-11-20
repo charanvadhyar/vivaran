@@ -11,3 +11,4 @@
 .error { color: var(--negative); font-size: var(--text-sm); }
 .uploads { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: var(--space-3); }
 @media (max-width: 520px) { .uploads, .tables2 { grid-template-columns: 1fr; } }
+.list { display: grid; gap: var(--space-3); }

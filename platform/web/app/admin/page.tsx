@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { approveUpload, disconnectYouTube, grantCredits, rejectUpload, savePlans, savePlaylists, setProUntil, syncYouTube, toggleAdmin, toggleHeld } from "./actions";
+import { approveUpload, disconnectYouTube, grantCredits, rejectUpload, savePlans, savePlaylists, setProUntil, syncYouTube, toggleAdmin, toggleHeld, updateMessage } from "./actions";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { BarChart } from "@/components/admin/BarChart";
 import { DataTable } from "@/components/admin/DataTable";
 import { Funnel } from "@/components/admin/Funnel";
 import { JsonForm } from "@/components/admin/JsonForm";
 import { KpiGrid } from "@/components/admin/KpiGrid";
+import { MessageCard } from "@/components/admin/MessageCard";
 import { UploadCard } from "@/components/admin/UploadCard";
 import { UserRow } from "@/components/admin/UserRow";
 import { Container } from "@/components/layout/Container";
@@ -15,6 +16,7 @@ import { Section } from "@/components/layout/Section";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { isAdmin, overview, uploads, users } from "@/lib/admin";
+import { counts as messageCounts, isKind, messages } from "@/lib/contact";
 import { currentUser } from "@/lib/auth";
 import { KIND_LABELS, getPlans } from "@/lib/credits";
 import { one } from "@/lib/db";
@@ -30,11 +32,11 @@ const one1 = (n: number) => (Math.round(n * 10) / 10).toLocaleString("en-IN");
 /** Credits come in quarters, so up to two decimals. */
 const cr = (n: number) => ((Math.round(n * 100) / 100) || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
-export default async function Admin({ searchParams }: { searchParams: Promise<{ tab?: string; days?: string; q?: string; yt?: string }> }) {
+export default async function Admin({ searchParams }: { searchParams: Promise<{ tab?: string; days?: string; q?: string; yt?: string; show?: string; kind?: string }> }) {
   const viewer = await currentUser();
   if (!viewer || !(await isAdmin(viewer))) notFound();
   const sp = await searchParams;
-  const tab = ["overview", "users", "youtube", "settings"].includes(sp.tab ?? "") ? sp.tab! : "overview";
+  const tab = ["overview", "users", "messages", "youtube", "settings"].includes(sp.tab ?? "") ? sp.tab! : "overview";
   const days = [7, 30, 90, 365].includes(Number(sp.days)) ? Number(sp.days) : 30;
 
   return (
@@ -43,6 +45,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
       <AdminNav tab={tab} days={days} />
       {tab === "overview" ? <Overview days={days} /> : null}
       {tab === "users" ? <Users q={sp.q ?? ""} /> : null}
+      {tab === "messages" ? <Messages show={sp.show === "all" ? "all" : "open"} kind={isKind(sp.kind ?? "") ? sp.kind! : null} /> : null}
       {tab === "youtube" ? <YouTube flash={sp.yt} /> : null}
       {tab === "settings" ? <Settings /> : null}
     </Container>
@@ -50,7 +53,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
 }
 
 async function Overview({ days }: { days: number }) {
-  const o = await overview(days);
+  const [o, mc] = await Promise.all([overview(days), messageCounts()]);
   const k = o.kpi;
   const margin = k.revenue_inr - k.cost_inr;
   const failRate = k.videos_done + k.videos_failed ? (k.videos_failed / (k.videos_done + k.videos_failed)) * 100 : 0;
@@ -63,6 +66,7 @@ async function Overview({ days }: { days: number }) {
           { label: "Accounts", value: int(k.users_total), sub: `${int(k.users_new)} new` },
           { label: "Active creators", value: int(k.users_rendering), sub: `rendered in the period` },
           { label: "Pro", value: int(k.pro), sub: `MRR ${inr(k.mrr_inr)}` },
+          { label: "Open messages", value: int(mc?.open ?? 0), sub: mc?.grievances_late ? `${mc.grievances_late} grievances past 15 days` : `${mc?.grievances_open ?? 0} grievances open`, tone: mc?.grievances_late || mc?.unanswered ? "bad" : undefined },
           { label: "Creator program", value: int(k.creators), sub: k.held ? `${int(k.held)} sign-ups on hold` : undefined, tone: k.held ? "bad" : undefined },
           { label: "Videos made", value: int(k.videos_done), sub: `${one1(failRate)}% failed`, tone: failRate > 10 ? "bad" : undefined },
           { label: "Video minutes", value: one1(k.minutes), sub: `${one1(k.render_s_per_min)} s render per minute` },
@@ -141,6 +145,25 @@ async function Users({ q }: { q: string }) {
         {list.map((u) => <UserRow key={u.id} u={u} grant={grantCredits} setPro={setProUntil} toggleAdmin={toggleAdmin} toggleHeld={toggleHeld} />)}
       </div>
       <p className={styles.footnote}>Until online payment is set up: when someone pays you, give the credits with “Pack bought” or set Pro, and enter the amount received so it shows in the analytics.</p>
+    </Section>
+  );
+}
+
+async function Messages({ show, kind }: { show: "open" | "all"; kind: string | null }) {
+  const [list, c] = await Promise.all([messages(show, kind as "sales" | null), messageCounts()]);
+  const link = (s: string, k: string | null) => `/admin?tab=messages&show=${s}${k ? `&kind=${k}` : ""}`;
+  return (
+    <Section title={show === "open" ? `Open messages (${list.length})` : "All messages"} first>
+      <p className={styles.muted}>
+        {c?.grievances_open ?? 0} open grievance{c?.grievances_open === 1 ? "" : "s"}{c?.grievances_late ? `, ${c.grievances_late} past 15 days` : ""}
+        {c?.unanswered ? ` · ${c.unanswered} not acknowledged within 24 hours` : ""}. Reply by email, then set the status:
+        acknowledged once you have replied, resolved when it is dealt with.
+      </p>
+      <p className={styles.muted}>
+        <Link href={link("open", null)}>Open</Link> · <Link href={link("all", null)}>All</Link> ·{" "}
+        {["sales", "grievance", "support", "other"].map((k, i) => <span key={k}>{i ? " · " : ""}<Link href={link(show, k)}>{k}</Link></span>)}
+      </p>
+      {list.length ? <div className={styles.list}>{list.map((m) => <MessageCard key={m.id} m={m} update={updateMessage} />)}</div> : <p className={styles.muted}>Nothing here.</p>}
     </Section>
   );
 }

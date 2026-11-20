@@ -1,0 +1,5 @@
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: var(--space-8); align-items: start; padding-bottom: var(--space-12); }
+.side { display: grid; gap: var(--space-5); padding: var(--space-5); border-radius: var(--radius-lg); border: 1px solid var(--border-default); background: var(--bg-surface); }
+.side h2 { font-size: var(--text-md); margin: 0 0 var(--space-2); }
+.side p { color: var(--fg-muted); font-size: var(--text-sm); margin: 0 0 var(--space-2); line-height: 1.55; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }

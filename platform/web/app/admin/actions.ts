@@ -45,6 +45,15 @@ export async function toggleAdmin(form: FormData) {
   back();
 }
 
+export async function updateMessage(form: FormData) {
+  await requireAdmin();
+  const { update } = await import("@/lib/contact");
+  const status = String(form.get("status"));
+  if (!["new", "acknowledged", "resolved", "closed"].includes(status)) return;
+  await update(String(form.get("id")), status as "new", String(form.get("note") ?? "").trim().slice(0, 1000) || null);
+  back();
+}
+
 export async function toggleHeld(form: FormData) {
   const admin = await requireAdmin();
   await setHeld(admin.id, String(form.get("user")), form.get("held") === "1");

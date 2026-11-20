@@ -70,6 +70,11 @@ export default async function Watch({ params }: { params: Promise<{ id: string }
             {video.is_public ? <span>{video.views} {video.views === 1 ? "view" : "views"}</span> : null}
           </p>
           {video.is_public && video.status === "done" ? <SharePanel url={`${SITE}/v/${id}`} title={video.title} /> : null}
+          {!own && video.is_public && video.status === "done" ? (
+            <p className={styles.report}>
+              Something wrong or unlawful in this video? <Link href={`/contact?kind=grievance&about=${encodeURIComponent(`${SITE}/v/${id}`)}`}>Report it</Link>.
+            </p>
+          ) : null}
           {own && video.status === "done" ? <PublishPanel video={video} setPublic={setPublic} deleteVideo={deleteVideo} /> : null}
           {own && video.status === "done" ? (
             <YouTubePanel videoId={id} title={video.title} isPro={isPro} isPublic={video.is_public} upload={upload}

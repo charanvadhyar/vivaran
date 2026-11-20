@@ -8,7 +8,7 @@ const mail = <a href={`mailto:${BRAND.contact}`}>{BRAND.contact}</a>;
 
 export default function Privacy() {
   return (
-    <Legal title="Privacy policy" updated="11 November 2026"
+    <Legal title="Privacy policy" updated="20 November 2026"
       lead={`${BRAND.name} turns explanations into step-by-step videos. This page says exactly what we collect to do that, why, and what you can ask us to do with it.`}>
       <Section title="Who we are">
         <p>{BRAND.name} ({BRAND.native}) is run by {BRAND.owner}, an individual in India. Write to {mail} about anything on this page.</p>
@@ -25,6 +25,8 @@ export default function Privacy() {
           <li><strong>Your connector address:</strong> a secret link we create for you, so your AI assistant can make videos in your account. Treat it like a password.</li>
           <li><strong>The videos you make:</strong> the scene script your assistant writes (narration, pictures, steps), the finished video, its thumbnail and its settings (language, voice, subject). They are private until you choose to publish them.</li>
           <li><strong>Waitlist sign-ups:</strong> your email, whether you want to watch, make videos or teach, and any note you leave. We use them only to tell you when the site opens and what is new.</li>
+          <li><strong>A code for the network you signed up from:</strong> worked out from your IP address with a secret key, so that the address itself cannot be read back. We use it only to notice many accounts being made from one network in a day, to stop free credits being farmed.</li>
+          <li><strong>Messages you send through the contact form:</strong> your name, email, the message, and anything else you choose to add (a phone number, your organisation, a link). We use them only to reply and to deal with your request, and keep them for as long as that takes and a year after, so that we can look back at a complaint if it comes up again. To limit spam we also keep a code worked out from your network address, from which the address itself cannot be read back.</li>
           <li><strong>A sign-in cookie</strong> that keeps you signed in, and a setting in your browser that remembers light or dark mode. We use no advertising or tracking cookies.</li>
         </ul>
       </Section>
@@ -33,8 +35,9 @@ export default function Privacy() {
         <p>We do not sell your data or show you ads. We share it only with the services that run {BRAND.name}, and only what each needs:</p>
         <ul>
           <li><strong>Google</strong>, to sign you in.</li>
-          <li><strong>Vercel</strong>, which hosts this website.</li>
-          <li><strong>Railway</strong>, which hosts the server that draws videos, and the database and storage that keep accounts and videos (in Singapore).</li>
+          <li><strong>Railway</strong>, which hosts this website, the server that draws videos, and the database and storage that keep accounts and videos (in Singapore).</li>
+          <li><strong>Anthropic</strong> (the Claude API), when a figure is drawn for a video or a Pro creator asks us to write a video&apos;s YouTube title and description. It receives the video&apos;s title, narration and outline, and for the description your name and handle.</li>
+          <li><strong>YouTube</strong>, when you send a video to the Vivaran channel and we approve it: the video, its title, description and tags, with your name and handle in the description.</li>
           <li><strong>Gnani AI</strong>, which turns each line of narration into speech and listens back to check it. It receives the narration text and the spoken audio, not your name or email.</li>
         </ul>
         <p>The AI assistant you connect, such as Claude or ChatGPT, is your own service. What you type to it is covered by that company&apos;s privacy policy, not this one; we receive only the scripts it sends to make your videos.</p>
