@@ -20,6 +20,9 @@ import hashlib
 import json
 import os
 import re
+import time
+import urllib.error
+import urllib.request
 from typing import Any, Callable
 
 from . import figures
@@ -50,8 +53,9 @@ Check, in this order:
    style for Hindi and Telugu (English technical terms in Latin letters). Problems here are minor
    unless they would mislead.
 
-Think it through first inside <analysis>...</analysis>, recomputing the working there. Then give only
-this JSON, in a ```json block:
+Think it through first inside <analysis>...</analysis>, recomputing the working there, briefly: only
+the calculations and checks that matter, at most about 800 words. Then give this JSON, in a ```json block,
+and nothing after it:
 {"verdict": "pass" | "revise",
  "summary": "one or two sentences for the user",
  "scores": {"correctness": 1-5, "exam_standard": 1-5, "on_brief": 1-5, "narration_matches_picture": 1-5, "length": 1-5},
@@ -118,19 +122,77 @@ def review(script: dict[str, Any], brief: str, *, language: str, target_minutes:
         content.append({"type": "image", "source": {"type": "base64", "media_type": "image/png",
                                                      "data": base64.b64encode(png).decode()}})
     model = model or os.environ.get("CEVG_REVIEW_MODEL") or figures.DEFAULT_MODEL
+    reply, stop = _call(content, model, key, max_tokens=32000)
     try:
-        reply = figures._call([{"role": "user", "content": content}], model, key, max_tokens=12000, system=SYSTEM)
-    except figures.FigureError as e:
-        raise ReviewError(str(e).replace("figure request", "review request")) from None
-    return parse(reply, model)
+        return parse(reply, model)
+    except ReviewError:
+        # Log what came back, so a failure can be understood, then ask once more for the JSON alone.
+        print(f"review: no verdict in the reply (stop_reason={stop}, {len(reply)} chars): ...{reply[-400:]!r}", flush=True)
+    repair = [{"type": "text", "text": (
+        "Here is a review of a video script. Give its verdict as the JSON described in your instructions, "
+        "in a ```json block, and nothing else. If the review was cut off, judge from what it says; any "
+        "error it found in the working is blocking.\n\n" + reply[-24000:])}]
+    reply2, stop2 = _call(repair, model, key, max_tokens=4000)
+    try:
+        return parse(reply2, model)
+    except ReviewError:
+        print(f"review: repair failed too (stop_reason={stop2}): ...{reply2[-400:]!r}", flush=True)
+        raise ReviewError("the reviewer did not return a verdict (the reply was "
+                          f"{'cut off' if stop == 'max_tokens' else 'not in the expected form'}); "
+                          "this is a problem on Vivaran's side, not in the script") from None
+
+
+def _call(content: list[dict[str, Any]], model: str, key: str, max_tokens: int) -> tuple[str, str]:
+    """One request to the Messages API: the reply's text and why it stopped."""
+    body = json.dumps({"model": model, "max_tokens": max_tokens, "system": SYSTEM,
+                       "messages": [{"role": "user", "content": content}]}).encode()
+    request = urllib.request.Request(figures.API_URL, data=body, method="POST", headers={
+        "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"})
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(request, timeout=600) as response:
+                data = json.loads(response.read())
+            text = "".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text")
+            return text, str(data.get("stop_reason"))
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode("utf-8", "replace")[:400]
+            if e.code in (429, 500, 502, 503, 529) and attempt < 3:
+                time.sleep(5 * (attempt + 1))
+                continue
+            raise ReviewError(f"the Claude API refused the review request ({e.code}): {detail}") from None
+        except (urllib.error.URLError, TimeoutError) as e:
+            if attempt < 3:
+                time.sleep(5 * (attempt + 1))
+                continue
+            raise ReviewError(f"cannot reach the Claude API: {getattr(e, 'reason', e)}") from None
+    raise ReviewError("the Claude API did not answer")
+
+
+def _verdict_json(reply: str) -> dict[str, Any] | None:
+    """The last JSON object in the reply that has a verdict: from ```json blocks first, then any object."""
+    for block in reversed(re.findall(r"```(?:json)?\s*(\{.*?\})\s*```", reply, flags=re.S)):
+        try:
+            data = json.loads(block)
+            if isinstance(data, dict) and "verdict" in data:
+                return data
+        except json.JSONDecodeError:
+            pass
+    decoder = json.JSONDecoder()
+    for m in reversed(list(re.finditer(r"\{", reply))):
+        try:
+            data, _ = decoder.raw_decode(reply, m.start())
+        except json.JSONDecodeError:
+            continue
+        if isinstance(data, dict) and "verdict" in data:
+            return data
+    return None
 
 
 def parse(reply: str, model: str = "") -> dict[str, Any]:
     """The reviewer's JSON, made consistent: the verdict follows the blocking issues."""
-    m = re.search(r"```json\s*(\{.*\})\s*```", reply, flags=re.S) or re.search(r"(\{\s*\"verdict\".*\})", reply, flags=re.S)
-    if not m:
+    data = _verdict_json(reply)
+    if data is None:
         raise ReviewError("the reviewer did not return its verdict; try again")
-    data = json.loads(m.group(1))
     issues = [i for i in data.get("issues", []) if isinstance(i, dict)][:12]
     for i in issues:
         i["severity"] = "blocking" if str(i.get("severity", "")).lower() == "blocking" else "minor"

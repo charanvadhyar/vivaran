@@ -81,7 +81,8 @@ and minor ones. Fix every blocking issue, validate, and call `review` again
 with the changed script; repeat until it passes. `render` refuses a script
 whose exact text has not passed. After three rounds that still fail, show the
 user the remaining issues and ask; only if they say to render anyway, pass
-`override_review=true`. Do not argue with the reviewer in the script: if you
+`override_review=true`. If `review` itself fails twice (a problem on Vivaran's
+side), tell the user and ask the same question. Do not argue with the reviewer in the script: if you
 are sure an issue is wrong, tell the user why.
 """
 
@@ -411,7 +412,8 @@ class Platform(Studio):
 
     def _review_round(self, user_id: str) -> int:
         """Reviews since this user's last render: the rounds spent on the script being written now."""
-        row = self._one("select count(*) as n from script_reviews r where r.user_id = %s::uuid and r.created_at > "
+        row = self._one("select count(*) as n from script_reviews r where r.user_id = %s::uuid "
+                        "and r.verdict <> 'error' and r.created_at > "
                         "coalesce((select max(created_at) from events where type = 'render_started' and user_id = %s::uuid), "
                         "'-infinity')", (user_id, user_id))
         return int((row or {}).get("n", 0))
@@ -431,8 +433,20 @@ class Platform(Studio):
                         f"without one. For more: {self._limit_link('other')}")
         small = json.loads(json.dumps(script))
         small.setdefault("canvas", {}).update(width=960, height=540)
-        result = reviewer.review(script, brief, language=language, target_minutes=target_minutes, estimate=estimate,
-                                 guide=self.guide(), frame=lambda scene: self.preview(small, scene, None, 1.0, language))
+        try:
+            result = reviewer.review(script, brief, language=language, target_minutes=target_minutes,
+                                     estimate=estimate, guide=self.guide(),
+                                     frame=lambda scene: self.preview(small, scene, None, 1.0, language))
+        except reviewer.ReviewError as e:
+            # Remember that the reviewer, not the script, failed: the user may then choose to render anyway.
+            self._execute("insert into script_reviews (user_id, script_hash, verdict, summary, brief) "
+                          "values (%s, %s, 'error', %s, %s)", (user["id"], reviewer.script_hash(script), str(e)[:600],
+                                                               brief[:2000]))
+            with self._connect() as db:
+                credits.event(db, "review_error", user["id"], error=str(e)[:300])
+            raise reviewer.ReviewError(f"{e}. Try `review` once more; if it fails again, tell the user the reviewer "
+                                       "is not working and ask whether to render without a review "
+                                       "(`render` with override_review=true only if they say so).") from None
         self._execute("insert into script_reviews (user_id, script_hash, verdict, summary, issues, scores, brief, model) "
                       "values (%s, %s, %s, %s, %s, %s, %s, %s)",
                       (user["id"], reviewer.script_hash(script), result["verdict"], result["summary"],
@@ -460,6 +474,15 @@ class Platform(Studio):
                          "order by created_at desc limit 1", (user["id"], reviewer.script_hash(script)))
         if last and last["verdict"] == "pass":
             return None
+        if last and last["verdict"] == "error":
+            # The reviewer failed on this exact script; that is not the script's fault.
+            if override:
+                with self._connect() as db:
+                    credits.event(db, "review_override", user["id"], reason="reviewer_error")
+                return "rendered without a review, at the user's request, because the reviewer was not working"
+            raise Limit("the reviewer could not check this script (it failed on Vivaran's side). Call `review` "
+                        "again; if it still fails, ask the user whether to render without a review, and only if "
+                        "they say so, render with override_review=true.")
         used, allowed = self._reviews_used(user["id"])
         if not last and used >= allowed and not user.get("is_admin"):
             return "not reviewed: this month's reviews are used up"

@@ -286,3 +286,7 @@ create table if not exists script_reviews (
   created_at  timestamptz not null default now()
 );
 create index if not exists script_reviews_lookup on script_reviews (user_id, script_hash, created_at desc);
+-- 'error': the reviewer itself failed (the Claude API, or a reply without a verdict). The user may then
+-- choose to render without a review.
+alter table script_reviews drop constraint if exists script_reviews_verdict_check;
+alter table script_reviews add constraint script_reviews_verdict_check check (verdict in ('pass', 'revise', 'error'));
