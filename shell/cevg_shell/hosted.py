@@ -266,6 +266,10 @@ class Platform(Studio):
                                      listen=hasattr(voice_obj, "listen"), progress=progress)
                     seconds, characters = result.seconds, result.characters
                     doubtful = result.doubtful()
+                    unchecked = result.unchecked()
+                    if unchecked:
+                        note = ("finished; the narration could not be listened back (the transcription service "
+                                "failed), so watch it through before publishing")
                     if doubtful:
                         steps = ", ".join(str(h["step"]) for h in doubtful)
                         note = (f"finished; listening back, the voice may have skipped or garbled words in "

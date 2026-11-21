@@ -48,6 +48,10 @@ class Result:
         """Steps whose transcript matched less than `below` of the line."""
         return [h for h in (self.heard or []) if h.get("match") is not None and h["match"] < below]
 
+    def unchecked(self) -> list:
+        """Steps that could not be listened back because transcription failed."""
+        return [h for h in (self.heard or []) if h.get("failed")]
+
 
 def find_cevg(explicit: str | None = None) -> str:
     """The renderer binary: --cevg, then $CEVG_BIN, then PATH, then the build folder beside this package."""
@@ -138,6 +142,7 @@ def narrate(script_path: Path, out: Path, voice, *, language: str = "en", cache_
 
         # 1. Speak and measure.
         clips, lengths, heard = [], [], []
+        listen_down = None  # why transcription failed, once it has; the rest is not tried
         for i, line in enumerate(lines):
             progress(f"voice {i + 1}/{len(lines)}")
             raw = cache.get(voice, line, language)
@@ -154,8 +159,19 @@ def narrate(script_path: Path, out: Path, voice, *, language: str = "en", cache_
                 )
             clips.append(clip)
             if listen and hasattr(voice, "listen"):
-                progress(f"listening {i + 1}/{len(lines)}")
-                heard.append(_listen(voice, raw, line, language, lengths[-1], i + 1))
+                # Listening back is a check, not part of the video: if the
+                # transcription service fails, the video is still made, the
+                # rest of the lines are not tried, and the steps are marked
+                # unchecked so the creator knows to watch them.
+                if listen_down is None:
+                    progress(f"listening {i + 1}/{len(lines)}")
+                    try:
+                        heard.append(_listen(voice, raw, line, language, lengths[-1], i + 1))
+                        continue
+                    except Exception as error:  # noqa: BLE001 - any failure of the check
+                        listen_down = str(error)[:200]
+                heard.append({"step": i + 1, "match": None, "said": line, "heard": "", "failed": True,
+                              "note": f"not checked: transcription failed ({listen_down})"})
 
         # 2. Render the picture to those lengths.
         progress("rendering video")
