@@ -53,9 +53,8 @@ Check, in this order:
    style for Hindi and Telugu (English technical terms in Latin letters). Problems here are minor
    unless they would mislead.
 
-Think it through first inside <analysis>...</analysis>, recomputing the working there, briefly: only
-the calculations and checks that matter, at most about 800 words. Then give this JSON, in a ```json block,
-and nothing after it:
+Recompute the working yourself before you judge it. Your answer is only this JSON, in a ```json block,
+with nothing before or after it:
 {"verdict": "pass" | "revise",
  "summary": "one or two sentences for the user",
  "scores": {"correctness": 1-5, "exam_standard": 1-5, "on_brief": 1-5, "narration_matches_picture": 1-5, "length": 1-5},
@@ -122,9 +121,11 @@ def review(script: dict[str, Any], brief: str, *, language: str, target_minutes:
         content.append({"type": "image", "source": {"type": "base64", "media_type": "image/png",
                                                      "data": base64.b64encode(png).decode()}})
     model = model or os.environ.get("CEVG_REVIEW_MODEL") or os.environ.get("CEVG_FIGURE_MODEL") or figures.DEFAULT_MODEL
-    # The API has declined every review on live (21 Nov 2026: stop_reason "refusal", no text), even
-    # text-only, while figures drawn with the same key and model work. Until the cause is known, step
-    # down through smaller requests and log which one is accepted, so the trigger can be found.
+    # On 21 Nov 2026 the API declined reviews with stop_reason "refusal", category
+    # "reasoning_extraction": the prompt asked the model to write out its reasoning inside
+    # <analysis> tags, which the API treats as an attempt to extract the model's reasoning. The prompt
+    # now asks for the verdict alone. If a request is still declined, step down through smaller ones
+    # and log which is accepted.
     attempts = [
         ("full, with frames", content, SYSTEM),
         ("text only", [{"type": "text", "text": head + with_rules + full}], SYSTEM),
@@ -162,7 +163,7 @@ def review(script: dict[str, Any], brief: str, *, language: str, target_minutes:
 
 SHORT_SYSTEM = ("You check scripts for short educational videos on computer science and mathematics for "
                 "university students: whether the facts and worked examples are correct and complete.")
-SHORT_FORMAT = ("\nCheck each step for errors. Answer with a short analysis, then this JSON in a ```json block: "
+SHORT_FORMAT = ("\nCheck each step for errors. Answer with only this JSON in a ```json block: "
                 '{"verdict": "pass" or "revise", "summary": "...", "scores": {"correctness": 1-5, "exam_standard": '
                 '1-5, "on_brief": 1-5, "narration_matches_picture": 1-5, "length": 1-5}, "issues": [{"severity": '
                 '"blocking" or "minor", "where": "scene <id>, step <n>", "problem": "...", "fix": "..."}]}. '
