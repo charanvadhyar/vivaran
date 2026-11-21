@@ -123,11 +123,20 @@ def review(script: dict[str, Any], brief: str, *, language: str, target_minutes:
                                                      "data": base64.b64encode(png).decode()}})
     model = model or os.environ.get("CEVG_REVIEW_MODEL") or figures.DEFAULT_MODEL
     reply, stop = _call(content, model, key, max_tokens=32000)
+    if stop == "refusal" or not reply.strip():
+        # The API declined, or said nothing (seen on live, 21 Nov 2026: stop_reason "refusal", no text).
+        # Try once with the text alone, without the frames.
+        print(f"review: empty reply (stop_reason={stop}); retrying without the frames", flush=True)
+        reply, stop = _call([content[0]], model, key, max_tokens=32000)
+        if stop == "refusal" or not reply.strip():
+            raise ReviewError(f"the Claude API declined to review this script (stop_reason {stop}); "
+                              "this is a problem on Vivaran's side, not in the script")
     try:
         return parse(reply, model)
     except ReviewError:
         # Log what came back, so a failure can be understood, then ask once more for the JSON alone.
         print(f"review: no verdict in the reply (stop_reason={stop}, {len(reply)} chars): ...{reply[-400:]!r}", flush=True)
+    # Only a reply with a review in it can be turned into a verdict; never judge from nothing.
     repair = [{"type": "text", "text": (
         "Here is a review of a video script. Give its verdict as the JSON described in your instructions, "
         "in a ```json block, and nothing else. If the review was cut off, judge from what it says; any "

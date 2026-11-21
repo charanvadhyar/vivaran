@@ -74,7 +74,9 @@ add or remove steps; render only when the user agrees.
 
 Every script is checked by Vivaran's reviewer before it can be rendered. After
 `validate` and `preview`, call `review` with the script and `brief`: what the
-user asked for, in their words, with the exam or level and the length. It
+user asked for, in their words, with the exam or level and the length. A review
+takes a minute or two; if `review` answers `state: reviewing`, call
+`review_status` with its `review_id` every 20 seconds or so until it is done. It
 returns blocking issues (wrong facts or arithmetic, working a student could not
 redo, drifting from the brief, narration that contradicts the picture, length)
 and minor ones. Fix every blocking issue, validate, and call `review` again
@@ -465,6 +467,49 @@ class Platform(Studio):
                             "keep fixing or render anyway (render with override_review=true only if they say so)"))
         return result
 
+    # A review takes a minute or more, longer than assistants wait for one tool call (Claude gives up at
+    # about 30 seconds), so it runs in the background: `review` waits up to REVIEW_WAIT seconds and then
+    # hands back an id to ask `review_status` with.
+    REVIEW_WAIT = 20
+
+    def review_begin(self, user: dict[str, Any], script: dict[str, Any], brief: str, language: str,
+                     target_minutes: float | None) -> dict[str, Any]:
+        if not hasattr(self, "_review_jobs"):
+            self._review_jobs: dict[str, dict[str, Any]] = {}
+        estimate = self.estimate(script, language)  # a broken script is reported at once
+        if "problem" in estimate:
+            raise ValueError(estimate["problem"])
+        job_id = "rv" + uuid.uuid4().hex[:10]
+        job: dict[str, Any] = {"user": user["id"], "state": "reviewing", "title": script.get("title"),
+                               "started": time.time()}
+        self._review_jobs[job_id] = job
+
+        def work():
+            try:
+                job["result"] = self.review_script(user, script, brief, language, target_minutes)
+                job["state"] = "done"
+            except Exception as e:  # reported by review_status
+                job["error"], job["state"] = str(e), "failed"
+
+        threading.Thread(target=work, daemon=True).start()
+        for _ in range(self.REVIEW_WAIT * 4):
+            if job["state"] != "reviewing":
+                break
+            time.sleep(0.25)
+        return self.review_status(user, job_id)
+
+    def review_status(self, user: dict[str, Any], job_id: str) -> dict[str, Any]:
+        job = getattr(self, "_review_jobs", {}).get(job_id)
+        if job is None or job["user"] != user["id"]:
+            raise ValueError(f"no review `{job_id}` (reviews are kept until the server restarts; review again)")
+        if job["state"] == "done":
+            return {**job["result"], "review_id": job_id, "state": "done"}
+        if job["state"] == "failed":
+            raise reviewer.ReviewError(job["error"])
+        return {"view": "review", "state": "reviewing", "review_id": job_id, "title": job["title"],
+                "elapsed_seconds": round(time.time() - job["started"]),
+                "advice": "the reviewer is still reading; call `review_status` with this review_id in about 20 seconds"}
+
     def _review_gate(self, user: dict[str, Any], script: dict[str, Any], override: bool) -> str | None:
         """Refuse to render a script whose exact text has not passed review. Returns a note when it goes ahead
         without a pass (no reviewer here, allowance used up, or the user chose to)."""
@@ -637,10 +682,18 @@ def build(platform: Platform) -> MCPServer:
         recomputes the working, checks the exam standard, the user's request, that each step's narration
         matches the picture (it looks at a frame of every scene), and the length. `brief` is what the user
         asked for, in their words, with the exam or level. Returns `verdict` (pass or revise) and `issues`;
-        fix every blocking one and review again. `render` only takes a script that has passed. Takes up to a
-        minute or two."""
+        fix every blocking one and review again. `render` only takes a script that has passed. A review takes
+        a minute or two: if it is not done within about 20 seconds this returns `state: reviewing` and a
+        `review_id`; then call `review_status` with it until it is done."""
         user = who(ctx)
-        return guarded(lambda: platform.review_script(user, script, brief, language, target_minutes))
+        return guarded(lambda: platform.review_begin(user, script, brief, language, target_minutes))
+
+    @server.tool(title="Get the review result", annotations=READ_ONLY)
+    def review_status(ctx: Context, review_id: str) -> dict[str, Any]:
+        """The result of a `review` that was still running: `state` is `reviewing` (ask again in about 20
+        seconds) or `done`, with `verdict` and `issues` as `review` gives them."""
+        user = who(ctx)
+        return guarded(lambda: platform.review_status(user, review_id))
 
     @server.tool(title="Start rendering the video", annotations=MAKES_FILES, meta=panel_meta())
     def render(ctx: Context, script: dict[str, Any], language: str = "en", voice: bool = True,

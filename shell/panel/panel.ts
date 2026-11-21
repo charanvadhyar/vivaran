@@ -107,6 +107,40 @@ const SCORE_NAMES: Record<string, string> = {
   narration_matches_picture: "Narration matches picture", length: "Length",
 };
 
+let reviewPoll: number | undefined;
+
+function reviewing(d: Json) {
+  show(
+    h("header", {}, h("div", { class: "eyebrow" }, "Review"), h("h1", {}, d.title ?? "Your script"),
+      h("div", { class: "big" }, h("strong", {}, "Reading"), h("span", {}, ` · ${d.elapsed_seconds ?? 0} s`))),
+    h("section", {}, h("div", { class: "bar" }, h("div", { class: "fill live pulse", style: "width:100%" }))),
+    h("p", { class: "fine" }, "The reviewer is recomputing the working and looking at every scene. This takes a minute or two."),
+  );
+  window.clearInterval(reviewPoll);
+  reviewPoll = window.setInterval(async () => {
+    try {
+      const r = await app.callServerTool({ name: "review_status", arguments: { review_id: d.review_id } });
+      const next = (r.structuredContent ?? {}) as Json;
+      if (r.isError) {
+        window.clearInterval(reviewPoll);
+        const text = ((r.content ?? []) as Json[]).map((c) => c.text ?? "").join(" ");
+        show(h("header", {}, h("div", { class: "eyebrow danger" }, "Review failed"), h("h1", {}, d.title ?? "Your script")),
+          h("p", { class: "warn-text" }, text || "The reviewer did not answer."),
+          h("p", { class: "fine" }, "This is a problem on Vivaran's side, not in your script."),
+          h("section", { class: "actions" },
+            h("button", { class: "ghost", onclick: () => say("Try the review again.") }, "Try again"),
+            h("button", { class: "primary", onclick: () => say("The reviewer is not working. Render it without a review.") }, "Render without review")));
+      } else if (next.state === "done") {
+        window.clearInterval(reviewPoll);
+        reviewed(next);
+      } else {
+        const big = root.querySelector(".big span");
+        if (big) big.textContent = ` · ${next.elapsed_seconds ?? 0} s`;
+      }
+    } catch { /* the next poll catches up */ }
+  }, 4000);
+}
+
 function reviewed(d: Json) {
   const pass = d.verdict === "pass";
   const issues: Json[] = d.issues ?? [];
@@ -241,6 +275,7 @@ function onResult(result: Json) {
   if (d.view === "plan") plan(d);
   else if (d.view === "render" && d.job) watch(d.job, d);
   else if (d.view === "account") account(d);
+  else if (d.view === "review" && d.state === "reviewing") reviewing(d);
   else if (d.view === "review") reviewed(d);
 }
 
@@ -253,6 +288,7 @@ app.onhostcontextchanged = (ctx) => {
 };
 app.onteardown = async () => {
   window.clearInterval(poll);
+  window.clearInterval(reviewPoll);
   return {};
 };
 
