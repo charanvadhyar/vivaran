@@ -100,6 +100,43 @@ function plan(d: Json) {
   );
 }
 
+// ---------------------------------------------------------------- review
+
+const SCORE_NAMES: Record<string, string> = {
+  correctness: "Correctness", exam_standard: "Exam standard", on_brief: "On the brief",
+  narration_matches_picture: "Narration matches picture", length: "Length",
+};
+
+function reviewed(d: Json) {
+  const pass = d.verdict === "pass";
+  const issues: Json[] = d.issues ?? [];
+  const scores: Json = d.scores ?? {};
+  show(
+    h("header", {},
+      h("div", { class: `eyebrow ${pass ? "" : "danger"}` }, `Review · round ${d.round ?? 1} of ${d.max_rounds ?? 3}`),
+      h("h1", {}, d.title ?? "Your script"),
+      h("div", { class: "big" }, h("strong", {}, pass ? "Passed" : `${d.blocking ?? 0} to fix`),
+        h("span", {}, pass ? " · ready to render" : ` · ${issues.length - (d.blocking ?? 0)} minor`))),
+    d.summary ? h("p", {}, d.summary) : null,
+    Object.keys(scores).length ? h("section", {}, ...Object.entries(scores).map(([k, v]) =>
+      h("div", { class: "score" }, h("span", {}, SCORE_NAMES[k] ?? k), bar(Number(v) / 5, Number(v) >= 4 ? "good" : "warn"),
+        h("span", { class: "muted" }, `${v}/5`)))) : null,
+    issues.length ? h("ol", { class: "scenes" }, ...issues.map((i) =>
+      h("li", { class: i.severity === "blocking" ? "blocking" : "" },
+        h("div", { class: "row" }, h("span", { class: "scene" }, i.where ?? ""), h("span", { class: `pill ${i.severity === "blocking" ? "warn" : ""}` }, i.severity)),
+        h("p", { class: "issue" }, i.problem ?? ""),
+        i.fix ? h("p", { class: "muted issue" }, `Fix: ${i.fix}`) : null))) : null,
+    h("section", { class: "actions" },
+      pass
+        ? h("button", { class: "ghost", onclick: () => say("The review passed. Show me the plan with its length and cost.") }, "Show the plan")
+        : h("button", { class: d.can_override ? "ghost" : "primary", onclick: () => say("Fix the blocking issues the reviewer found, validate, and review the script again.") }, "Fix these"),
+      pass ? h("button", { class: "primary", onclick: () => say("The review passed. Render it.") }, "Render") : null,
+      d.can_override ? h("button", { class: "primary", onclick: () => say("Render it anyway, despite the remaining review issues.") }, "Render anyway") : null),
+    h("p", { class: "fine" }, pass ? "Checked by Vivaran's reviewer against the exam standard, your request and every scene's picture."
+      : d.can_override ? "Three rounds have not passed. You can keep fixing, or render anyway." : "The video renders once the script passes."),
+  );
+}
+
 // ---------------------------------------------------------------- render
 
 const PHASES: [RegExp, string][] = [
@@ -204,6 +241,7 @@ function onResult(result: Json) {
   if (d.view === "plan") plan(d);
   else if (d.view === "render" && d.job) watch(d.job, d);
   else if (d.view === "account") account(d);
+  else if (d.view === "review") reviewed(d);
 }
 
 app.ontoolinput = () => show(h("p", { class: "muted" }, "Working…"));

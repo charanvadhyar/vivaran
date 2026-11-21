@@ -569,6 +569,32 @@ class Figures(unittest.TestCase):
             self.figures.resolve(self.script(), self.cevg, self.tmp, draw_missing=False)
 
 
+class ScriptReviewer(unittest.TestCase):
+    """The reviewer's verdict follows its blocking issues, and a script is known by its content."""
+
+    def test_a_blocking_issue_means_revise_whatever_the_model_says(self):
+        from cevg_shell import review
+        reply = ('<analysis>23 is at 5</analysis>```json\n{"verdict": "pass", "summary": "s", "scores": {}, '
+                 '"issues": [{"severity": "Blocking", "where": "scene a, step 1", "problem": "p", "fix": "f"}]}\n```')
+        r = review.parse(reply)
+        self.assertEqual((r["verdict"], r["blocking"]), ("revise", 1))
+        ok = review.parse('```json\n{"verdict": "revise", "issues": [{"severity": "minor"}]}\n```')
+        self.assertEqual((ok["verdict"], ok["blocking"]), ("pass", 0))
+
+    def test_the_hash_ignores_key_order(self):
+        from cevg_shell import review
+        self.assertEqual(review.script_hash({"a": 1, "b": [1, 2]}), review.script_hash({"b": [1, 2], "a": 1}))
+        self.assertNotEqual(review.script_hash({"a": 1}), review.script_hash({"a": 2}))
+
+    def test_the_reviewer_judges_by_the_guide_sections(self):
+        from cevg_shell import review
+        guide = "# CEVG\n## Skeleton\nx\n## The teaching standard: redo it\nT\n## Timing\ny\n## Common mistakes\nM\n"
+        kept = review.rules(guide)
+        self.assertIn("teaching standard", kept)
+        self.assertIn("Common mistakes", kept)
+        self.assertNotIn("Skeleton", kept)
+
+
 class CreditsAndChannel(unittest.TestCase):
     """What a render costs, and the chapters the YouTube description gets."""
 

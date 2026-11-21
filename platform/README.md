@@ -88,6 +88,16 @@ program (joining, subscribing to the channel, the first video on the channel,
 invited friends, view milestones on YouTube) and never expire. One render at a
 time per account, and never longer than `CEVG_MAX_MINUTES`.
 
+Every script is checked by a reviewer agent before it renders (`review` tool,
+`shell/cevg_shell/review.py`, on the Claude API with `ANTHROPIC_API_KEY`; the
+model is `CEVG_REVIEW_MODEL`, or the figure model). It reads the script with a
+drawn frame of each scene and the guide's teaching rules, recomputes the
+working, and lists blocking and minor issues; the assistant fixes them and
+asks again. `render` refuses a script whose exact text (its hash) has not
+passed, except after three failed rounds when the user chooses to render
+anyway. Each plan has `reviews_per_month` (free 20, Pro 150); past it, or
+without an API key, scripts render unreviewed.
+
 The contact page (`/contact`) takes sales enquiries, grievances, support requests
 and anything else. Each message is saved in `contact_messages` with a reference
 (`VIV-00012`) and shows on /admin under Messages, where you reply by email and set

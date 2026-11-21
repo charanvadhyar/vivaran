@@ -85,8 +85,8 @@ create table if not exists settings (
   updated_at timestamptz not null default now()
 );
 insert into settings (key, value) values ('plans', '{
-  "free": {"monthly_credits": 3, "max_minutes": 10, "watermark": true,  "figures_per_month": 5},
-  "pro":  {"monthly_credits": 6, "max_minutes": 20, "watermark": false, "figures_per_month": 60, "price_inr": 299, "seo_per_month": 30},
+  "free": {"monthly_credits": 3, "max_minutes": 10, "watermark": true,  "figures_per_month": 5, "reviews_per_month": 20},
+  "pro":  {"monthly_credits": 6, "max_minutes": 20, "watermark": false, "figures_per_month": 60, "price_inr": 299, "seo_per_month": 30, "reviews_per_month": 150},
   "signups_per_network_per_day": 3,
   "cost": {"minutes_per_credit": 10, "voiced": 1, "silent_or_own_key": 0.25},
   "rewards": {"creator_join": 2, "first_publish": 1, "subscribe": 1, "referral": 1, "views_1k": 2, "views_10k": 5},
@@ -268,3 +268,21 @@ create table if not exists contact_messages (
 alter table contact_messages add column if not exists limit_name text;  -- for a table made before the column
 create index if not exists contact_messages_status on contact_messages (status, created_at);
 create index if not exists contact_messages_network on contact_messages (network, created_at);
+
+-- ---------------------------------------------------------------- script reviews (Nov 2026)
+-- The reviewer agent's verdict on each script, by the script's hash (its JSON with sorted keys).
+-- A script is rendered only once its exact text has passed (or the user chose to render anyway
+-- after three rounds); see review.py and Platform._review_gate.
+create table if not exists script_reviews (
+  id          bigserial primary key,
+  user_id     uuid not null references users(id) on delete cascade,
+  script_hash text not null,
+  verdict     text not null check (verdict in ('pass', 'revise')),
+  summary     text,
+  issues      jsonb not null default '[]',
+  scores      jsonb,
+  brief       text,
+  model       text,
+  created_at  timestamptz not null default now()
+);
+create index if not exists script_reviews_lookup on script_reviews (user_id, script_hash, created_at desc);

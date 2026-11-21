@@ -47,7 +47,7 @@ from mcp.server.mcpserver.exceptions import ToolError
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
-from . import credits, providers
+from . import credits, providers, review as reviewer
 from .narrate import NarrateError, narrate
 from .server import INSTRUCTIONS, MAKES_FILES, READ_ONLY, Studio, _voice_line
 
@@ -71,6 +71,18 @@ credits. Buttons in the panel send the user's words into the chat, such as
 "Change the script to about 8 minutes" or "Render it": act on them as if typed.
 If the plan is more than about 15% off the chosen length, say so and offer to
 add or remove steps; render only when the user agrees.
+
+Every script is checked by Vivaran's reviewer before it can be rendered. After
+`validate` and `preview`, call `review` with the script and `brief`: what the
+user asked for, in their words, with the exam or level and the length. It
+returns blocking issues (wrong facts or arithmetic, working a student could not
+redo, drifting from the brief, narration that contradicts the picture, length)
+and minor ones. Fix every blocking issue, validate, and call `review` again
+with the changed script; repeat until it passes. `render` refuses a script
+whose exact text has not passed. After three rounds that still fail, show the
+user the remaining issues and ask; only if they say to render anyway, pass
+`override_review=true`. Do not argue with the reviewer in the script: if you
+are sure an issue is wrong, tell the user why.
 """
 
 # The panel shown inside hosts that support MCP Apps (Claude, ChatGPT and others).
@@ -240,7 +252,7 @@ class Platform(Studio):
         return price
 
     def start(self, user: dict[str, Any], script: dict[str, Any], language: str, voice: bool, captions: bool,
-              speaker: str, pace: float, subject: str | None = None) -> dict[str, Any]:
+              speaker: str, pace: float, subject: str | None = None, override_review: bool = False) -> dict[str, Any]:
         if subject is not None and subject not in SUBJECTS:
             raise ValueError(f"unknown subject `{subject}`; choose one of: {', '.join(SUBJECTS)}")
         estimate = self.estimate(script, language)  # validates too
@@ -260,6 +272,7 @@ class Platform(Studio):
             speaker = speaker or provider.default_speaker(language)
         price = self._check_limits(user["id"], estimate["seconds"], voice, has_own_key=bool(own_key),
                                    is_admin=bool(user.get("is_admin")))
+        review_note = self._review_gate(user, script, override_review)
         with self._connect() as db:
             watermark_on = bool(credits.plans(db)[credits.tier(db, user["id"])]["watermark"]) and bool(self.watermark)
 
@@ -281,8 +294,11 @@ class Platform(Studio):
         threading.Thread(target=self._render,
                          args=(video_id, user, path, language, voice, captions, speaker, pace, own_key, watermark_on),
                          daemon=True).start()
-        return {"job": video_id, "state": "queued", "estimated_minutes": estimate["minutes"], "credits": price,
-                "advice": "call `status` with this job id in about 20 seconds"}
+        started = {"job": video_id, "state": "queued", "estimated_minutes": estimate["minutes"], "credits": price,
+                   "advice": "call `status` with this job id in about 20 seconds"}
+        if review_note:
+            started["review"] = review_note
+        return started
 
     def _render(self, video_id: str, user: dict[str, Any], script: Path, language: str, voice: bool, captions: bool,
                 speaker: str, pace: float, own_key: str | None = None, watermark_on: bool = True) -> None:
@@ -381,6 +397,89 @@ class Platform(Studio):
             report["advice"] = "still working; ask again in about 20 seconds"
         return report
 
+    # ------------------------------------------------------------ the reviewer agent
+
+    MAX_REVIEW_ROUNDS = 3
+
+    def _reviews_used(self, user_id: str) -> tuple[int, int]:
+        """Reviews used this month, and the plan's allowance."""
+        with self._connect() as db:
+            allowed = int(credits.plans(db)[credits.tier(db, user_id)].get("reviews_per_month", 20))
+            used = db.execute("select count(*) as n from events where type = 'review' and user_id = %s::uuid "
+                              "and created_at > date_trunc('month', now())", (user_id,)).fetchone()["n"]
+        return used, allowed
+
+    def _review_round(self, user_id: str) -> int:
+        """Reviews since this user's last render: the rounds spent on the script being written now."""
+        row = self._one("select count(*) as n from script_reviews r where r.user_id = %s::uuid and r.created_at > "
+                        "coalesce((select max(created_at) from events where type = 'render_started' and user_id = %s::uuid), "
+                        "'-infinity')", (user_id, user_id))
+        return int((row or {}).get("n", 0))
+
+    def review_script(self, user: dict[str, Any], script: dict[str, Any], brief: str, language: str,
+                      target_minutes: float | None) -> dict[str, Any]:
+        """Have the reviewer agent check a script; remember the verdict for `render`."""
+        if not os.environ.get("ANTHROPIC_API_KEY", "").strip():
+            raise ValueError("the reviewer is not set up on this server (no ANTHROPIC_API_KEY); `render` does not "
+                             "need a review here")
+        estimate = self.estimate(script, language)  # validates too
+        if "problem" in estimate:
+            raise ValueError(estimate["problem"])
+        used, allowed = self._reviews_used(user["id"])
+        if used >= allowed and not user.get("is_admin"):
+            raise Limit(f"this account has used its {allowed} script reviews this month; `render` will go ahead "
+                        f"without one. For more: {self._limit_link('other')}")
+        small = json.loads(json.dumps(script))
+        small.setdefault("canvas", {}).update(width=960, height=540)
+        result = reviewer.review(script, brief, language=language, target_minutes=target_minutes, estimate=estimate,
+                                 guide=self.guide(), frame=lambda scene: self.preview(small, scene, None, 1.0, language))
+        self._execute("insert into script_reviews (user_id, script_hash, verdict, summary, issues, scores, brief, model) "
+                      "values (%s, %s, %s, %s, %s, %s, %s, %s)",
+                      (user["id"], reviewer.script_hash(script), result["verdict"], result["summary"],
+                       Jsonb(result["issues"]), Jsonb(result["scores"]), brief[:2000], result["model"]))
+        with self._connect() as db:
+            credits.event(db, "review", user["id"], verdict=result["verdict"], blocking=result["blocking"])
+        rounds = self._review_round(user["id"])
+        result.update(view="review", round=rounds, max_rounds=self.MAX_REVIEW_ROUNDS, title=script.get("title"),
+                      minutes=estimate["minutes"], target_minutes=target_minutes,
+                      can_override=result["verdict"] == "revise" and rounds >= self.MAX_REVIEW_ROUNDS,
+                      next=("passed: `estimate` with target_minutes, then `render` once the user agrees"
+                            if result["verdict"] == "pass" else
+                            "fix every blocking issue, `validate`, then `review` the changed script again"
+                            if rounds < self.MAX_REVIEW_ROUNDS else
+                            "three rounds have not passed: show the user the remaining issues and ask whether to "
+                            "keep fixing or render anyway (render with override_review=true only if they say so)"))
+        return result
+
+    def _review_gate(self, user: dict[str, Any], script: dict[str, Any], override: bool) -> str | None:
+        """Refuse to render a script whose exact text has not passed review. Returns a note when it goes ahead
+        without a pass (no reviewer here, allowance used up, or the user chose to)."""
+        if not os.environ.get("ANTHROPIC_API_KEY", "").strip():
+            return None
+        last = self._one("select verdict, issues from script_reviews where user_id = %s::uuid and script_hash = %s "
+                         "order by created_at desc limit 1", (user["id"], reviewer.script_hash(script)))
+        if last and last["verdict"] == "pass":
+            return None
+        used, allowed = self._reviews_used(user["id"])
+        if not last and used >= allowed and not user.get("is_admin"):
+            return "not reviewed: this month's reviews are used up"
+        if not last:
+            raise Limit("this script has not been reviewed: call `review` with it and the user's request (`brief`), "
+                        "fix what it flags, and render once it passes. A changed script needs a new review.")
+        rounds = self._review_round(user["id"])
+        if override and (rounds >= self.MAX_REVIEW_ROUNDS or user.get("is_admin")):
+            with self._connect() as db:
+                credits.event(db, "review_override", user["id"], rounds=rounds)
+            return "rendered without passing review, at the user's request"
+        open_issues = "; ".join(f"{i.get('where')}: {i.get('problem')}" for i in last["issues"]
+                                if i.get("severity") == "blocking")[:900]
+        if rounds >= self.MAX_REVIEW_ROUNDS:
+            raise Limit(f"the last review of this script found blocking problems: {open_issues}. After "
+                        f"{rounds} rounds, ask the user: fix them, or render anyway with override_review=true "
+                        "if they say so.")
+        raise Limit(f"the last review of this script found blocking problems: {open_issues}. Fix them, "
+                    "`validate`, and `review` the changed script.")
+
     def progress_for_panel(self, user: dict[str, Any], video_id: str) -> dict[str, Any]:
         """`job`, plus what the panel needs: the video's note, and signed links to play it once done."""
         report = self.job(user, video_id)
@@ -443,7 +542,7 @@ def build(platform: Platform) -> MCPServer:
             return call()
         except providers.VoiceError as e:
             raise ToolError(f"{e}\n{e.advice()}") from None
-        except (ValueError, NarrateError) as e:
+        except (ValueError, NarrateError, reviewer.ReviewError) as e:
             raise ToolError(str(e)) from None
 
     @server.tool(title="Read the authoring guide", annotations=READ_ONLY)
@@ -508,10 +607,22 @@ def build(platform: Platform) -> MCPServer:
         who(ctx)
         return guarded(lambda: platform.sample(speaker, language, pace))
 
+    @server.tool(title="Review the script", annotations=READ_ONLY, meta=panel_meta())
+    def review(ctx: Context, script: dict[str, Any], brief: str, language: str = "en",
+               target_minutes: float | None = None) -> dict[str, Any]:
+        """Have Vivaran's reviewer agent check a script before rendering, as an exacting examiner would. It
+        recomputes the working, checks the exam standard, the user's request, that each step's narration
+        matches the picture (it looks at a frame of every scene), and the length. `brief` is what the user
+        asked for, in their words, with the exam or level. Returns `verdict` (pass or revise) and `issues`;
+        fix every blocking one and review again. `render` only takes a script that has passed. Takes up to a
+        minute or two."""
+        user = who(ctx)
+        return guarded(lambda: platform.review_script(user, script, brief, language, target_minutes))
+
     @server.tool(title="Start rendering the video", annotations=MAKES_FILES, meta=panel_meta())
     def render(ctx: Context, script: dict[str, Any], language: str = "en", voice: bool = True,
                captions: bool = False, speaker: str = "", pace: float = 1.0,
-               subject: str | None = None) -> dict[str, Any]:
+               subject: str | None = None, override_review: bool = False) -> dict[str, Any]:
         """Start making the video and return a job id at once; then call `status` until it is done.
         `subject` files the video on the site: dsa (data structures and algorithms), ml, dbms, os, coa
         (computer architecture), networks, maths or other.
@@ -519,9 +630,12 @@ def build(platform: Platform) -> MCPServer:
         step's `say` is spoken; every step must have it. `voice=false` makes a silent video timed from the
         text. `captions=true` shows the narration under the picture. A render costs credits (see `account`):
         one credit per started 10 minutes with Vivaran's voice, a quarter of that silent or on the user's own
-        Gnani key. A failed render gives its credits back. Validate, preview and estimate first."""
+        Gnani key. A failed render gives its credits back. Validate, preview, review and estimate first: a
+        script must have passed `review` (`override_review=true` only when the user chose to render anyway
+        after three failed rounds)."""
         user = who(ctx)
-        started = guarded(lambda: platform.start(user, script, language, voice, captions, speaker, pace, subject))
+        started = guarded(lambda: platform.start(user, script, language, voice, captions, speaker, pace, subject,
+                                                 override_review))
         return {**started, "view": "render", "title": str(script.get("title") or "Untitled")[:200]}
 
     @server.tool(title="Credits and plan", annotations=READ_ONLY, meta=panel_meta())
