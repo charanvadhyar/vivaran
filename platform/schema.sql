@@ -85,7 +85,7 @@ create table if not exists settings (
   updated_at timestamptz not null default now()
 );
 insert into settings (key, value) values ('plans', '{
-  "free": {"monthly_credits": 3, "max_minutes": 10, "watermark": true,  "figures_per_month": 5, "reviews_per_month": 20},
+  "free": {"monthly_credits": 3, "max_minutes": 10, "watermark": true,  "figures_per_month": 5, "reviews_per_month": 3},
   "pro":  {"monthly_credits": 6, "max_minutes": 20, "watermark": false, "figures_per_month": 60, "price_inr": 299, "seo_per_month": 30, "reviews_per_month": 150},
   "signups_per_network_per_day": 3,
   "cost": {"minutes_per_credit": 10, "voiced": 1, "silent_or_own_key": 0.25},

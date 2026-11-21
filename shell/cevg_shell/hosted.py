@@ -407,7 +407,7 @@ class Platform(Studio):
     def _reviews_used(self, user_id: str) -> tuple[int, int]:
         """Reviews used this month, and the plan's allowance."""
         with self._connect() as db:
-            allowed = int(credits.plans(db)[credits.tier(db, user_id)].get("reviews_per_month", 20))
+            allowed = int(credits.plans(db)[credits.tier(db, user_id)].get("reviews_per_month", 3))
             used = db.execute("select count(*) as n from events where type = 'review' and user_id = %s::uuid "
                               "and created_at > date_trunc('month', now())", (user_id,)).fetchone()["n"]
         return used, allowed

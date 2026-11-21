@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 DEFAULT_PLANS: dict[str, Any] = {
-    "free": {"monthly_credits": 3, "max_minutes": 10, "watermark": True, "figures_per_month": 5, "reviews_per_month": 20},
+    "free": {"monthly_credits": 3, "max_minutes": 10, "watermark": True, "figures_per_month": 5, "reviews_per_month": 3},
     "pro": {"monthly_credits": 6, "max_minutes": 20, "watermark": False, "figures_per_month": 60, "price_inr": 299, "seo_per_month": 30,
             "reviews_per_month": 150},
     "cost": {"minutes_per_credit": 10, "voiced": 1, "silent_or_own_key": 0.25},

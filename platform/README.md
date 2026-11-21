@@ -95,7 +95,7 @@ drawn frame of each scene and the guide's teaching rules, recomputes the
 working, and lists blocking and minor issues; the assistant fixes them and
 asks again. `render` refuses a script whose exact text (its hash) has not
 passed, except after three failed rounds when the user chooses to render
-anyway. Each plan has `reviews_per_month` (free 20, Pro 150); past it, or
+anyway. Each plan has `reviews_per_month` (free 3, Pro 150); past it, or
 without an API key, scripts render unreviewed.
 
 The contact page (`/contact`) takes sales enquiries, grievances, support requests
