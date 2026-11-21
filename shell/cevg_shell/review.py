@@ -104,14 +104,14 @@ def review(script: dict[str, Any], brief: str, *, language: str, target_minutes:
     scenes = [s.get("id") for s in script.get("scenes", [])]
     if len(scenes) > MAX_FRAMES:  # spread the frames across the video
         scenes = [scenes[round(i * (len(scenes) - 1) / (MAX_FRAMES - 1))] for i in range(MAX_FRAMES)]
-    content: list[dict[str, Any]] = [{"type": "text", "text": (
-        f"What the user asked for: {brief.strip() or '(not given)'}\n"
-        f"Length they chose: {f'{target_minutes:g} minutes' if target_minutes else 'not given'}\n"
-        f"Estimated length: {estimate.get('minutes')} minutes ({estimate.get('steps')} steps)\n"
-        f"Narration language: {language}\n\n"
-        f"Steps:\n{_steps(script, language)}\n\n"
-        f"The authoring rules the writer was given:\n{rules(guide)}\n\n"
-        f"The full script:\n{json.dumps(script, ensure_ascii=False)}")}]
+    head = (f"What the user asked for: {brief.strip() or '(not given)'}\n"
+            f"Length they chose: {f'{target_minutes:g} minutes' if target_minutes else 'not given'}\n"
+            f"Estimated length: {estimate.get('minutes')} minutes ({estimate.get('steps')} steps)\n"
+            f"Narration language: {language}\n\n"
+            f"Steps:\n{_steps(script, language)}\n\n")
+    with_rules = f"The authoring rules the writer was given:\n{rules(guide)}\n\n"
+    full = f"The full script:\n{json.dumps(script, ensure_ascii=False)}"
+    content: list[dict[str, Any]] = [{"type": "text", "text": head + with_rules + full}]
     for scene in scenes:
         try:
             png = frame(scene)
@@ -121,16 +121,25 @@ def review(script: dict[str, Any], brief: str, *, language: str, target_minutes:
         content.append({"type": "text", "text": f"Frame at the end of scene {scene}:"})
         content.append({"type": "image", "source": {"type": "base64", "media_type": "image/png",
                                                      "data": base64.b64encode(png).decode()}})
-    model = model or os.environ.get("CEVG_REVIEW_MODEL") or figures.DEFAULT_MODEL
-    reply, stop = _call(content, model, key, max_tokens=32000)
-    if stop == "refusal" or not reply.strip():
-        # The API declined, or said nothing (seen on live, 21 Nov 2026: stop_reason "refusal", no text).
-        # Try once with the text alone, without the frames.
-        print(f"review: empty reply (stop_reason={stop}); retrying without the frames", flush=True)
-        reply, stop = _call([content[0]], model, key, max_tokens=32000)
-        if stop == "refusal" or not reply.strip():
-            raise ReviewError(f"the Claude API declined to review this script (stop_reason {stop}); "
-                              "this is a problem on Vivaran's side, not in the script")
+    model = model or os.environ.get("CEVG_REVIEW_MODEL") or os.environ.get("CEVG_FIGURE_MODEL") or figures.DEFAULT_MODEL
+    # The API has declined every review on live (21 Nov 2026: stop_reason "refusal", no text), even
+    # text-only, while figures drawn with the same key and model work. Until the cause is known, step
+    # down through smaller requests and log which one is accepted, so the trigger can be found.
+    attempts = [
+        ("full, with frames", content, SYSTEM),
+        ("text only", [{"type": "text", "text": head + with_rules + full}], SYSTEM),
+        ("text, no rules", [{"type": "text", "text": head + full}], SYSTEM),
+        ("steps only", [{"type": "text", "text": head}], SYSTEM),
+        ("steps only, short system", [{"type": "text", "text": head + SHORT_FORMAT}], SHORT_SYSTEM),
+    ]
+    for name, blocks, system in attempts:
+        reply, stop = _call(blocks, model, key, max_tokens=32000, system=system)
+        print(f"review: {name}: stop_reason={stop}, {len(reply)} chars (model {model})", flush=True)
+        if stop != "refusal" and reply.strip():
+            break
+    else:
+        raise ReviewError(f"the Claude API declined to review this script (stop_reason {stop}) in every form "
+                          "tried; this is a problem on Vivaran's side, not in the script")
     try:
         return parse(reply, model)
     except ReviewError:
@@ -151,9 +160,19 @@ def review(script: dict[str, Any], brief: str, *, language: str, target_minutes:
                           "this is a problem on Vivaran's side, not in the script") from None
 
 
-def _call(content: list[dict[str, Any]], model: str, key: str, max_tokens: int) -> tuple[str, str]:
+SHORT_SYSTEM = ("You check scripts for short educational videos on computer science and mathematics for "
+                "university students: whether the facts and worked examples are correct and complete.")
+SHORT_FORMAT = ("\nCheck each step for errors. Answer with a short analysis, then this JSON in a ```json block: "
+                '{"verdict": "pass" or "revise", "summary": "...", "scores": {"correctness": 1-5, "exam_standard": '
+                '1-5, "on_brief": 1-5, "narration_matches_picture": 1-5, "length": 1-5}, "issues": [{"severity": '
+                '"blocking" or "minor", "where": "scene <id>, step <n>", "problem": "...", "fix": "..."}]}. '
+                'The verdict is "pass" only when no issue is blocking.')
+
+
+def _call(content: list[dict[str, Any]], model: str, key: str, max_tokens: int,
+          system: str | None = None) -> tuple[str, str]:
     """One request to the Messages API: the reply's text and why it stopped."""
-    body = json.dumps({"model": model, "max_tokens": max_tokens, "system": SYSTEM,
+    body = json.dumps({"model": model, "max_tokens": max_tokens, "system": system or SYSTEM,
                        "messages": [{"role": "user", "content": content}]}).encode()
     request = urllib.request.Request(figures.API_URL, data=body, method="POST", headers={
         "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"})
@@ -162,6 +181,10 @@ def _call(content: list[dict[str, Any]], model: str, key: str, max_tokens: int) 
             with urllib.request.urlopen(request, timeout=600) as response:
                 data = json.loads(response.read())
             text = "".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text")
+            if data.get("stop_reason") == "refusal":
+                # Everything but the content, in case the API says why.
+                print("review: refusal response: " + json.dumps({k: v for k, v in data.items() if k != "content"})[:600],
+                      flush=True)
             return text, str(data.get("stop_reason"))
         except urllib.error.HTTPError as e:
             detail = e.read().decode("utf-8", "replace")[:400]
