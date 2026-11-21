@@ -1,0 +1,55 @@
+:root {
+  color-scheme: light dark;
+  --bg: var(--color-background-primary, #ffffff);
+  --bg2: var(--color-background-secondary, #f5f4ef);
+  --fg: var(--color-text-primary, #1f1e1d);
+  --muted: var(--color-text-secondary, #6b6a66);
+  --line: var(--color-border-tertiary, rgba(0, 0, 0, 0.1));
+  --accent: #c2541c;
+  --good: var(--color-text-success, #2f7d32);
+  --warn: var(--color-text-warning, #a15c00);
+  --danger: var(--color-text-danger, #b42318);
+  --radius: var(--border-radius-md, 10px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: var(--color-background-primary, #262624); --bg2: var(--color-background-secondary, #30302e); --fg: var(--color-text-primary, #f5f4ef); --muted: var(--color-text-secondary, #a6a39b); --line: var(--color-border-tertiary, rgba(255, 255, 255, 0.12)); --accent: #e07a45; }
+}
+:root[data-theme="dark"] { --bg: var(--color-background-primary, #262624); --bg2: var(--color-background-secondary, #30302e); --fg: var(--color-text-primary, #f5f4ef); --muted: var(--color-text-secondary, #a6a39b); --line: var(--color-border-tertiary, rgba(255, 255, 255, 0.12)); --accent: #e07a45; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: transparent; color: var(--fg); font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif); font-size: 14px; line-height: 1.45; }
+#root { display: grid; gap: 14px; padding: 16px; max-width: 760px; }
+header { display: grid; gap: 2px; }
+.eyebrow { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.eyebrow.danger { color: var(--danger); }
+h1 { margin: 0; font-size: 18px; font-weight: 650; }
+.big strong { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+.big span { color: var(--muted); }
+section { display: grid; gap: 6px; }
+.row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.muted { color: var(--muted); }
+.fine { color: var(--muted); font-size: 12px; margin: 0; }
+.quote { margin: 2px 0 0; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.warn-text { color: var(--warn); margin: 0; }
+.pill { font-size: 12.5px; padding: 2px 10px; border-radius: 999px; background: var(--bg2); }
+.pill.good { color: var(--good); }
+.pill.warn { color: var(--warn); }
+.track { position: relative; }
+.bar { height: 8px; border-radius: 999px; background: var(--bg2); overflow: hidden; }
+.fill { height: 100%; border-radius: 999px; background: var(--muted); opacity: 0.55; transition: width 0.6s ease; }
+.fill.good { background: var(--good); opacity: 0.85; }
+.fill.warn { background: var(--warn); opacity: 0.85; }
+.fill.live { background: var(--accent); opacity: 0.9; }
+.marker { position: absolute; top: -4px; width: 2px; height: 16px; background: var(--fg); border-radius: 1px; }
+.scenes { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.scenes li { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); }
+.scenes .bar { height: 5px; }
+.scene { font-weight: 600; }
+.cost { padding-top: 4px; border-top: 1px solid var(--line); }
+.actions { display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.len { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); margin-right: auto; }
+input[type="number"] { width: 72px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; }
+button { font: inherit; font-weight: 600; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button:hover { filter: brightness(1.05); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+video { width: 100%; border-radius: var(--radius); background: #000; aspect-ratio: 16 / 9; }

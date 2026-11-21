@@ -62,7 +62,42 @@ account and is private. When `status` says it is done, give the user the
 `watch_url`. Tell them to watch it and check it against your explanation;
 if it is right they can make it public from that page. `my_videos` lists
 what they have made.
+
+The user decides how long the video is. Always pass the length they chose as
+`target_minutes` to `estimate`. In hosts that show Vivaran's panel, `estimate`
+shows the plan (each scene's length, the total against their length, the cost),
+`render` shows live progress and then the video, and `account` shows their
+credits. Buttons in the panel send the user's words into the chat, such as
+"Change the script to about 8 minutes" or "Render it": act on them as if typed.
+If the plan is more than about 15% off the chosen length, say so and offer to
+add or remove steps; render only when the user agrees.
 """
+
+# The panel shown inside hosts that support MCP Apps (Claude, ChatGPT and others).
+PANEL_URI = "ui://vivaran/panel.html"
+PANEL_MIME = "text/html;profile=mcp-app"
+
+
+def panel_meta(*, app_only: bool = False) -> dict[str, Any]:
+    """Tool metadata that shows the panel with this tool's result. Both spellings, for older hosts."""
+    ui: dict[str, Any] = {"resourceUri": PANEL_URI}
+    if app_only:
+        ui["visibility"] = ["app"]
+    return {"ui": ui, "ui/resourceUri": PANEL_URI}
+
+
+def signed(site_url: str, path: str, video_id: str, hours: float = 6) -> str:
+    """A link to a video file or thumbnail that works for a few hours without signing in, for the panel's
+    player (the host shows the panel in a sandbox without the site's cookies). The site checks it with the
+    same CEVG_INTERNAL_TOKEN."""
+    import hashlib
+    import hmac
+    key = os.environ.get("CEVG_INTERNAL_TOKEN", "")
+    if not key:
+        return ""
+    expires = int(time.time() + hours * 3600)
+    sig = hmac.new(key.encode(), f"{video_id}.{expires}".encode(), hashlib.sha256).hexdigest()[:32]
+    return f"{site_url}/api/videos/{video_id}/{path}?exp={expires}&sig={sig}"
 
 
 class Limit(ValueError):
@@ -166,6 +201,9 @@ class Platform(Studio):
                      f"voice; {c['silent_or_own_key']:g} per started {c['minutes_per_credit']:g} minutes silent or "
                      f"voiced on the user's own Gnani key"),
             "more_credits": f"{self.site_url}/dashboard",
+            "limits_url": self._limit_link("other"),
+            "held": bool((self._one("select free_held and vivaran_tier(id) = 'free' as held from users where id = %s",
+                                    (user["id"],)) or {}).get("held")),
             **({"admin": "this is an admin account: renders are not charged"} if user.get("is_admin") else {}),
         }
 
@@ -343,6 +381,35 @@ class Platform(Studio):
             report["advice"] = "still working; ask again in about 20 seconds"
         return report
 
+    def progress_for_panel(self, user: dict[str, Any], video_id: str) -> dict[str, Any]:
+        """`job`, plus what the panel needs: the video's note, and signed links to play it once done."""
+        report = self.job(user, video_id)
+        if report.get("state") == "done":
+            row = self._one("select progress from videos where id = %s", (video_id,))
+            report["note"] = (row or {}).get("progress", "")
+            report["player"] = {"video": signed(self.site_url, "file", video_id),
+                                "poster": signed(self.site_url, "thumb", video_id)}
+        return report
+
+    def plan(self, user: dict[str, Any], script: dict[str, Any], language: str, target_minutes: float | None,
+             voice: bool) -> dict[str, Any]:
+        """`estimate`, with the length the user chose, what rendering it costs and what the account has."""
+        result = self.estimate(script, language)
+        with self._connect() as db:
+            p = credits.plans(db)
+        own = bool(self.gnani_key_for(user["id"])) if voice else False
+        acc = self.account(user)
+        result.update(view="plan", voice=voice, target_minutes=target_minutes,
+                      cost=0.0 if user.get("is_admin") else credits.cost(p, result["seconds"], voice and not own),
+                      account={k: acc[k] for k in ("tier", "credits", "longest_video_minutes")})
+        if target_minutes:
+            off = result["minutes"] / target_minutes - 1
+            result["length_check"] = ("on target" if abs(off) <= 0.15 else
+                                      f"{abs(off) * 100:.0f}% {'longer' if off > 0 else 'shorter'} than the "
+                                      f"{target_minutes:g} minutes the user chose: offer to "
+                                      f"{'remove' if off > 0 else 'add'} steps before rendering")
+        return result
+
     def library(self, user: dict[str, Any]) -> list[dict[str, Any]]:
         rows = self._all("select id, title, language, status, seconds, is_public, created_at from videos "
                          "where user_id = %s order by created_at desc limit 30", (user["id"],))
@@ -411,12 +478,22 @@ def build(platform: Platform) -> MCPServer:
         user = who(ctx)
         return guarded(lambda: platform.figure_for(user, prompt))
 
-    @server.tool(title="Estimate length and contents", annotations=READ_ONLY)
-    def estimate(script: dict[str, Any], language: str = "en") -> dict[str, Any]:
+    @server.resource(PANEL_URI, name="vivaran-panel", title="Vivaran", mime_type=PANEL_MIME,
+                     description="Vivaran's panel: the video plan, render progress and the account.",
+                     meta={"ui": {"prefersBorder": True,
+                                  "csp": {"resourceDomains": [platform.site_url], "connectDomains": []}}})
+    def panel() -> str:
+        return (Path(__file__).with_name("panel.html")).read_text(encoding="utf-8")
+
+    @server.tool(title="Estimate length and contents", annotations=READ_ONLY, meta=panel_meta())
+    def estimate(ctx: Context, script: dict[str, Any], language: str = "en", target_minutes: float | None = None,
+                 voice: bool = True) -> dict[str, Any]:
         """How long the video will be, in minutes, and an outline of its scenes with the time each takes,
-        without rendering. Use it to bring the script to the length the user chose, and to tell the user
-        what the video will contain before `render`."""
-        return guarded(lambda: platform.estimate(script, language))
+        without rendering, with what rendering it costs. Pass `target_minutes`, the length the user chose,
+        and `voice` as you will render. Use it to bring the script to the user's length, and to show the
+        user what the video will contain before `render`; `length_check` says how far off it is."""
+        user = who(ctx)
+        return guarded(lambda: platform.plan(user, script, language, target_minutes, voice))
 
     @server.tool(title="List the narration voices", annotations=READ_ONLY)
     def voices() -> dict[str, Any]:
@@ -431,7 +508,7 @@ def build(platform: Platform) -> MCPServer:
         who(ctx)
         return guarded(lambda: platform.sample(speaker, language, pace))
 
-    @server.tool(title="Start rendering the video", annotations=MAKES_FILES)
+    @server.tool(title="Start rendering the video", annotations=MAKES_FILES, meta=panel_meta())
     def render(ctx: Context, script: dict[str, Any], language: str = "en", voice: bool = True,
                captions: bool = False, speaker: str = "", pace: float = 1.0,
                subject: str | None = None) -> dict[str, Any]:
@@ -444,13 +521,19 @@ def build(platform: Platform) -> MCPServer:
         one credit per started 10 minutes with Vivaran's voice, a quarter of that silent or on the user's own
         Gnani key. A failed render gives its credits back. Validate, preview and estimate first."""
         user = who(ctx)
-        return guarded(lambda: platform.start(user, script, language, voice, captions, speaker, pace, subject))
+        started = guarded(lambda: platform.start(user, script, language, voice, captions, speaker, pace, subject))
+        return {**started, "view": "render", "title": str(script.get("title") or "Untitled")[:200]}
 
-    @server.tool(title="Credits and plan", annotations=READ_ONLY)
+    @server.tool(title="Credits and plan", annotations=READ_ONLY, meta=panel_meta())
     def account(ctx: Context) -> dict[str, Any]:
         """The user's plan, credits left and what a video costs. Check it before `render` and tell the user
         what the video will cost."""
-        return platform.account(who(ctx))
+        return {**platform.account(who(ctx)), "view": "account"}
+
+    @server.tool(title="Render progress for the panel", annotations=READ_ONLY, meta=panel_meta(app_only=True))
+    def video_progress(ctx: Context, job: str) -> dict[str, Any]:
+        """For Vivaran's panel: how a render is going, and links to play it once done. Use `status` instead."""
+        return platform.progress_for_panel(who(ctx), job)
 
     @server.tool(title="Ask how a render is going", annotations=READ_ONLY)
     def status(ctx: Context, job: str) -> dict[str, Any]:
